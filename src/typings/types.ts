@@ -3,7 +3,7 @@ import { Users } from "src/entities/Users";
 
 export type UserWithoutPassword = Pick<Users, 'id' | 'email' | 'createdAt' | 'deletedAt'>;
 
-export type TodosWithoutUserId = Pick<Todos, 'id' | 'contents' | 'isComplete' | 'createdAt' | 'deadline'>;
+export type TodosWithoutUserId = Pick<Todos, 'id' | 'contents' | 'isComplete' | 'date' | 'deadline'>;
 
 type ProcessedTodo = Pick<Todos, 'id' | 'contents' | 'isComplete' | 'deadline'>;
 
