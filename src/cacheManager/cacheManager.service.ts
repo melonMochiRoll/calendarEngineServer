@@ -9,38 +9,64 @@ export class CacheManagerService {
     private cacheManager: Cache,
   ) {}
 
-  async getCache(
+  generateCacheKey(
+    userId: number,
     key: string,
-    property: string,
   ) {
-    const cached = await this.cacheManager.get(key) || {};
-    return cached[property] || null;
+    return `${userId}-${key}`;
+  };
+
+  async getCache(
+    userId: number,
+    key: string,
+  ) {
+    try {
+      const cacheKey = this.generateCacheKey(userId, key);
+      const cached = await this.cacheManager.get(cacheKey) || null;
+
+      return cached;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
   };
 
   async setCache(
+    userId: number,
     key: string,
-    property: string,
     value: any,
   ) {
-    const cached = await this.cacheManager.get(key) || {};
-    cached[property] = value;
-    await this.cacheManager.set(key, cached);
+    try {
+      const cacheKey = this.generateCacheKey(userId, key);
+      const ttl = key === 'userData' ? 900 : 5;
+
+      await this.cacheManager.set(cacheKey, value, ttl);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   async delCache(
+    userId: number,
     key: string,
-    property: string,
   ) {
-    const cached = await this.cacheManager.get(key) || {};
-    if (!cached) return;
-
-    delete cached[property];
-    await this.cacheManager.set(key, cached);
+    try {
+      const cacheKey = this.generateCacheKey(userId, key);
+      const cached = await this.cacheManager.get(cacheKey);
+  
+      if (!cached) return;
+  
+      await this.cacheManager.del(cacheKey);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  async eliminate(
-    key: string,
-  ) {
-    await this.cacheManager.del(key);
+  async resetCache() {
+    try {
+      await this.cacheManager.reset();
+    } catch (err) {
+      console.error(err);
+    }
   };
 }
