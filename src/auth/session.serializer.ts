@@ -1,17 +1,15 @@
-import { CACHE_MANAGER } from "@nestjs/cache-manager";
-import { Inject, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { PassportSerializer } from "@nestjs/passport";
 import { Users } from "src/entities/Users";
 import { UserWithoutPassword } from "src/typings/types";
-import { Cache } from 'cache-manager';
 import { UsersService } from "src/users/users.service";
+import { CacheManagerService } from "src/cacheManager/cacheManager.service";
 
 @Injectable()
 export class SessionSerializer extends PassportSerializer {
   constructor(
-    @Inject(CACHE_MANAGER)
-    private cacheManager: Cache,
     private usersService: UsersService,
+    private cacheManagerService: CacheManagerService,
   ) {
     super();
   }
@@ -21,7 +19,7 @@ export class SessionSerializer extends PassportSerializer {
   };
 
   async deserializeUser(userId: number, done: (err: Error, user: UserWithoutPassword) => void) {
-    const cached = await this.cacheManager.get(`${userId}`);
+    const cached = await this.cacheManagerService.getCache(userId, 'userData');
     if (cached) {
       return done(null, cached as UserWithoutPassword);
     }
@@ -32,7 +30,7 @@ export class SessionSerializer extends PassportSerializer {
     }
 
     const { password, ...rest } = result;
-    await this.cacheManager.set(`${userId}`, rest);
+    await this.cacheManagerService.setCache(userId, 'userData', rest);
 
     return done(null, rest);
   };
