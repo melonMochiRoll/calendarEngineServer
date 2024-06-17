@@ -15,6 +15,7 @@ async function bootstrap() {
     origin: 'http://localhost:9000',
     methods: ['GET', 'POST'],
     optionsSuccessStatus: 204,
+    credentials: true,
   };
   app.enableCors(devCorsOption);
 
