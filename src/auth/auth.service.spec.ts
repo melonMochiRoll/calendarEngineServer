@@ -48,7 +48,7 @@ describe('AuthService', () => {
       deletedAt: null,
     };
 
-    it('해당되는 유저가 있고 비밀번호가 일치하면 password를 뺀 user 객체를 반환해야함', async () => {
+    it('해당되는 유저가 있고 비밀번호가 일치하면 password를 뺀 user 객체를 반환해야 함', async () => {
       const spyBcrypt = jest
         .spyOn(bcrypt, 'compare')
         .mockImplementation(() => Promise.resolve(true));
@@ -58,7 +58,7 @@ describe('AuthService', () => {
       expect(user).toStrictEqual(expertUser);
     });
 
-    it('해당되는 유저가 없거나 비밀번호가 틀리면 null을 반환해야함', async () => {
+    it('해당되는 유저가 없거나 비밀번호가 틀리면 null을 반환해야 함', async () => {
       const spyBcrypt = jest
         .spyOn(bcrypt, 'compare')
         .mockImplementation(() => Promise.resolve(false));
