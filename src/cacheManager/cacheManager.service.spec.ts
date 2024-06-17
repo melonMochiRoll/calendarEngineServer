@@ -18,7 +18,7 @@ describe('CacheManagerService', () => {
   });
 
   it('정의', () => {
-    expect(CacheManagerService).toBeDefined();
+    expect(cacheManagerService).toBeDefined();
   });
 
   describe('getCache', () => {
