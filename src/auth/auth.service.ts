@@ -13,18 +13,13 @@ export class AuthService {
     password: string,
   ) {
     const user = await this.usersService.getOneByEmail(email);
+    const compare = await bcrypt.compare(password, user?.password);
 
-    if (!user) {
+    if (!user || !compare) {
       return null;
     }
 
-    const compare = await bcrypt.compare(password, user.password);
-
-    if (compare) {
-      const { password, ...rest } = user;
-      return rest;
-    }
-
-    return null;
+    const { password: userPassword, ...rest } = user;
+    return rest;
   }
 }
