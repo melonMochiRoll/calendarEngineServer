@@ -45,7 +45,7 @@ export class UsersService {
     }
 
     try {
-      const SALT_OR_ROUNDS = Number(process.env.SALTORROUNDS);
+      const SALT_OR_ROUNDS = Number(process.env.SALT_OR_ROUNDS);
 
       const hash = await bcrypt.hash(password, SALT_OR_ROUNDS);
       await this.usersRepository.save({
