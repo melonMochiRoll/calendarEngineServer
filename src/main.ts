@@ -13,7 +13,7 @@ async function bootstrap() {
 
   const devCorsOption = {
     origin: 'http://localhost:9000',
-    methods: ['GET', 'POST'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
     optionsSuccessStatus: 204,
     credentials: true,
   };
