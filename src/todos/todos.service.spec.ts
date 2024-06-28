@@ -8,7 +8,15 @@ import { ConfigModule } from '@nestjs/config';
 import { Users } from 'src/entities/Users';
 import { BadRequestException } from '@nestjs/common';
 
-class mockCacheManagerService {};
+class mockCacheManagerService {
+  getCache() {
+    return null;
+  }
+
+  setCache() {
+    return;
+  }
+};
 
 describe('TodosService', () => {
   let todosService: TodosService;
@@ -75,5 +83,9 @@ describe('TodosService', () => {
         await todosService.getTodos('20240618', 10);
       }).rejects.toThrowError(new BadRequestException('날짜 형식을 확인해 주세요.'));
     });
+  });
+
+  afterAll(() => {
+    jest.resetModules();
   });
 });
