@@ -3,9 +3,9 @@ import { Users } from "src/entities/Users";
 
 export type UserWithoutPassword = Pick<Users, 'id' | 'email' | 'createdAt' | 'deletedAt'>;
 
-export type TodosWithoutUserId = Pick<Todos, 'id' | 'contents' | 'isComplete' | 'date' | 'deadline'>;
+export type TodosWithoutUserId = Pick<Todos, 'id' | 'contents' | 'isComplete' | 'date'>;
 
-type ProcessedTodo = Pick<Todos, 'id' | 'contents' | 'isComplete' | 'deadline'>;
+type ProcessedTodo = Pick<Todos, 'id' | 'contents' | 'isComplete'>;
 
 export type ProcessedTodos = {
   [key: string]: ProcessedTodo[],
