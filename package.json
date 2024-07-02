@@ -9,7 +9,7 @@
     "build": "nest build",
     "start": "nest start",
     "dev": "nest build --webpack --webpackPath webpack-hmr.config.js --watch",
-    "test": "jest -c jest.config.ts"
+    "test": "jest --detectOpenHandles -c jest.config.ts"
   },
   "dependencies": {
     "@nestjs/cache-manager": "^2.1.1",
