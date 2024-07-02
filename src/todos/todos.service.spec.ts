@@ -85,6 +85,37 @@ describe('TodosService', () => {
     });
   });
 
+  describe('searchTodos', () => {
+    const expectTodos = [
+      {
+        id: 183,
+        contents: 'Todo 검색 기능 정의',
+        date: '2024-07-02',
+        isComplete: false,
+        UserId: 12,
+      },
+      {
+        id: 177,
+        contents: 'Todo 검색 기능',
+        date: '2024-06-26',
+        isComplete: true,
+        UserId: 12,
+      }
+    ];
+
+    it('contents 컬럼에 해당 키워드가 포함된 todos들이 있다면 그 결과가 반환 되어야 한다.', async () => {
+      const result = await todosService.searchTodos('Todo', 0, 10, 12);
+
+      expect(result).toEqual(expectTodos);
+    });
+
+    it('contents 컬럼에 해당 키워드가 포함된 todos들이 없다면 빈 배열이 반환 되어야 한다.', async () => {
+      const result = await todosService.searchTodos('somethingKeyword', 0, 10, 12);
+
+      expect(result).toEqual([]);
+    });
+  });
+
   afterAll(() => {
     jest.resetModules();
   });
