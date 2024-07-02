@@ -32,12 +32,6 @@ export class Todos {
   date: Date;
 
   @Column({
-    type: 'date',
-    nullable: true,
-  })
-  deadline: Date;
-
-  @Column({
     type: 'int',
     name: 'UserId',
     unsigned: true,
