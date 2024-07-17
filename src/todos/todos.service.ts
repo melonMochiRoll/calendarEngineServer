@@ -29,7 +29,7 @@ export class TodosService {
     const currentDay = currentDate.date();
 
     const cached = await this.cacheManagerService.getCache(
-      `${UserId}`,
+      UserId,
       `${currentYear}-${currentMonth}-${currentDay}`
     );
     if (cached) {
@@ -46,7 +46,7 @@ export class TodosService {
 
       if (searchResult.length) {
         await this.cacheManagerService.setCache(
-          `${UserId}`,
+          UserId,
           `${currentYear}-${currentMonth}-${currentDay}`,
           searchResult,
         );
@@ -68,7 +68,7 @@ export class TodosService {
       const currentMonth = currentDate.month() + 1;
 
       const cached = await this.cacheManagerService.getCache(
-        `${UserId}`,
+        UserId,
         `${currentYear}-${currentMonth}`,
       );
       if (cached) {
@@ -113,7 +113,7 @@ export class TodosService {
           }, {});
       
       if (todosList.length) {
-        await this.cacheManagerService.setCache(`${UserId}`, `${currentYear}-${currentMonth}`, todosList);
+        await this.cacheManagerService.setCache(UserId, `${currentYear}-${currentMonth}`, todosList);
       }
       
       return todosList;
@@ -151,8 +151,8 @@ export class TodosService {
         })
         .then(
           async () => {
-            await this.cacheManagerService.delCache(`${UserId}`, `${currentYear}-${currentMonth}`);
-            await this.cacheManagerService.delCache(`${UserId}`, `${currentYear}-${currentMonth}-${currentDay}`);
+            await this.cacheManagerService.delCache(UserId, `${currentYear}-${currentMonth}`);
+            await this.cacheManagerService.delCache(UserId, `${currentYear}-${currentMonth}-${currentDay}`);
           }
         );
 
@@ -179,8 +179,8 @@ export class TodosService {
         .update({ id: todosId }, { contents, isComplete })
         .then(
           async () => {
-            await this.cacheManagerService.delCache(`${UserId}`, `${currentYear}-${currentMonth}`);
-            await this.cacheManagerService.delCache(`${UserId}`, `${currentYear}-${currentMonth}-${currentDay}`);
+            await this.cacheManagerService.delCache(UserId, `${currentYear}-${currentMonth}`);
+            await this.cacheManagerService.delCache(UserId, `${currentYear}-${currentMonth}-${currentDay}`);
           }
         );
 
@@ -205,8 +205,8 @@ export class TodosService {
         .delete(todosId)
         .then(
           async () => {
-            await this.cacheManagerService.delCache(`${UserId}`, `${currentYear}-${currentMonth}`);
-            await this.cacheManagerService.delCache(`${UserId}`, `${currentYear}-${currentMonth}-${currentDay}`);
+            await this.cacheManagerService.delCache(UserId, `${currentYear}-${currentMonth}`);
+            await this.cacheManagerService.delCache(UserId, `${currentYear}-${currentMonth}-${currentDay}`);
           }
         );
 
@@ -217,21 +217,30 @@ export class TodosService {
   };
 
   async searchTodos(
-    keyword: string,
+    query: string,
+    offset: number,
+    limit: number,
     UserId: number,
   ) {
-    const searchResult =
-      await this.todosRepository.find({
-        where: {
-          UserId,
-          contents: Like(`%${keyword}%`),
-        },
-        order: {
-          date: 'DESC',
-        },
-        take: 10, // 하나의 페이지 or 블럭의 임의의 todos 갯수
-      });
+    try {
+      offset = (offset - 1) * limit;
 
-    return searchResult;
+      const searchResult =
+        await this.todosRepository.find({
+          where: {
+            UserId,
+            contents: Like(`%${query}%`),
+          },
+          order: {
+            date: 'DESC',
+          },
+          skip: offset,
+          take: limit,
+        });
+
+      return searchResult;
+    } catch (err) {
+      throw new InternalServerErrorException(err);
+    }
   };
 }
