@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, ParseIntPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, ParseIntPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { TodosService } from './todos.service';
 import { CreateDateTodosDto } from './dto/createDateTodos.dto';
 import { UpdateDateTodosDto } from './dto/updateDateTodos.dto';
@@ -72,6 +72,21 @@ export class TodosController {
       todosId,
       date,
       user.id
+    );
+  }
+
+  @Get('search')
+  searchTodos(
+    @Query('query') query: string,
+    @Query('offset', ParseIntPipe) offset: number,
+    @Query('limit', ParseIntPipe) limit: number,
+    @User() user: Users,
+  ) {
+    return this.todosService.searchTodos(
+      query,
+      offset,
+      limit,
+      user.id,
     );
   }
 }
