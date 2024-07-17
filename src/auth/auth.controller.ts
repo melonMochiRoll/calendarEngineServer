@@ -20,10 +20,14 @@ export class AuthController {
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    req.logOut((err) => {
-      if (err) console.error(err);
-    });
-    res.clearCookie('connect.sid', { httpOnly: true });
-    res.status(200).send('logout');
+    try {
+      req.logOut((err) => {
+        if (err) console.error(err);
+      });
+      res.clearCookie('connect.sid', { httpOnly: true });
+      res.status(200).send('logout');
+    } catch (err) {
+      res.status(500).send('error');
+    }
   };
 }
