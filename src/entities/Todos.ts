@@ -1,52 +1,55 @@
 import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Users } from "./Users";
-import { IsBoolean, IsString } from "class-validator";
+import { Sharedspaces } from "./Sharedspaces";
 
-@Entity()
+@Index('todos_AuthorId_idx', ['AuthorId'])
+@Index('todos_date_idx', ['date'])
+@Index('todos_SharedspaceId_idx', ['SharedspaceId'])
+@Entity({ name: 'todos' })
 export class Todos {
-
-  @PrimaryGeneratedColumn({
-    type: 'int',
-    unsigned: true,
-  })
+  @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
   id: number;
 
-  @IsString()
-  @Column({
-    type: 'varchar',
-    length: 30,
-  })
-  contents: string;
+  @Column({ type: 'text' })
+  description: string;
 
-  @IsBoolean()
-  @Column({
-    type: 'boolean',
-    default: 0,
-  })
+  @Column({ type: 'boolean', default: 0 })
   isComplete: boolean;
 
-  @Index('todos_date_idx')
-  @Column({
-    type: 'date'
-  })
+  @Column({ type: 'date', name: 'date' })
   date: Date;
 
-  @Column({
-    type: 'int',
-    name: 'UserId',
-    unsigned: true,
-  })
-  UserId: number;
+  @Column({ type: 'time' })
+  startTime: Date;
 
-  @Index('todos_userid_fk_idx')
+  @Column({ type: 'time' })
+  endTime: Date;
+
+  @Column({ type: 'int', name: 'AuthorId', nullable: true })
+  AuthorId: number | null;
+
+  @Column({ type: 'int', name: 'SharedspaceId' })
+  SharedspaceId: number;
+
   @ManyToOne(() => Users, users => users.Todos, {
+    onUpdate: 'CASCADE',
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({
+    name: 'AuthorId',
+    referencedColumnName: 'id',
+    foreignKeyConstraintName: 'todos_AuthorId_fk',
+  })
+  Author: Users;
+
+  @ManyToOne(() => Sharedspaces, sharedspaces => sharedspaces.Todos, {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
   })
   @JoinColumn({
-    name: 'UserId',
+    name: 'SharedspaceId',
     referencedColumnName: 'id',
-    foreignKeyConstraintName: 'todos_userid_fk',
+    foreignKeyConstraintName: 'todos_SharedspaceId_fk',
   })
-  User: Users;
+  Sharedspace: Sharedspaces;
 }
