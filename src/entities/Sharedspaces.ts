@@ -1,11 +1,11 @@
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique } from "typeorm";
 import { Users } from "./Users";
 import { Todos } from "./Todos";
-import { SharedspaceMembers } from "./SharedspacesMembers";
+import { SharedspaceMembers } from "./SharedspaceMembers";
 
-@Index('sharedspace_OwnerId_idx', ['OwnerId'])
-@Unique('sharedspace_name_idx', ['name'])
-@Unique('sharedspace_url_idx', ['url'])
+@Index('sharedspaces_OwnerId_idx', ['OwnerId'])
+@Unique('sharedspaces_name_idx', ['name'])
+@Unique('sharedspaces_url_idx', ['url'])
 @Entity({ name: 'sharedspaces' })
 export class Sharedspaces {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id' })

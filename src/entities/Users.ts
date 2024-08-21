@@ -1,7 +1,7 @@
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn, Unique } from "typeorm";
 import { Todos } from "./Todos";
 import { Sharedspaces } from "./Sharedspaces";
-import { SharedspaceMembers } from "./SharedspacesMembers";
+import { SharedspaceMembers } from "./SharedspaceMembers";
 
 @Unique('users_email_idx', ['email'])
 @Entity({ name: 'users' })
@@ -32,7 +32,7 @@ export class Users {
 
   @ManyToMany(() => Sharedspaces, sharedspaces => sharedspaces.Members)
   @JoinTable({
-    name: 'sharedspacesmembers',
+    name: 'sharedspacemembers',
     joinColumn: {
       name: 'UserId',
       referencedColumnName: 'id'
