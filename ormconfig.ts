@@ -1,7 +1,7 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import 'dotenv/config';
 import { Sharedspaces } from 'src/entities/Sharedspaces';
-import { SharedspaceMembers } from 'src/entities/SharedspacesMembers';
+import { SharedspaceMembers } from 'src/entities/SharedspaceMembers';
 import { Todos } from 'src/entities/Todos';
 import { Users } from 'src/entities/Users';
 
