@@ -1,5 +1,7 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import 'dotenv/config';
+import { Sharedspaces } from 'src/entities/Sharedspaces';
+import { SharedspaceMembers } from 'src/entities/SharedspacesMembers';
 import { Todos } from 'src/entities/Todos';
 import { Users } from 'src/entities/Users';
 
@@ -13,6 +15,8 @@ const ormconfig: TypeOrmModuleOptions = {
   entities: [
     Users,
     Todos,
+    Sharedspaces,
+    SharedspaceMembers,
   ],
   synchronize: false,
   autoLoadEntities: true,
