@@ -19,8 +19,7 @@ export class AuthService {
       where: { email },
       select: ['id', 'email', 'password'],
     });
-
-    const compare = await bcrypt.compare(password, user?.password);
+    const compare = await bcrypt.compare(password, user?.password || '');
 
     if (!user || !compare) {
       return null;
