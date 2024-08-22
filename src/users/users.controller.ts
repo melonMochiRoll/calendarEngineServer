@@ -1,9 +1,9 @@
 import { Body, Controller, Get, Post, Query, UseGuards } from "@nestjs/common";
 import { UsersService } from "./users.service";
-import { CreateUserDTO } from "./dto/createUser.dto";
 import { IsNotAuthenicatedGuard } from "src/auth/local.auth.guard";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
+import { CreateUserDTO } from "src/typings/dto/users.dto";
 
 @Controller('api/users')
 export class UsersController {
