@@ -13,17 +13,14 @@ export class Todos {
   @Column({ type: 'text' })
   description: string;
 
-  @Column({ type: 'boolean', default: 0 })
-  isComplete: boolean;
-
   @Column({ type: 'date', name: 'date' })
   date: Date;
 
   @Column({ type: 'time' })
-  startTime: Date;
+  startTime: string;
 
   @Column({ type: 'time' })
-  endTime: Date;
+  endTime: string;
 
   @Column({ type: 'int', name: 'AuthorId', nullable: true })
   AuthorId: number | null;
