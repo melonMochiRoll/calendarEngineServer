@@ -34,12 +34,6 @@ export class UsersService {
     email: string,
     password: string,
   ): Promise<boolean> {
-    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    
-    if (!emailPattern.test(email)) {
-      throw new BadRequestException('이메일 형식을 확인해주세요');
-    }
-
     if (await this.getOneByEmail(email)) {
       throw new ConflictException('이미 가입된 이메일입니다.');
     }
