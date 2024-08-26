@@ -3,7 +3,11 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { CacheManagerService } from './cacheManager.service';
 
 @Module({
-  imports: [ CacheModule.register(), ],
+  imports: [
+    CacheModule.register({
+      isGlobal: true,
+    })
+  ],
   providers: [ CacheManagerService ],
   exports: [ CacheManagerService ],
 })
