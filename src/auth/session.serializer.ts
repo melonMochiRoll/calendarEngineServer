@@ -1,37 +1,42 @@
 import { Injectable } from "@nestjs/common";
 import { PassportSerializer } from "@nestjs/passport";
 import { Users } from "src/entities/Users";
-import { UserWithoutPassword } from "src/typings/types";
-import { UsersService } from "src/users/users.service";
 import { CacheManagerService } from "src/cacheManager/cacheManager.service";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 
 @Injectable()
 export class SessionSerializer extends PassportSerializer {
   constructor(
-    private usersService: UsersService,
+    @InjectRepository(Users)
+    private usersRepository: Repository<Users>,
     private cacheManagerService: CacheManagerService,
   ) {
     super();
   }
 
-  serializeUser(user: Users, done: (err: Error, userId: number) => void) {
+  serializeUser(user: Users, done: CallableFunction) {
     return done(null, user?.id);
   };
 
-  async deserializeUser(userId: number, done: (err: Error, user: UserWithoutPassword) => void) {
+  async deserializeUser(userId: number, done: CallableFunction) {
     const cached = await this.cacheManagerService.getCache(userId, 'userData');
     if (cached) {
-      return done(null, cached as UserWithoutPassword);
+      return done(null, cached);
     }
 
-    const result = await this.usersService.getOneById(userId);
+    const result = await this.usersRepository.findOne({
+      where: { id: userId },
+      select: [ 'id', 'email', 'createdAt' ],
+      relations: [ 'Sharedspaces' ],
+    });
+
     if (!result) {
       return done(null, null);
     }
 
-    const { password, ...rest } = result;
-    await this.cacheManagerService.setCache(userId, 'userData', rest);
+    await this.cacheManagerService.setCache(userId, 'userData', result);
 
-    return done(null, rest);
+    return done(null, result);
   };
 }
