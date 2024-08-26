@@ -3,7 +3,7 @@ import { UsersService } from "./users.service";
 import { IsNotAuthenicatedGuard } from "src/auth/local.auth.guard";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
-import { CreateUserDTO } from "src/typings/dto/users.dto";
+import { CreateUserDTO } from "./dto/create.user.dto";
 
 @Controller('api/users')
 export class UsersController {
