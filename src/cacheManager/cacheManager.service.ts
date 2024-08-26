@@ -62,6 +62,22 @@ export class CacheManagerService {
     }
   };
 
+  async clearUserCache(userId: number) {
+    try {
+      const keys = await this.cacheManager.store.keys();
+
+      if (!keys.length) {
+        return;
+      }
+
+      keys
+        .filter(key => key.startsWith(`${userId}-`))
+        .forEach(key => this.cacheManager.del(key));
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   async resetCache() {
     try {
       await this.cacheManager.reset();
