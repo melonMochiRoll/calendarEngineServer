@@ -3,10 +3,13 @@ import { IsAuthenicatedGuard, LocalAuthGuard } from "./local.auth.guard";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
 import { Request, Response } from "express";
+import { CacheManagerService } from "src/cacheManager/cacheManager.service";
 
 @Controller('api/auth')
 export class AuthController {
-  constructor() {}
+  constructor(
+    private cacheManagerService: CacheManagerService,
+  ) {}
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
@@ -19,8 +22,11 @@ export class AuthController {
   async logout(
     @Req() req: Request,
     @Res() res: Response,
+    @User() user: Users,
   ) {
     try {
+      await this.cacheManagerService.clearUserCache(user.id);
+
       req.logOut((err) => {
         if (err) console.error(err);
       });
