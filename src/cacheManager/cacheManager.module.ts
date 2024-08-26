@@ -6,6 +6,7 @@ import { CacheManagerService } from './cacheManager.service';
   imports: [
     CacheModule.register({
       isGlobal: true,
+      max: 100,
     })
   ],
   providers: [ CacheManagerService ],
