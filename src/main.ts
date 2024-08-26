@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import session from 'express-session';
 import 'dotenv/config';
 import passport from 'passport';
+import { ValidationPipe } from '@nestjs/common';
 
 declare const module: any;
 
@@ -18,6 +19,14 @@ async function bootstrap() {
     credentials: true,
   };
   app.enableCors(devCorsOption);
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      enableDebugMessages: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    })
+  );
 
   const sessionOption = {
     secret: process.env.COOKIE_SECRET,
