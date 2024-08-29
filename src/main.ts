@@ -7,13 +7,16 @@ import { ValidationPipe } from '@nestjs/common';
 
 declare const module: any;
 
+const isDevelopment = process.env.NODE_ENV === "development";
+const allowlist = isDevelopment ? ['http://localhost:9000'] : [''];
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: console,
   });
 
   const devCorsOption = {
-    origin: 'http://localhost:9000',
+    origin: allowlist,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     optionsSuccessStatus: 204,
     credentials: true,
