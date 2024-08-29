@@ -4,6 +4,7 @@ import session from 'express-session';
 import 'dotenv/config';
 import passport from 'passport';
 import { ValidationPipe } from '@nestjs/common';
+import { useContainer } from 'class-validator';
 
 declare const module: any;
 
@@ -14,6 +15,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: console,
   });
+
+  useContainer(app.select(AppModule), { fallbackOnErrors: true }); // Enable dependency injection for custom validation
 
   const devCorsOption = {
     origin: allowlist,
