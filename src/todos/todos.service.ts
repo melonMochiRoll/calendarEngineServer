@@ -3,244 +3,175 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Between, Like, Repository } from "typeorm";
 import { Todos } from "src/entities/Todos";
 import dayjs from "dayjs";
-import { CacheManagerService } from "src/cacheManager/cacheManager.service";
+import { CreateTodoDTO } from "./dto/create.todo.dto";
 
 @Injectable()
 export class TodosService {
   constructor(
     @InjectRepository(Todos)
     private todosRepository: Repository<Todos>,
-    private cacheManagerService: CacheManagerService,
   ) {}
 
   async getTodos(
     date: string,
-    UserId: number,
+    AuthorId: number,
   ): Promise<any> {
-    const datePattern = /^\w{4}-\w{2}-\w{2}$/;
+    // const datePattern = /^\w{4}-\w{2}-\w{2}$/;
 
-    if (!datePattern.test(date)) {
-      throw new BadRequestException('날짜 형식을 확인해 주세요.');
-    }
+    // if (!datePattern.test(date)) {
+    //   throw new BadRequestException('날짜 형식을 확인해 주세요.');
+    // }
 
-    const currentDate = dayjs(`${date}`);
-    const currentYear = currentDate.year();
-    const currentMonth = currentDate.month() + 1;
-    const currentDay = currentDate.date();
+    // const currentDate = dayjs(`${date}`);
+    // const currentYear = currentDate.year();
+    // const currentMonth = currentDate.month() + 1;
+    // const currentDay = currentDate.date();
+    // try {
+    //   const searchResult = await this.todosRepository.find({
+    //     where: {
+    //       AuthorId,
+    //       date: dayjs(date).toDate(),
+    //     },
+    //   });
 
-    const cached = await this.cacheManagerService.getCache(
-      UserId,
-      `${currentYear}-${currentMonth}-${currentDay}`
-    );
-    if (cached) {
-      return cached;
-    }
-
-    try {
-      const searchResult = await this.todosRepository.find({
-        where: {
-          UserId,
-          date: dayjs(date).toDate(),
-        },
-      });
-
-      if (searchResult.length) {
-        await this.cacheManagerService.setCache(
-          UserId,
-          `${currentYear}-${currentMonth}-${currentDay}`,
-          searchResult,
-        );
-      }
-
-      return searchResult;
-    } catch (err: any) {
-      throw new InternalServerErrorException(err);
-    }
+    //   return searchResult;
+    // } catch (err: any) {
+    //   throw new InternalServerErrorException(err);
+    // }
   };
 
   async getCurrentMonthTodosList(
     date: string,
-    UserId: number,
+    AuthorId: number,
   ): Promise<any> {
-    try {
-      const currentDate = dayjs(`${date}`);
-      const currentYear = currentDate.year();
-      const currentMonth = currentDate.month() + 1;
+    // try {
+    //   const currentDate = dayjs(`${date}`);
+    //   const currentYear = currentDate.year();
+    //   const currentMonth = currentDate.month() + 1;
 
-      const cached = await this.cacheManagerService.getCache(
-        UserId,
-        `${currentYear}-${currentMonth}`,
-      );
-      if (cached) {
-        return cached;
-      }
+    //   const searchResult =
+    //     await this.todosRepository
+    //       .find({
+    //         select: {
+    //           description: true,
+    //           date: true,
+    //         },
+    //         where: {
+    //           AuthorId,
+    //           date: Between(
+    //             dayjs(`${currentYear}-${currentMonth}-1`).toDate(),
+    //             dayjs(`${currentYear}-${currentMonth}-31`).toDate()
+    //           )
+    //         },
+    //         order: {
+    //           id: 'ASC',
+    //         }
+    //       });
 
-      const searchResult =
-        await this.todosRepository
-          .find({
-            select: {
-              contents: true,
-              date: true,
-            },
-            where: {
-              UserId,
-              date: Between(
-                dayjs(`${currentYear}-${currentMonth}-1`).toDate(),
-                dayjs(`${currentYear}-${currentMonth}-31`).toDate()
-              )
-            },
-            order: {
-              id: 'ASC',
-            }
-          });
+    //   const todosList =
+    //     searchResult
+    //       .reduce((acc: any, item: { description: string, date: Date }) => {
+    //         if (acc[`${item.date}`]) {
+    //           if (acc[`${item.date}`].partialContents.length < 3) {
+    //             acc[`${item.date}`].partialContents.push(item.description);
+    //             return acc;
+    //           }
 
-      const todosList =
-        searchResult
-          .reduce((acc: any, item: { contents: string, date: Date }) => {
-            if (acc[`${item.date}`]) {
-              if (acc[`${item.date}`].partialContents.length < 3) {
-                acc[`${item.date}`].partialContents.push(item.contents);
-                return acc;
-              }
-
-              return acc;
-            }
+    //           return acc;
+    //         }
   
-            acc[`${item.date}`] = {
-              partialContents: [ item.contents ],
-            };
-            return acc;
-          }, {});
+    //         acc[`${item.date}`] = {
+    //           partialContents: [ item.description ],
+    //         };
+    //         return acc;
+    //       }, {});
       
-      if (todosList.length) {
-        await this.cacheManagerService.setCache(UserId, `${currentYear}-${currentMonth}`, todosList);
-      }
-      
-      return todosList;
-    } catch (err: any) {
-      throw new InternalServerErrorException(err);
-    }
+    //   return todosList;
+    // } catch (err: any) {
+    //   throw new InternalServerErrorException(err);
+    // }
   };
 
-  async createDateTodos(
-    contents: string,
-    date: string,
-    UserId: number,
-  ) {
-    contents = contents.trim();
-
-    const currentDate = dayjs(`${date}`);
-    const currentYear = currentDate.year();
-    const currentMonth = currentDate.month() + 1;
-    const currentDay = currentDate.date();
-
-    if (contents.length > 30) {
-      throw new BadRequestException('컨텐츠의 길이가 너무 깁니다!');
-    }
-
-    if (!contents) {
-      throw new BadRequestException('유효하지 않은 내용입니다.');
-    }
-
+  async createTodo(dto: CreateTodoDTO) {
     try {
-      await this.todosRepository
-        .save({
-          contents,
-          date: currentDate.toDate(),
-          UserId,
-        })
-        .then(
-          async () => {
-            await this.cacheManagerService.delCache(UserId, `${currentYear}-${currentMonth}`);
-            await this.cacheManagerService.delCache(UserId, `${currentYear}-${currentMonth}-${currentDay}`);
-          }
-        );
+      await this.todosRepository.save({ ...dto });
 
       return true;
     } catch (err: any) {
+      console.error(`createTodo : ${err}`);
       throw new InternalServerErrorException(err);
     }
   };
 
   async updateDateTodos(
     todosId: number,
-    contents: string,
-    isComplete: boolean,
+    description: string,
     date: string,
-    UserId: number,
+    AuthorId: number,
   ) {
-    const currentDate = dayjs(`${date}`);
-    const currentYear = currentDate.year();
-    const currentMonth = currentDate.month() + 1;
-    const currentDay = currentDate.date();
+    // const currentDate = dayjs(`${date}`);
+    // const currentYear = currentDate.year();
+    // const currentMonth = currentDate.month() + 1;
+    // const currentDay = currentDate.date();
 
-    try {
-      await this.todosRepository
-        .update({ id: todosId }, { contents, isComplete })
-        .then(
-          async () => {
-            await this.cacheManagerService.delCache(UserId, `${currentYear}-${currentMonth}`);
-            await this.cacheManagerService.delCache(UserId, `${currentYear}-${currentMonth}-${currentDay}`);
-          }
-        );
+    // try {
+    //   await this.todosRepository
+    //     .update({ id: todosId }, { description });
 
-      return true;
-    } catch (err: any) {
-      throw new InternalServerErrorException(err);
-    }
+    //   return true;
+    // } catch (err: any) {
+    //   throw new InternalServerErrorException(err);
+    // }
   };
 
   async deleteDateTodos(
     todosId: number,
     date: string,
-    UserId: number,
+    AuthorId: number,
   ) {
-    try {
-      const currentDate = dayjs(`${date}`);
-      const currentYear = currentDate.year();
-      const currentMonth = currentDate.month() + 1;
-      const currentDay = currentDate.date();
+    // try {
+    //   const currentDate = dayjs(`${date}`);
+    //   const currentYear = currentDate.year();
+    //   const currentMonth = currentDate.month() + 1;
+    //   const currentDay = currentDate.date();
 
-      await this.todosRepository
-        .delete(todosId)
-        .then(
-          async () => {
-            await this.cacheManagerService.delCache(UserId, `${currentYear}-${currentMonth}`);
-            await this.cacheManagerService.delCache(UserId, `${currentYear}-${currentMonth}-${currentDay}`);
-          }
-        );
+    //   await this.todosRepository
+    //     .delete(todosId);
 
-      return true;
-    } catch (err: any) {
-      throw new InternalServerErrorException(err);
-    }
+    //   return true;
+    // } catch (err: any) {
+    //   throw new InternalServerErrorException(err);
+    // }
   };
 
   async searchTodos(
     query: string,
     offset: number,
     limit: number,
-    UserId: number,
+    AuthorId: number,
   ) {
-    try {
-      offset = (offset - 1) * limit;
+    // try {
+    //   offset = (offset - 1) * limit;
 
-      const searchResult =
-        await this.todosRepository.find({
-          where: {
-            UserId,
-            contents: Like(`%${query}%`),
-          },
-          order: {
-            date: 'DESC',
-          },
-          skip: offset,
-          take: limit,
-        });
+    //   const searchResult =
+    //     await this.todosRepository.find({
+    //       where: {
+    //         AuthorId,
+    //         description: Like(`%${query}%`),
+    //       },
+    //       order: {
+    //         date: 'DESC',
+    //       },
+    //       skip: offset,
+    //       take: limit,
+    //     });
 
-      return searchResult;
-    } catch (err) {
-      throw new InternalServerErrorException(err);
-    }
+    //   return searchResult;
+    // } catch (err) {
+    //   throw new InternalServerErrorException(err);
+    // }
   };
 }
+
+// TODO : 테이블 구조 변경에 따른 로직 수정 필요
+// TODO : 로직 수정에 따른 캐싱 전략 수정 필요
