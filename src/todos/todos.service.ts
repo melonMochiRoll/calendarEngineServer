@@ -103,25 +103,17 @@ export class TodosService {
     }
   };
 
-  async updateDateTodos(
-    todosId: number,
-    description: string,
-    date: string,
-    AuthorId: number,
-  ) {
-    // const currentDate = dayjs(`${date}`);
-    // const currentYear = currentDate.year();
-    // const currentMonth = currentDate.month() + 1;
-    // const currentDay = currentDate.date();
+  async updateTodo(dto: any) {
+    const { id, rest } = dto;
 
-    // try {
-    //   await this.todosRepository
-    //     .update({ id: todosId }, { description });
+    try {
+      await this.todosRepository.update({ id }, { ...rest });
 
-    //   return true;
-    // } catch (err: any) {
-    //   throw new InternalServerErrorException(err);
-    // }
+      return true;
+    } catch (err: any) {
+      console.error(`updateTodo : ${err}`)
+      throw new InternalServerErrorException(err);
+    }
   };
 
   async deleteDateTodos(

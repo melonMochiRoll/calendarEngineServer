@@ -1,12 +1,12 @@
 import { Body, Controller, Delete, Get, HttpCode, ParseIntPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { TodosService } from './todos.service';
-import { CreateDateTodosDto } from './dto/createDateTodos.dto';
-import { UpdateDateTodosDto } from './dto/updateDateTodos.dto';
 import { User } from 'src/common/decorator/user.decorator';
 import { Users } from 'src/entities/Users';
 import { IsAuthenicatedGuard } from 'src/auth/local.auth.guard';
+import { CreateTodoDTO } from './dto/create.todo.dto';
+import { UpdateTodoDto } from './dto/update.todo.dto';
 
-@UseGuards(IsAuthenicatedGuard)
+// @UseGuards(IsAuthenicatedGuard)
 @Controller('api/todos')
 export class TodosController {
   constructor(
@@ -18,10 +18,10 @@ export class TodosController {
     @Query('date') date: string,
     @User() user: Users,
   ) {
-    return this.todosService.getTodos(
-      date,
-      user.id,
-    );
+    // return this.todosService.getTodos(
+    //   date,
+    //   user.id,
+    // );
   };
 
   @Get('list')
@@ -29,36 +29,20 @@ export class TodosController {
     @Query('date') date: string,
     @User() user: Users,
   ) {
-    return this.todosService.getCurrentMonthTodosList(
-      date,
-      user.id,
-    );
+    // return this.todosService.getCurrentMonthTodosList(
+    //   date,
+    //   user.id,
+    // );
   };
 
   @Post()
-  createDateTodos(
-    @Body() dto: CreateDateTodosDto,
-    @User() user: Users,
-  ) {
-    return this.todosService.createDateTodos(
-      dto.contents,
-      dto.date,
-      user.id,
-    );
+  createTodo(@Body() dto: CreateTodoDTO) {
+    return this.todosService.createTodo(dto);
   };
 
   @Put()
-  updateDateTodos(
-    @Body() dto: UpdateDateTodosDto,
-    @User() user: Users,
-  ) {
-    return this.todosService.updateDateTodos(
-      dto.todosId,
-      dto.contents,
-      dto.isComplete,
-      dto.date,
-      user.id
-    );
+  updateTodo(@Body() dto: UpdateTodoDto) {
+    return this.todosService.updateTodo(dto);
   };
 
   @Delete()
@@ -68,11 +52,11 @@ export class TodosController {
     @Query('date') date: string,
     @User() user: Users,
   ) {
-    return this.todosService.deleteDateTodos(
-      todosId,
-      date,
-      user.id
-    );
+    // return this.todosService.deleteDateTodos(
+    //   todosId,
+    //   date,
+    //   user.id
+    // );
   }
 
   @Get('search')
@@ -82,11 +66,14 @@ export class TodosController {
     @Query('limit', ParseIntPipe) limit: number,
     @User() user: Users,
   ) {
-    return this.todosService.searchTodos(
-      query,
-      offset,
-      limit,
-      user.id,
-    );
+    // return this.todosService.searchTodos(
+    //   query,
+    //   offset,
+    //   limit,
+    //   user.id,
+    // );
   }
 }
+
+// TODO : 테이블 구조 변경에 따른 로직 수정 필요
+// TODO : 로직 수정에 따른 캐싱 전략 수정 필요
