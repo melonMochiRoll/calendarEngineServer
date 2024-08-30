@@ -4,6 +4,7 @@ import { UsersService } from './users.service';
 import { Users } from 'src/entities/Users';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { IsUserAlreadyExistConstraint } from 'src/common/validator/IsUserAlreadyExist';
+import { IsEmailAlreadyExistConstraint } from 'src/common/validator/IsEmailAlreadyExist';
 
 @Module({
   imports: [ TypeOrmModule.forFeature([Users]) ],
@@ -11,6 +12,7 @@ import { IsUserAlreadyExistConstraint } from 'src/common/validator/IsUserAlready
   providers: [
     UsersService,
     IsUserAlreadyExistConstraint,
+    IsEmailAlreadyExistConstraint,
   ],
   exports: [ UsersService ],
 })
