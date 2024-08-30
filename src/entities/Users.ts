@@ -24,6 +24,9 @@ export class Users {
   @OneToMany(() => Todos, todos => todos.Author)
   Todos: Todos[];
 
+  @OneToMany(() => Todos, todos => todos.Editor)
+  EditedTodos: Todos[];
+
   @OneToMany(() => Sharedspaces, sharedspaces => sharedspaces.Owner)
   OwnedSharedspaces: Sharedspaces[];
 
