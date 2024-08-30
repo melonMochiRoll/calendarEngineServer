@@ -24,9 +24,6 @@ export class UsersController {
   @UseGuards(IsNotAuthenicatedGuard)
   @Post()
   createUser(@Body() dto: CreateUserDTO) {
-    return this.usersService.createUser(
-      dto.email,
-      dto.password,
-    );
+    return this.usersService.createUser(dto);
   };
 }

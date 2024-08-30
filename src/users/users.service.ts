@@ -4,6 +4,7 @@ import { Users } from "src/entities/Users";
 import { Repository } from "typeorm";
 import 'dotenv/config';
 import bcrypt from 'bcrypt';
+import { CreateUserDTO } from "./dto/create.user.dto";
 
 @Injectable()
 export class UsersService {
@@ -27,13 +28,14 @@ export class UsersService {
   async isUser(
     email: string,
     ): Promise<boolean> {
-    return await this.usersRepository.findOneBy({ email }) ? true : false;
+    return await this.usersRepository.findOneByOrFail({ email })
+      .then(() => true)
+      .catch(() => false);
   };
 
-  async createUser(
-    email: string,
-    password: string,
-  ): Promise<boolean> {
+  async createUser(dto: CreateUserDTO) {
+    const { email, password } = dto;
+
     try {
       const SALT_OR_ROUNDS = Number(process.env.SALT_OR_ROUNDS);
       const hash = await bcrypt.hash(password, SALT_OR_ROUNDS);
