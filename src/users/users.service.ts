@@ -34,14 +34,10 @@ export class UsersService {
     email: string,
     password: string,
   ): Promise<boolean> {
-    if (await this.getOneByEmail(email)) {
-      throw new ConflictException('이미 가입된 이메일입니다.');
-    }
-
     try {
       const SALT_OR_ROUNDS = Number(process.env.SALT_OR_ROUNDS);
-
       const hash = await bcrypt.hash(password, SALT_OR_ROUNDS);
+
       await this.usersRepository.save({
         email,
         password: hash,
@@ -49,6 +45,7 @@ export class UsersService {
       
       return true;
     } catch (err: any) {
+      console.log(`createUser : ${err}`);
       throw new InternalServerErrorException(err);
     }
   };
