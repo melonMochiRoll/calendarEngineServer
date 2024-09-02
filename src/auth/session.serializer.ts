@@ -31,10 +31,7 @@ export class SessionSerializer extends PassportSerializer {
         'id',
         'email',
       ],
-      relations: [
-        'Sharedspaces',
-        'Sharedspacemembers',
-      ],
+      relations: [ 'Sharedspacemembers' ]
     });
 
     if (!result) {
