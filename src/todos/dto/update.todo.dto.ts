@@ -1,4 +1,5 @@
 import { IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { IsSpaceAlreadyExist } from "src/common/validator/IsSpaceAlreadyExist";
 import { IsTimeFormat } from "src/common/validator/IsTimeFormat";
 import { IsTodoAlreadyExist } from "src/common/validator/IsTodoAlreadyExist";
 import { IsUserAlreadyExist } from "src/common/validator/IsUserAlreadyExist";
@@ -34,4 +35,11 @@ export class UpdateTodoDto {
   @IsNumber()
   @IsNotEmpty()
   EditorId: number;
+
+  @IsSpaceAlreadyExist({
+    message: '$property은 존재하지 않는 스페이스입니다.'
+  })
+  @IsNumber()
+  @IsNotEmpty()
+  SharedspaceId: number;
 };
