@@ -25,10 +25,16 @@ export class SessionSerializer extends PassportSerializer {
       return done(null, cached);
     }
 
-    const result = await this.usersRepository.findOne({
+    const result = await this.usersRepository.findOneOrFail({
       where: { id: userId },
-      select: [ 'id', 'email', 'createdAt' ],
-      relations: [ 'Sharedspaces' ],
+      select: [
+        'id',
+        'email',
+      ],
+      relations: [
+        'Sharedspaces',
+        'Sharedspacemembers',
+      ],
     });
 
     if (!result) {
