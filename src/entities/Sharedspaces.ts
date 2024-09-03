@@ -14,7 +14,7 @@ export class Sharedspaces {
   @Column({ type: 'varchar', name: 'name', length: 30 })
   name: string;
 
-  @Column({ type: 'varchar', name: 'url', length: 50 })
+  @Column({ type: 'varchar', name: 'url', length: 5 })
   url: string;
 
   @Column({ type: 'boolean', default: 1 })
