@@ -10,9 +10,9 @@ import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { Todos } from 'src/entities/Todos';
 
-@ValidatorConstraint({ name: 'isTodoAlreadyExist', async: true })
+@ValidatorConstraint({ name: 'isExistTodo', async: true })
 @Injectable()
-export class IsTodoAlreadyExistConstraint implements ValidatorConstraintInterface {
+export class IsExistTodoConstraint implements ValidatorConstraintInterface {
   constructor(
     @InjectRepository(Todos)
     private todosRepository: Repository<Todos>,
@@ -29,14 +29,14 @@ export class IsTodoAlreadyExistConstraint implements ValidatorConstraintInterfac
   }
 }
 
-export function IsTodoAlreadyExist(validationOptions?: ValidationOptions) {
+export function IsExistTodo(validationOptions?: ValidationOptions) {
   return function (object: Object, propertyName: string) {
     registerDecorator({
       target: object.constructor,
       propertyName: propertyName,
       options: validationOptions,
       constraints: [],
-      validator: IsTodoAlreadyExistConstraint,
+      validator: IsExistTodoConstraint,
     });
   };
 }

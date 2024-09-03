@@ -11,8 +11,8 @@ import { Sharedspaces } from 'src/entities/Sharedspaces';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-@ValidatorConstraint({ name: 'isSpaceAlreadyExist', async: true })
-export class IsSpaceAlreadyExistConstraint implements ValidatorConstraintInterface {
+@ValidatorConstraint({ name: 'isExistSpace', async: true })
+export class IsExistSpaceConstraint implements ValidatorConstraintInterface {
   constructor(
     @InjectRepository(Sharedspaces)
     private sharedspacesRepository: Repository<Sharedspaces>,
@@ -29,14 +29,14 @@ export class IsSpaceAlreadyExistConstraint implements ValidatorConstraintInterfa
   }
 }
 
-export function IsSpaceAlreadyExist(validationOptions?: ValidationOptions) {
+export function IsExistSpace(validationOptions?: ValidationOptions) {
   return function (object: Object, propertyName: string) {
     registerDecorator({
       target: object.constructor,
       propertyName: propertyName,
       options: validationOptions,
       constraints: [],
-      validator: IsSpaceAlreadyExistConstraint,
+      validator: IsExistSpaceConstraint,
     });
   };
 }
