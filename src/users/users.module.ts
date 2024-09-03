@@ -3,16 +3,16 @@ import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { Users } from 'src/entities/Users';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { IsUserAlreadyExistConstraint } from 'src/common/validator/IsUserAlreadyExist';
-import { IsEmailAlreadyExistConstraint } from 'src/common/validator/IsEmailAlreadyExist';
+import { IsExistUserConstraint } from 'src/common/validator/IsExistUser';
+import { IsNotExistEmailConstraint } from 'src/common/validator/IsNotExistEmail';
 
 @Module({
   imports: [ TypeOrmModule.forFeature([Users]) ],
   controllers: [ UsersController ],
   providers: [
     UsersService,
-    IsUserAlreadyExistConstraint,
-    IsEmailAlreadyExistConstraint,
+    IsExistUserConstraint,
+    IsNotExistEmailConstraint,
   ],
   exports: [ UsersService ],
 })
