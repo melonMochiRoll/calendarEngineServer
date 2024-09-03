@@ -1,7 +1,7 @@
 import { IsDateString, IsNotEmpty, IsNumber, MaxLength } from "class-validator";
-import { IsSpaceAlreadyExist } from "src/common/validator/IsSpaceAlreadyExist";
+import { IsExistSpace } from "src/common/validator/IsExistSpace";
+import { IsExistUser } from "src/common/validator/IsExistUser";
 import { IsTimeFormat } from "src/common/validator/IsTimeFormat";
-import { IsUserAlreadyExist } from "src/common/validator/IsUserAlreadyExist";
 
 export class CreateTodoDTO {
 
@@ -29,14 +29,14 @@ export class CreateTodoDTO {
   @IsNotEmpty()
   endTime: string;
 
-  @IsUserAlreadyExist({
+  @IsExistUser({
     message: '$property은 존재하지 않는 회원입니다.'
   })
   @IsNumber()
   @IsNotEmpty()
   AuthorId: number;
 
-  @IsSpaceAlreadyExist({
+  @IsExistSpace({
     message: '$property은 존재하지 않는 스페이스입니다.'
   })
   @IsNumber()

@@ -1,12 +1,12 @@
 import { IsNotEmpty, IsNumber, IsString } from "class-validator";
-import { IsSpaceAlreadyExist } from "src/common/validator/IsSpaceAlreadyExist";
+import { IsExistSpace } from "src/common/validator/IsExistSpace";
+import { IsExistTodo } from "src/common/validator/IsExistTodo";
+import { IsExistUser } from "src/common/validator/IsExistUser";
 import { IsTimeFormat } from "src/common/validator/IsTimeFormat";
-import { IsTodoAlreadyExist } from "src/common/validator/IsTodoAlreadyExist";
-import { IsUserAlreadyExist } from "src/common/validator/IsUserAlreadyExist";
 
 export class UpdateTodoDto {
 
-  @IsTodoAlreadyExist({
+  @IsExistTodo({
     message: '해당 $property은 존재하지 않는 컨텐츠입니다.'
   })
   @IsNumber()
@@ -29,14 +29,14 @@ export class UpdateTodoDto {
   @IsNotEmpty()
   endTime: string;
 
-  @IsUserAlreadyExist({
+  @IsExistUser({
     message: '$property은 존재하지 않는 회원입니다.'
   })
   @IsNumber()
   @IsNotEmpty()
   EditorId: number;
 
-  @IsSpaceAlreadyExist({
+  @IsExistSpace({
     message: '$property은 존재하지 않는 스페이스입니다.'
   })
   @IsNumber()
