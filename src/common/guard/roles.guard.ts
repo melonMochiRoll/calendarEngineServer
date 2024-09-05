@@ -9,6 +9,11 @@ export class RolesGuard implements CanActivate {
   
   canActivate(context: ExecutionContext) {
     const roles = this.reflector.get(Roles, context.getHandler());
+    
+    if (!roles) {
+      return true;
+    }
+
     const userSpaces = context.switchToHttp().getRequest().user['Sharedspacemembers'];
     const spaceId = context.switchToHttp().getRequest().body['SharedspaceId'];
 
