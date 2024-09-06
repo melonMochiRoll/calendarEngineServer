@@ -1,9 +1,9 @@
 import { IsEmail, IsNotEmpty, IsString } from "class-validator";
-import { IsEmailAlreadyExist } from "src/common/validator/IsEmailAlreadyExist";
+import { IsNotExistEmail } from "src/common/validator/IsNotExistEmail";
 
 export class CreateUserDTO {
 
-  @IsEmailAlreadyExist({
+  @IsNotExistEmail({
     message: '이미 존재하는 $property입니다.',
   })
   @IsEmail()
