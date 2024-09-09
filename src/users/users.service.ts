@@ -13,24 +13,33 @@ export class UsersService {
     private usersRepository: Repository<Users>
   ) {}
 
-  async getOneById(
-    id: number,
-    ): Promise<Users> {
-    return await this.usersRepository.findOneBy({ id });
+  async getOneById(id: number) {
+    try {
+      return await this.usersRepository.findOneBy({ id });
+    } catch (err) {
+      console.error(`getOneById : ${err}`);
+      throw new InternalServerErrorException(err);
+    }
   };
 
-  async getOneByEmail(
-    email: string,
-    ): Promise<Users> {
-    return await this.usersRepository.findOneBy({ email });
+  async getOneByEmail(email: string) {
+    try {
+      return await this.usersRepository.findOneBy({ email });
+    } catch (err) {
+      console.error(`getOneByEmail : ${err}`);
+      throw new InternalServerErrorException(err);
+    }
   };
 
-  async isUser(
-    email: string,
-    ): Promise<boolean> {
-    return await this.usersRepository.findOneByOrFail({ email })
-      .then(() => true)
-      .catch(() => false);
+  async isUser(email: string) {
+    try {
+      return await this.usersRepository.findOneByOrFail({ email })
+        .then(() => true)
+        .catch(() => false);
+    } catch (err) {
+      console.error(err);
+      throw new InternalServerErrorException(err);
+    }
   };
 
   async createUser(dto: CreateUserDTO) {
