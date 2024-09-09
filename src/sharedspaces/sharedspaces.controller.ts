@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Patch, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Patch, Post, UseGuards } from "@nestjs/common";
 import { SharedspacesService } from "./sharedspaces.service";
 import { CreateSharedspaceDTO } from "./dto/create.sharedspace.dto";
 import { IsAuthenicatedGuard } from "src/auth/local.auth.guard";
@@ -7,6 +7,8 @@ import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { DeleteSharedspaceDTO } from "./dto/delete.sharedspace.dto";
 import { RolesGuard } from "src/common/guard/roles.guard";
 import { OwnerOnlyRoles } from "src/common/decorator/owner.only.decorator";
+import { User } from "src/common/decorator/user.decorator";
+import { Users } from "src/entities/Users";
 
 @UseGuards(IsAuthenicatedGuard)
 @UseGuards(RolesGuard)
@@ -15,6 +17,11 @@ export class SharedspacesController {
   constructor(
     private sharedspacesService: SharedspacesService,
   ) {}
+
+  @Get()
+  getSharedspaces(@User() user: Users) {
+    return this.sharedspacesService.getSharedspaces(user);
+  }
 
   @Post()
   createSharedspace(@Body() dto: CreateSharedspaceDTO) {

@@ -9,6 +9,7 @@ import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { DeleteSharedspaceDTO } from "./dto/delete.sharedspace.dto";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { ESharedspaceMembersRoles } from "src/typings/types";
+import { Users } from "src/entities/Users";
 
 @Injectable()
 export class SharedspacesService {
@@ -19,6 +20,24 @@ export class SharedspacesService {
     @InjectRepository(SharedspaceMembers)
     private sharedspaceMembersRepository: Repository<SharedspaceMembers>,
   ) {}
+
+  async getSharedspaces(user: Users) {
+    const { id: UserId } = user;
+
+    try {
+      return await this.sharedspaceMembersRepository.find({
+        relations: {
+          Sharedspace: true,
+        },
+        where: {
+          UserId,
+        }
+      });
+    } catch (err) {
+      console.error(`getSharedspaces : ${err}`);
+      throw new InternalServerErrorException(err);
+    }
+  }
 
   async createSharedspace(dto: CreateSharedspaceDTO) {
     const { OwnerId } = dto;
