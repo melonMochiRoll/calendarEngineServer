@@ -31,6 +31,9 @@ export class SessionSerializer extends PassportSerializer {
         'id',
         'email',
       ],
+      relations: {
+        Sharedspacemembers: true, // Use in RolesGuard
+      },
     });
 
     if (!result) {
