@@ -18,7 +18,9 @@ import { SharedspaceMembers } from 'src/entities/SharedspaceMembers';
     SharedspacesService,
     IsExistSpaceConstraint,
   ],
-  exports: [],
+  exports: [
+    SharedspacesService
+  ],
 })
 
 export class SharedspacesModule {}
