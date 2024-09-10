@@ -5,13 +5,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Todos } from 'src/entities/Todos';
 import { IsExistTodoConstraint } from 'src/common/validator/IsExistTodo';
 import { Sharedspaces } from 'src/entities/Sharedspaces';
+import { SharedspacesModule } from 'src/sharedspaces/sharedspaces.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       Todos,
       Sharedspaces,
-    ])
+    ]),
+    SharedspacesModule,
   ],
   controllers: [ TodosController ],
   providers: [
