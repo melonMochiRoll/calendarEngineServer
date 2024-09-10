@@ -1,5 +1,6 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
+import { ACCESS_DENIED_MESSAGE, UNAUTHORIZED_MESSAGE } from "src/common/constant/errorMessages";
 
 @Injectable()
 export class LocalAuthGuard extends AuthGuard('local') {
@@ -24,7 +25,7 @@ export class IsAuthenicatedGuard implements CanActivate {
       return true;
     }
 
-    throw new UnauthorizedException();
+    throw new UnauthorizedException(UNAUTHORIZED_MESSAGE);
   }
 }
 
@@ -32,6 +33,11 @@ export class IsAuthenicatedGuard implements CanActivate {
 export class IsNotAuthenicatedGuard implements CanActivate {
   async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest();
-    return !request.isAuthenticated();
+
+    if (!request.isAuthenticated()) {
+      return true;
+    }
+
+    throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
   }
 }
