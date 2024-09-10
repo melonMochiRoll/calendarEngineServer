@@ -2,6 +2,7 @@ import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@
 import { Reflector } from '@nestjs/core';
 import { Roles } from '../decorator/roles.decorator';
 import { SharedspaceMembers } from 'src/entities/SharedspaceMembers';
+import { ACCESS_DENIED_MESSAGE } from '../constant/errorMessages';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -22,7 +23,7 @@ export class RolesGuard implements CanActivate {
       .map((item: SharedspaceMembers) => item?.role || '');
 
     if (!matchRoles(roles, userRoles)) {
-      throw new ForbiddenException(`접근 권한이 없습니다`);
+      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
     return true;
