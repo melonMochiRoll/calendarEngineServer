@@ -5,6 +5,7 @@ import 'dotenv/config';
 import passport from 'passport';
 import { ValidationPipe } from '@nestjs/common';
 import { useContainer } from 'class-validator';
+import { HttpExceptionFilter } from './common/exception/http-exception.filter';
 
 declare const module: any;
 
@@ -33,6 +34,8 @@ async function bootstrap() {
       transform: true,
     })
   );
+
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   const sessionOption = {
     secret: process.env.COOKIE_SECRET,
