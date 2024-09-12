@@ -4,12 +4,14 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { INTERNAL_SERVER_MESSAGE } from '../constant/errorMessages';
+import { IErrorResponse } from 'src/typings/types';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: HttpException, host: ArgumentsHost) {
     dayjs.extend(utc);
     dayjs.extend(timezone);
+    console.error(exception);
     
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
@@ -17,7 +19,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const status = exception.getStatus();
     const exceptionResponse = exception.getResponse();
 
-    const rest = typeof exceptionResponse === 'object' ?
+    const rest = isExceptionResponse(exceptionResponse) ?
       exceptionResponse :
       { message: INTERNAL_SERVER_MESSAGE, error: 'Uncatched Error', statusCode: status };
 
@@ -29,4 +31,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
         path: request.url
       });
   }
+}
+
+function isExceptionResponse(value: string | object): value is IErrorResponse {
+  return (value as IErrorResponse).message !== undefined &&
+    (value as IErrorResponse).error !== undefined &&
+    (value as IErrorResponse).statusCode !== undefined;
 }
