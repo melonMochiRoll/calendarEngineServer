@@ -12,6 +12,7 @@ import { IsExistTodoConstraint } from 'src/common/validator/IsExistTodo';
     TodosService,
     IsExistTodoConstraint,
   ],
+  exports: [ TodosService ],
 })
 
 export class TodosModule {}
