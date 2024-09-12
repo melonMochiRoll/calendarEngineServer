@@ -37,7 +37,9 @@ export class SharedspacesService {
         }
       });
     } catch (err) {
-      console.error(`getSharedspaces : ${err}`);
+      if (err instanceof HttpException) {
+        throw new HttpException(err.getResponse(), err.getStatus());
+      }
       throw new InternalServerErrorException(err);
     }
   }
@@ -80,10 +82,11 @@ export class SharedspacesService {
 
       await qr.commitTransaction();
     } catch (err) {
-      console.error(`createSharedspace : ${err}`);
-
       await qr.rollbackTransaction();
 
+      if (err instanceof HttpException) {
+        throw new HttpException(err.getResponse(), err.getStatus());
+      }
       throw new InternalServerErrorException(err);
     } finally {
       await qr.release();
@@ -104,7 +107,9 @@ export class SharedspacesService {
 
       await this.sharedspacesRepository.update({ id: SharedspaceId }, { name });
     } catch (err) {
-      console.error(`updateSharedspaceName : ${err}`);
+      if (err instanceof HttpException) {
+        throw new HttpException(err.getResponse(), err.getStatus());
+      }
       throw new InternalServerErrorException(err);
     }
 
@@ -131,10 +136,11 @@ export class SharedspacesService {
 
       await qr.commitTransaction();
     } catch (err) {
-      console.error(`updateSharedspaceOwner : ${err}`);
-
       await qr.rollbackTransaction();
 
+      if (err instanceof HttpException) {
+        throw new HttpException(err.getResponse(), err.getStatus());
+      }
       throw new InternalServerErrorException(err);
     } finally {
       await qr.release();
@@ -149,7 +155,9 @@ export class SharedspacesService {
     try {
       await this.sharedspacesRepository.delete({ id: SharedspaceId });
     } catch (err) {
-      console.error(`deleteSharedspace : ${err}`);
+      if (err instanceof HttpException) {
+        throw new HttpException(err.getResponse(), err.getStatus());
+      }
       throw new InternalServerErrorException(err);
     }
 
