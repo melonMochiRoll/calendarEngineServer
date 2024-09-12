@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, InternalServerErrorException } from "@nestjs/common";
+import { ConflictException, ForbiddenException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { CreateSharedspaceDTO } from "./dto/create.sharedspace.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, Repository } from "typeorm";
@@ -10,6 +10,8 @@ import { DeleteSharedspaceDTO } from "./dto/delete.sharedspace.dto";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { ESharedspaceMembersRoles } from "src/typings/types";
 import { Users } from "src/entities/Users";
+import { ACCESS_DENIED_MESSAGE, NOT_FOUND_SPACE_MESSAGE } from "src/common/constant/errorMessages";
+import { TodosService } from "src/todos/todos.service";
 
 @Injectable()
 export class SharedspacesService {
@@ -19,6 +21,7 @@ export class SharedspacesService {
     private sharedspacesRepository: Repository<Sharedspaces>,
     @InjectRepository(SharedspaceMembers)
     private sharedspaceMembersRepository: Repository<SharedspaceMembers>,
+    private todosService: TodosService,
   ) {}
 
   async getSharedspaces(user: Users) {
@@ -35,6 +38,23 @@ export class SharedspacesService {
       });
     } catch (err) {
       console.error(`getSharedspaces : ${err}`);
+      throw new InternalServerErrorException(err);
+    }
+  }
+
+  async getTodosForSpace(
+    url: string,
+    date: string,
+    user: Users,
+  ) {
+    try {
+      const { id: SharedspaceId } = await this.getSpacePermission(url, user);
+
+      return await this.todosService.getTodos(SharedspaceId, date);
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw new HttpException(err.getResponse(), err.getStatus());
+      }
       throw new InternalServerErrorException(err);
     }
   }
@@ -135,4 +155,48 @@ export class SharedspacesService {
 
     return true;
   }
+
+  async getSpacePermission(
+    identifier: string | number,
+    user: Users,
+  ) {
+    try {
+      const condition = {};
+
+      if (typeof identifier === 'string') {
+        Object.assign(condition, { url: identifier });
+      }
+  
+      if (typeof identifier === 'number') {
+        Object.assign(condition, { id: identifier });
+      }
+  
+      const space = await this.sharedspacesRepository.findOne({
+        select: {
+          id: true,
+          private: true,
+        },
+        where: condition,
+      });
+  
+      const target = user?.Sharedspacemembers?.find(ele => ele?.SharedspaceId === space?.id);
+  
+      if (!space) {
+        throw new NotFoundException(NOT_FOUND_SPACE_MESSAGE);
+      }
+  
+      if (space.private) {
+        if (!user || !target) {
+          throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+        }
+      }
+  
+      return space;
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw new HttpException(err.getResponse(), err.getStatus());
+      }
+      throw new InternalServerErrorException(err);
+    }
+  };
 }
