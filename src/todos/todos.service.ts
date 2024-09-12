@@ -1,8 +1,8 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Between, Like, Repository } from "typeorm";
-import { Todos } from "src/entities/Todos";
+import { HttpException, Injectable, InternalServerErrorException } from "@nestjs/common";
 import dayjs from "dayjs";
+import { InjectRepository } from "@nestjs/typeorm";
+import { And, LessThanOrEqual, MoreThanOrEqual, Repository } from "typeorm";
+import { Todos } from "src/entities/Todos";
 import { CreateTodoDTO } from "./dto/create.todo.dto";
 
 @Injectable()
@@ -13,83 +13,34 @@ export class TodosService {
   ) {}
 
   async getTodos(
+    SharedspaceId: number,
     date: string,
-    AuthorId: number,
-  ): Promise<any> {
-    // const datePattern = /^\w{4}-\w{2}-\w{2}$/;
+  ) {
+    const [ year, month ] = date.split('-');
 
-    // if (!datePattern.test(date)) {
-    //   throw new BadRequestException('날짜 형식을 확인해 주세요.');
-    // }
+    try {
+      const startDate = dayjs(`${year}-${month}-01`).toDate();
+      const endDate = dayjs(`${year}-${month}-31`).toDate();
 
-    // const currentDate = dayjs(`${date}`);
-    // const currentYear = currentDate.year();
-    // const currentMonth = currentDate.month() + 1;
-    // const currentDay = currentDate.date();
-    // try {
-    //   const searchResult = await this.todosRepository.find({
-    //     where: {
-    //       AuthorId,
-    //       date: dayjs(date).toDate(),
-    //     },
-    //   });
-
-    //   return searchResult;
-    // } catch (err: any) {
-    //   throw new InternalServerErrorException(err);
-    // }
-  };
-
-  async getCurrentMonthTodosList(
-    date: string,
-    AuthorId: number,
-  ): Promise<any> {
-    // try {
-    //   const currentDate = dayjs(`${date}`);
-    //   const currentYear = currentDate.year();
-    //   const currentMonth = currentDate.month() + 1;
-
-    //   const searchResult =
-    //     await this.todosRepository
-    //       .find({
-    //         select: {
-    //           description: true,
-    //           date: true,
-    //         },
-    //         where: {
-    //           AuthorId,
-    //           date: Between(
-    //             dayjs(`${currentYear}-${currentMonth}-1`).toDate(),
-    //             dayjs(`${currentYear}-${currentMonth}-31`).toDate()
-    //           )
-    //         },
-    //         order: {
-    //           id: 'ASC',
-    //         }
-    //       });
-
-    //   const todosList =
-    //     searchResult
-    //       .reduce((acc: any, item: { description: string, date: Date }) => {
-    //         if (acc[`${item.date}`]) {
-    //           if (acc[`${item.date}`].partialContents.length < 3) {
-    //             acc[`${item.date}`].partialContents.push(item.description);
-    //             return acc;
-    //           }
-
-    //           return acc;
-    //         }
-  
-    //         acc[`${item.date}`] = {
-    //           partialContents: [ item.description ],
-    //         };
-    //         return acc;
-    //       }, {});
-      
-    //   return todosList;
-    // } catch (err: any) {
-    //   throw new InternalServerErrorException(err);
-    // }
+      const searchResult =
+        await this.todosRepository
+          .find({
+            where: {
+              SharedspaceId,
+              date: And(
+                MoreThanOrEqual(startDate),
+                LessThanOrEqual(endDate)
+              ),
+            },
+          });
+        
+      return searchResult;
+    } catch (err: any) {
+      if (err instanceof HttpException) {
+        throw new HttpException(err.getResponse(), err.getStatus());
+      }
+      throw new InternalServerErrorException(err);
+    }
   };
 
   async createTodo(dto: CreateTodoDTO) {
@@ -98,7 +49,9 @@ export class TodosService {
 
       return true;
     } catch (err: any) {
-      console.error(`createTodo : ${err}`);
+      if (err instanceof HttpException) {
+        throw new HttpException(err.getResponse(), err.getStatus());
+      }
       throw new InternalServerErrorException(err);
     }
   };
@@ -111,29 +64,24 @@ export class TodosService {
 
       return true;
     } catch (err: any) {
-      console.error(`updateTodo : ${err}`)
+      if (err instanceof HttpException) {
+        throw new HttpException(err.getResponse(), err.getStatus());
+      }
       throw new InternalServerErrorException(err);
     }
   };
 
-  async deleteDateTodos(
-    todosId: number,
-    date: string,
-    AuthorId: number,
-  ) {
-    // try {
-    //   const currentDate = dayjs(`${date}`);
-    //   const currentYear = currentDate.year();
-    //   const currentMonth = currentDate.month() + 1;
-    //   const currentDay = currentDate.date();
+  async deleteTodo(todoId: number) {
+    try {
+      await this.todosRepository.delete(todoId);
 
-    //   await this.todosRepository
-    //     .delete(todosId);
-
-    //   return true;
-    // } catch (err: any) {
-    //   throw new InternalServerErrorException(err);
-    // }
+      return true;
+    } catch (err: any) {
+      if (err instanceof HttpException) {
+        throw new HttpException(err.getResponse(), err.getStatus());
+      }
+      throw new InternalServerErrorException(err);
+    }
   };
 
   async searchTodos(
