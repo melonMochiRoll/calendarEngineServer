@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import { INTERNAL_SERVER_MESSAGE } from '../constant/errorMessages';
+import { INTERNAL_SERVER_MESSAGE } from '../constant/error.message';
 import { IErrorResponse } from 'src/typings/types';
 
 @Catch(HttpException)

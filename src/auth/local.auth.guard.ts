@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
-import { ACCESS_DENIED_MESSAGE, UNAUTHORIZED_MESSAGE } from "src/common/constant/errorMessages";
+import { ACCESS_DENIED_MESSAGE, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
 
 @Injectable()
 export class LocalAuthGuard extends AuthGuard('local') {

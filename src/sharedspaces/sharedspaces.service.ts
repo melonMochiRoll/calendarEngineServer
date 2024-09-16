@@ -10,7 +10,7 @@ import { DeleteSharedspaceDTO } from "./dto/delete.sharedspace.dto";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { ESharedspaceMembersRoles } from "src/typings/types";
 import { Users } from "src/entities/Users";
-import { ACCESS_DENIED_MESSAGE, NOT_FOUND_SPACE_MESSAGE } from "src/common/constant/errorMessages";
+import { ACCESS_DENIED_MESSAGE, NOT_FOUND_SPACE_MESSAGE } from "src/common/constant/error.message";
 import { TodosService } from "src/todos/todos.service";
 
 @Injectable()
