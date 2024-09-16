@@ -45,8 +45,6 @@ export class TodosService {
     offset: number,
     limit: number,
   ) {
-    offset = (offset - 1) * limit;
-
     try {
       return await this.todosRepository.find({
         select: {
@@ -62,7 +60,7 @@ export class TodosService {
         order: {
           date: 'DESC',
         },
-        skip: offset,
+        skip: (offset - 1) * limit,
         take: limit,
       });
     } catch (err) {
