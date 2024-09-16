@@ -14,16 +14,16 @@ export class UsersController {
   @Get()
   getUser(@User() user: Users) {
     return user || false;
-  };
+  }
 
   @Get('email')
   isUser(@Query('e') email: string) {
     return this.usersService.isUser(email);
-  };
+  }
 
   @UseGuards(IsNotAuthenicatedGuard)
   @Post()
   createUser(@Body() dto: CreateUserDTO) {
     return this.usersService.createUser(dto);
-  };
+  }
 }
