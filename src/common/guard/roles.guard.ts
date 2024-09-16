@@ -22,20 +22,20 @@ export class RolesGuard implements CanActivate {
       .filter((item: SharedspaceMembers) => item.SharedspaceId === spaceId)
       .map((item: SharedspaceMembers) => item?.role || '');
 
-    if (!matchRoles(roles, userRoles)) {
+    if (!this.matchRoles(roles, userRoles)) {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
     return true;
   }
-}
 
-const matchRoles = (roles: string[], userRoles: string[]) => {
-  return roles.reduce((acc: boolean, role: string) => {
-    if (!acc && userRoles.includes(role)) {
-      return true;
-    } else {
-      return acc;
-    }
-  }, false);
-};
+  private matchRoles = (roles: string[], userRoles: string[]) => {
+    return roles.reduce((acc: boolean, role: string) => {
+      if (!acc && userRoles.includes(role)) {
+        return true;
+      } else {
+        return acc;
+      }
+    }, false);
+  }
+}
