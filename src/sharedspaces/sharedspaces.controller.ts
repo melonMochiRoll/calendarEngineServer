@@ -9,6 +9,7 @@ import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
 import { AuthRoleGuards } from "src/common/decorator/auth.role.decorator";
 import { IsAuthenicatedGuard } from "src/auth/local.auth.guard";
+import { DateValidationPipe } from "src/common/pipe/date.validation.pipe";
 
 @Controller('api/sharedspaces')
 export class SharedspacesController {
@@ -25,7 +26,7 @@ export class SharedspacesController {
   @Get(':url/todos')
   getTodosForSpace(
     @Param('url') url: string,
-    @Query('date') date: string,
+    @Query('date', DateValidationPipe) date: string,
     @User() user: Users,
   ) {
     return this.sharedspacesService.getTodosForSpace(
