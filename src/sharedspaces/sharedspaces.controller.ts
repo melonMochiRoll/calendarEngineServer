@@ -35,7 +35,7 @@ export class SharedspacesController {
       date,
       user,
     );
-  };
+  }
 
   @UseGuards(IsAuthenicatedGuard)
   @Post()
