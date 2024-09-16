@@ -8,9 +8,12 @@ import { IErrorResponse } from 'src/typings/types';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
-  catch(exception: HttpException, host: ArgumentsHost) {
+  constructor() {
     dayjs.extend(utc);
     dayjs.extend(timezone);
+  }
+
+  catch(exception: HttpException, host: ArgumentsHost) {
     console.error(exception);
     
     const ctx = host.switchToHttp();
@@ -19,7 +22,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const status = exception.getStatus();
     const exceptionResponse = exception.getResponse();
 
-    const rest = isExceptionResponse(exceptionResponse) ?
+    const rest = this.isExceptionResponse(exceptionResponse) ?
       exceptionResponse :
       { message: INTERNAL_SERVER_MESSAGE, error: 'Uncatched Error', statusCode: status };
 
@@ -31,10 +34,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
         path: request.url
       });
   }
+
+  private isExceptionResponse(value: string | object): value is IErrorResponse {
+    return (value as IErrorResponse).message !== undefined &&
+      (value as IErrorResponse).error !== undefined &&
+      (value as IErrorResponse).statusCode !== undefined;
+  }
 }
 
-function isExceptionResponse(value: string | object): value is IErrorResponse {
-  return (value as IErrorResponse).message !== undefined &&
-    (value as IErrorResponse).error !== undefined &&
-    (value as IErrorResponse).statusCode !== undefined;
-}
