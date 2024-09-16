@@ -20,7 +20,7 @@ export class UsersService {
       console.error(`getOneById : ${err}`);
       throw new InternalServerErrorException(err);
     }
-  };
+  }
 
   async getOneByEmail(email: string) {
     try {
@@ -29,7 +29,7 @@ export class UsersService {
       console.error(`getOneByEmail : ${err}`);
       throw new InternalServerErrorException(err);
     }
-  };
+  }
 
   async isUser(email: string) {
     try {
@@ -40,7 +40,7 @@ export class UsersService {
       console.error(err);
       throw new InternalServerErrorException(err);
     }
-  };
+  }
 
   async createUser(dto: CreateUserDTO) {
     const { email, password } = dto;
@@ -59,5 +59,5 @@ export class UsersService {
       console.log(`createUser : ${err}`);
       throw new InternalServerErrorException(err);
     }
-  };
+  }
 }
