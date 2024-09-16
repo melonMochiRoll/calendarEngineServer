@@ -1,7 +1,7 @@
 import { HttpException, Injectable, InternalServerErrorException } from "@nestjs/common";
 import dayjs from "dayjs";
 import { InjectRepository } from "@nestjs/typeorm";
-import { And, LessThanOrEqual, MoreThanOrEqual, Repository } from "typeorm";
+import { And, LessThanOrEqual, Like, MoreThanOrEqual, Repository } from "typeorm";
 import { Todos } from "src/entities/Todos";
 import { CreateTodoDTO } from "./dto/create.todo.dto";
 
@@ -22,26 +22,56 @@ export class TodosService {
       const startDate = dayjs(`${year}-${month}-01`).toDate();
       const endDate = dayjs(`${year}-${month}-31`).toDate();
 
-      const searchResult =
-        await this.todosRepository
-          .find({
-            where: {
-              SharedspaceId,
-              date: And(
-                MoreThanOrEqual(startDate),
-                LessThanOrEqual(endDate)
-              ),
-            },
-          });
-        
-      return searchResult;
+      return await this.todosRepository.find({
+        where: {
+          SharedspaceId,
+          date: And(
+            MoreThanOrEqual(startDate),
+            LessThanOrEqual(endDate)
+          ),
+        },
+      });
     } catch (err: any) {
       if (err instanceof HttpException) {
         throw new HttpException(err.getResponse(), err.getStatus());
       }
       throw new InternalServerErrorException(err);
     }
-  };
+  }
+
+  async getTodosByQuery(
+    SharedspaceId: number,
+    query: string,
+    offset: number,
+    limit: number,
+  ) {
+    offset = (offset - 1) * limit;
+
+    try {
+      return await this.todosRepository.find({
+        select: {
+          description: true,
+          date: true,
+          startTime: true,
+          endTime: true,
+        },
+        where: {
+          SharedspaceId,
+          description: Like(`%${query}%`),
+        },
+        order: {
+          date: 'DESC',
+        },
+        skip: offset,
+        take: limit,
+      });
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw new HttpException(err.getResponse(), err.getStatus());
+      }
+      throw new InternalServerErrorException(err);
+    }
+  }
 
   async createTodo(dto: CreateTodoDTO) {
     try {
@@ -54,7 +84,7 @@ export class TodosService {
       }
       throw new InternalServerErrorException(err);
     }
-  };
+  }
 
   async updateTodo(dto: any) {
     const { id, rest } = dto;
@@ -69,7 +99,7 @@ export class TodosService {
       }
       throw new InternalServerErrorException(err);
     }
-  };
+  }
 
   async deleteTodo(todoId: number) {
     try {
@@ -82,36 +112,5 @@ export class TodosService {
       }
       throw new InternalServerErrorException(err);
     }
-  };
-
-  async searchTodos(
-    query: string,
-    offset: number,
-    limit: number,
-    AuthorId: number,
-  ) {
-    // try {
-    //   offset = (offset - 1) * limit;
-
-    //   const searchResult =
-    //     await this.todosRepository.find({
-    //       where: {
-    //         AuthorId,
-    //         description: Like(`%${query}%`),
-    //       },
-    //       order: {
-    //         date: 'DESC',
-    //       },
-    //       skip: offset,
-    //       take: limit,
-    //     });
-
-    //   return searchResult;
-    // } catch (err) {
-    //   throw new InternalServerErrorException(err);
-    // }
-  };
+  }
 }
-
-// TODO : 테이블 구조 변경에 따른 로직 수정 필요
-// TODO : 로직 수정에 따른 캐싱 전략 수정 필요
