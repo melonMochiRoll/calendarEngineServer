@@ -21,11 +21,11 @@ export class IsAuthenicatedGuard implements CanActivate {
   async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest();
 
-    if (request.isAuthenticated()) {
-      return true;
+    if (!request.isAuthenticated()) {
+      throw new UnauthorizedException(UNAUTHORIZED_MESSAGE);
     }
-
-    throw new UnauthorizedException(UNAUTHORIZED_MESSAGE);
+    
+    return true;
   }
 }
 
@@ -34,10 +34,10 @@ export class IsNotAuthenicatedGuard implements CanActivate {
   async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest();
 
-    if (!request.isAuthenticated()) {
-      return true;
+    if (request.isAuthenticated()) {
+      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
-    throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+    return true;
   }
 }
