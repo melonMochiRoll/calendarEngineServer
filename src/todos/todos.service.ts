@@ -4,6 +4,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { And, LessThanOrEqual, Like, MoreThanOrEqual, Repository } from "typeorm";
 import { Todos } from "src/entities/Todos";
 import { CreateTodoDTO } from "./dto/create.todo.dto";
+import { UpdateTodoDto } from "./dto/update.todo.dto";
 
 @Injectable()
 export class TodosService {
@@ -84,11 +85,11 @@ export class TodosService {
     }
   }
 
-  async updateTodo(dto: any) {
-    const { id, rest } = dto;
+  async updateTodo(dto: UpdateTodoDto) {
+    const { id, ...rest } = dto;
 
     try {
-      await this.todosRepository.update({ id }, { ...rest });
+      await this.todosRepository.update({ id }, rest);
 
       return true;
     } catch (err: any) {
