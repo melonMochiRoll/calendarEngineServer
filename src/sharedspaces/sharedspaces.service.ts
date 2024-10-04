@@ -12,6 +12,7 @@ import { ESharedspaceMembersRoles } from "src/typings/types";
 import { Users } from "src/entities/Users";
 import { ACCESS_DENIED_MESSAGE, NOT_FOUND_SPACE_MESSAGE } from "src/common/constant/error.message";
 import { TodosService } from "src/todos/todos.service";
+import { Todos } from "src/entities/Todos";
 
 @Injectable()
 export class SharedspacesService {
@@ -29,8 +30,25 @@ export class SharedspacesService {
 
     try {
       return await this.sharedspaceMembersRepository.find({
+        select: {
+          UserId: true,
+          SharedspaceId: true,
+          role: true,
+          createdAt: true,
+          Sharedspace: {
+            name: true,
+            url: true,
+            private: true,
+            OwnerId: true,
+            Owner: {
+              email: true,
+            },
+          },
+        },
         relations: {
-          Sharedspace: true,
+          Sharedspace: {
+            Owner: true,
+          },
         },
         where: {
           UserId,
@@ -51,8 +69,49 @@ export class SharedspacesService {
   ) {
     try {
       const { id: SharedspaceId } = await this.getSpacePermission(url, user);
+      const todos = await this.todosService.getTodos(SharedspaceId, date);
 
-      return await this.todosService.getTodos(SharedspaceId, date);
+      const result = todos
+        .sort((a: Todos, b: Todos) => {
+          if (a.date > b.date) {
+            return 1;
+          }
+
+          if (a.date < b.date) {
+            return -1;
+          }
+
+          if (a.startTime > b.startTime) {
+            return 1;
+          }
+
+          if (a.startTime < b.startTime) {
+            return -1;
+          }
+
+          if (a.endTime > b.endTime) {
+            return 1;
+          }
+
+          if (a.endTime < b.endTime) {
+            return -1;
+          }
+
+          return 0;
+        })  
+        .reduce((acc: object, todo: Todos) => {
+          const dateStr = String(todo.date);
+
+          if (acc[dateStr]) {
+            acc[dateStr].push(todo);
+            return acc;
+          }
+
+          acc[dateStr] = [ todo ];
+          return acc;
+        }, {});
+
+      return result;
     } catch (err) {
       if (err instanceof HttpException) {
         throw new HttpException(err.getResponse(), err.getStatus());
