@@ -25,7 +25,7 @@ export class SharedspacesService {
     private todosService: TodosService,
   ) {}
 
-  async getSharedspaces(user: Users) {
+  async getSubscribedspaces(user: Users) { // TODO: filter query 추가
     const { id: UserId } = user;
 
     try {
@@ -39,7 +39,6 @@ export class SharedspacesService {
             name: true,
             url: true,
             private: true,
-            OwnerId: true,
             Owner: {
               email: true,
             },

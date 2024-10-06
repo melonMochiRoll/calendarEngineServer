@@ -20,8 +20,8 @@ export class SharedspacesController {
 
   @UseGuards(IsAuthenicatedGuard)
   @Get()
-  getSharedspaces(@User() user: Users) {
-    return this.sharedspacesService.getSharedspaces(user);
+  getSubscribedspaces(@User() user: Users) { // TODO: filter query 추가
+    return this.sharedspacesService.getSubscribedspaces(user);
   }
 
   @Get(':url/todos')
