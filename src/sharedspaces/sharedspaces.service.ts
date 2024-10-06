@@ -1,14 +1,14 @@
 import { ConflictException, ForbiddenException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { CreateSharedspaceDTO } from "./dto/create.sharedspace.dto";
 import { InjectRepository } from "@nestjs/typeorm";
-import { DataSource, Repository } from "typeorm";
+import { DataSource, Equal, Or, Repository } from "typeorm";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import { nanoid } from "nanoid";
 import { UpdateSharedspaceNameDTO } from "./dto/update.sharedspace.name.dto";
 import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { DeleteSharedspaceDTO } from "./dto/delete.sharedspace.dto";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
-import { ESharedspaceMembersRoles } from "src/typings/types";
+import { SharedspaceMembersRoles, SubscribedspacesFilter, TSubscribedspacesFilter } from "src/typings/types";
 import { Users } from "src/entities/Users";
 import { ACCESS_DENIED_MESSAGE, NOT_FOUND_SPACE_MESSAGE } from "src/common/constant/error.message";
 import { TodosService } from "src/todos/todos.service";
@@ -25,8 +25,27 @@ export class SharedspacesService {
     private todosService: TodosService,
   ) {}
 
-  async getSubscribedspaces(user: Users) { // TODO: filter query 추가
-    const { id: UserId } = user;
+  async getSubscribedspaces(
+    filter: TSubscribedspacesFilter,
+    user: Users,
+  ) {
+    const whereCondition = {
+      UserId: user.id,
+    };
+
+    if (filter === SubscribedspacesFilter.OWNED) {
+      Object.assign(whereCondition, { role: SharedspaceMembersRoles.OWNER });
+    }
+
+    if (filter === SubscribedspacesFilter.UNOWNED) {
+      const result =
+        Object
+        .values(SharedspaceMembersRoles)
+        .filter(role => role !== SharedspaceMembersRoles.OWNER)
+        .map(role => Equal(role));
+
+      Object.assign(whereCondition, { role: Or(...result) });
+    }
 
     try {
       return await this.sharedspaceMembersRepository.find({
@@ -49,9 +68,7 @@ export class SharedspacesService {
             Owner: true,
           },
         },
-        where: {
-          UserId,
-        }
+        where: whereCondition,
       });
     } catch (err) {
       if (err instanceof HttpException) {
@@ -135,7 +152,7 @@ export class SharedspacesService {
       await qr.manager.save(SharedspaceMembers, {
         UserId: OwnerId,
         SharedspaceId: created.id,
-        role: ESharedspaceMembersRoles.OWNER,
+        role: SharedspaceMembersRoles.OWNER,
       });
 
       await qr.commitTransaction();
@@ -189,8 +206,8 @@ export class SharedspacesService {
       }
 
       await qr.manager.update(Sharedspaces, { id: SharedspaceId }, { OwnerId: newOwnerId });
-      await qr.manager.update(SharedspaceMembers, { UserId: OwnerId, SharedspaceId }, { role: ESharedspaceMembersRoles.MEMBER });
-      await qr.manager.save(SharedspaceMembers, { UserId: newOwnerId, SharedspaceId, role: ESharedspaceMembersRoles.OWNER });
+      await qr.manager.update(SharedspaceMembers, { UserId: OwnerId, SharedspaceId }, { role: SharedspaceMembersRoles.MEMBER });
+      await qr.manager.save(SharedspaceMembers, { UserId: newOwnerId, SharedspaceId, role: SharedspaceMembersRoles.OWNER });
 
       await qr.commitTransaction();
     } catch (err) {

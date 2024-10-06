@@ -11,6 +11,8 @@ import { AuthRoleGuards } from "src/common/decorator/auth.role.decorator";
 import { IsAuthenicatedGuard } from "src/auth/local.auth.guard";
 import { DateValidationPipe } from "src/common/pipe/date.validation.pipe";
 import { LengthValidationPipe } from "src/common/pipe/length.validation.pipe";
+import { TSubscribedspacesFilter } from "src/typings/types";
+import { SubscribedFilterValidationPipe } from "src/common/pipe/subscribedFilter.validation.pipe";
 
 @Controller('api/sharedspaces')
 export class SharedspacesController {
@@ -20,8 +22,11 @@ export class SharedspacesController {
 
   @UseGuards(IsAuthenicatedGuard)
   @Get()
-  getSubscribedspaces(@User() user: Users) { // TODO: filter query 추가
-    return this.sharedspacesService.getSubscribedspaces(user);
+  getSubscribedspaces(
+    @Query('filter', SubscribedFilterValidationPipe) filter: TSubscribedspacesFilter,
+    @User() user: Users,
+  ) {
+    return this.sharedspacesService.getSubscribedspaces(filter, user);
   }
 
   @Get(':url/todos')
