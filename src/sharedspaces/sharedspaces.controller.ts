@@ -12,7 +12,6 @@ import { DateValidationPipe } from "src/common/pipe/date.validation.pipe";
 import { LengthValidationPipe } from "src/common/pipe/length.validation.pipe";
 import { TSubscribedspacesFilter } from "src/typings/types";
 import { SubscribedFilterValidationPipe } from "src/common/pipe/subscribedFilter.validation.pipe";
-import { SharedspaceIdValidationPipe } from "src/common/pipe/sharedspaceId.validation.pipe";
 
 @Controller('api/sharedspaces')
 export class SharedspacesController {
@@ -66,7 +65,7 @@ export class SharedspacesController {
   @OwnerOnlyRoles()
   @HttpCode(204)
   @Delete(':SharedspaceId')
-  deleteSharedspace(@Param('SharedspaceId', SharedspaceIdValidationPipe) id: number) {
+  deleteSharedspace(@Param('SharedspaceId', ParseIntPipe) id: number) {
     return this.sharedspacesService.deleteSharedspace(id);
   }
 
