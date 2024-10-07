@@ -1,9 +1,8 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { SharedspacesService } from "./sharedspaces.service";
 import { CreateSharedspaceDTO } from "./dto/create.sharedspace.dto";
 import { UpdateSharedspaceNameDTO } from "./dto/update.sharedspace.name.dto";
 import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
-import { DeleteSharedspaceDTO } from "./dto/delete.sharedspace.dto";
 import { OwnerOnlyRoles } from "src/common/decorator/owner.only.decorator";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
@@ -13,6 +12,7 @@ import { DateValidationPipe } from "src/common/pipe/date.validation.pipe";
 import { LengthValidationPipe } from "src/common/pipe/length.validation.pipe";
 import { TSubscribedspacesFilter } from "src/typings/types";
 import { SubscribedFilterValidationPipe } from "src/common/pipe/subscribedFilter.validation.pipe";
+import { SharedspaceIdValidationPipe } from "src/common/pipe/sharedspaceId.validation.pipe";
 
 @Controller('api/sharedspaces')
 export class SharedspacesController {
@@ -64,9 +64,10 @@ export class SharedspacesController {
   
   @AuthRoleGuards()
   @OwnerOnlyRoles()
-  @Delete()
-  deleteSharedspace(@Body() dto: DeleteSharedspaceDTO) {
-    return this.sharedspacesService.deleteSharedspace(dto);
+  @HttpCode(204)
+  @Delete(':SharedspaceId')
+  deleteSharedspace(@Param('SharedspaceId', SharedspaceIdValidationPipe) id: number) {
+    return this.sharedspacesService.deleteSharedspace(id);
   }
 
   @Get(':url/todos/search')

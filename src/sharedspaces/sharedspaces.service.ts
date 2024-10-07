@@ -6,7 +6,6 @@ import { Sharedspaces } from "src/entities/Sharedspaces";
 import { nanoid } from "nanoid";
 import { UpdateSharedspaceNameDTO } from "./dto/update.sharedspace.name.dto";
 import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
-import { DeleteSharedspaceDTO } from "./dto/delete.sharedspace.dto";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { SharedspaceMembersRoles, SubscribedspacesFilter, TSubscribedspacesFilter } from "src/typings/types";
 import { Users } from "src/entities/Users";
@@ -224,9 +223,7 @@ export class SharedspacesService {
     return true;
   }
 
-  async deleteSharedspace(dto: DeleteSharedspaceDTO) {
-    const { SharedspaceId } = dto;
-
+  async deleteSharedspace(SharedspaceId: number) {
     try {
       await this.sharedspacesRepository.delete({ id: SharedspaceId });
     } catch (err) {
