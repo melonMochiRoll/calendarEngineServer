@@ -39,9 +39,9 @@ export class SharedspacesService {
     if (filter === SubscribedspacesFilter.UNOWNED) {
       const result =
         Object
-        .values(SharedspaceMembersRoles)
-        .filter(role => role !== SharedspaceMembersRoles.OWNER)
-        .map(role => Equal(role));
+          .values(SharedspaceMembersRoles)
+          .filter(role => role !== SharedspaceMembersRoles.OWNER)
+          .map(role => Equal(role));
 
       Object.assign(whereCondition, { role: Or(...result) });
     }
@@ -68,6 +68,9 @@ export class SharedspacesService {
           },
         },
         where: whereCondition,
+        order: {
+          createdAt: 'DESC',
+        },
       });
     } catch (err) {
       if (err instanceof HttpException) {
