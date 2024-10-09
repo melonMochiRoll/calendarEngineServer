@@ -15,15 +15,9 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-    const method = context.switchToHttp().getRequest().method;
-    const bodyIncludesMethods = ['POST', 'PUT', 'PATCH'];
-
     const userSpaces = context.switchToHttp().getRequest().user['Sharedspacemembers'];
 
-    const sharedspaceId =
-      bodyIncludesMethods.includes(method) ?
-        Number(context.switchToHttp().getRequest().body['SharedspaceId']) :
-        Number(context.switchToHttp().getRequest().params['SharedspaceId']);
+    const sharedspaceId = Number(context.switchToHttp().getRequest().headers['sharedspace-id']);
 
     const userRoles = userSpaces
       .filter((item: SharedspaceMembers) => item.SharedspaceId === sharedspaceId)
