@@ -12,6 +12,7 @@ import { DateValidationPipe } from "src/common/pipe/date.validation.pipe";
 import { LengthValidationPipe } from "src/common/pipe/length.validation.pipe";
 import { TSubscribedspacesFilter } from "src/typings/types";
 import { SubscribedFilterValidationPipe } from "src/common/pipe/subscribedFilter.validation.pipe";
+import { HeaderProperty } from "src/common/decorator/headerProperty.decorator";
 
 @Controller('api/sharedspaces')
 export class SharedspacesController {
@@ -64,9 +65,9 @@ export class SharedspacesController {
   @AuthRoleGuards()
   @OwnerOnlyRoles()
   @HttpCode(204)
-  @Delete(':SharedspaceId')
-  deleteSharedspace(@Param('SharedspaceId', ParseIntPipe) id: number) {
-    return this.sharedspacesService.deleteSharedspace(id);
+  @Delete()
+  deleteSharedspace(@HeaderProperty('sharedspace-id', ParseIntPipe) SharedspaceId: number) {
+    return this.sharedspacesService.deleteSharedspace(SharedspaceId);
   }
 
   @Get(':url/todos/search')
