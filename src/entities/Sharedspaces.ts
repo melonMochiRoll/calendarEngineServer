@@ -4,14 +4,13 @@ import { Todos } from "./Todos";
 import { SharedspaceMembers } from "./SharedspaceMembers";
 
 @Index('sharedspaces_OwnerId_idx', ['OwnerId'])
-@Unique('sharedspaces_name_idx', ['name'])
 @Unique('sharedspaces_url_idx', ['url'])
 @Entity({ name: 'sharedspaces' })
 export class Sharedspaces {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
   id: number;
 
-  @Column({ type: 'varchar', name: 'name', length: 30 })
+  @Column({ type: 'varchar', name: 'name', length: 30, default: '새 스페이스' })
   name: string;
 
   @Column({ type: 'varchar', name: 'url', length: 5 })
