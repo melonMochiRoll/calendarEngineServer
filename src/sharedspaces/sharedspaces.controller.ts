@@ -20,8 +20,16 @@ export class SharedspacesController {
     private sharedspacesService: SharedspacesService,
   ) {}
 
+  @Get('view/:url')
+  getSharedspace(
+    @Param('url', new LengthValidationPipe(5)) url: string,
+    @User() user: Users,
+  ) {
+    return this.sharedspacesService.getSharedspace(url, user);
+  }
+
   @UseGuards(IsAuthenicatedGuard)
-  @Get()
+  @Get('subscribed')
   getSubscribedspaces(
     @Query('filter', SubscribedFilterValidationPipe) filter: TSubscribedspacesFilter,
     @User() user: Users,

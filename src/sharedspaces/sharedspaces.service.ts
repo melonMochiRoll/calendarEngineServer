@@ -24,6 +24,46 @@ export class SharedspacesService {
     private todosService: TodosService,
   ) {}
 
+  async getSharedspace(url: string, user: Users) {
+    try {
+      const { id: SharedspaceId } = await this.getSpacePermission(url, user);
+
+      return await this.sharedspacesRepository.findOne({
+        select: {
+          id: true,
+          name: true,
+          url: true,
+          private: true,
+          Owner: {
+            email: true,
+          },
+          Sharedspacemembers: {
+            UserId: true,
+            role: true,
+            createdAt: true,
+            User: {
+              email: true,
+            }
+          },
+        },
+        relations: {
+          Owner: true,
+          Sharedspacemembers: {
+            User: true,
+          },
+        },
+        where: {
+          id: SharedspaceId,
+        }
+      });
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw new HttpException(err.getResponse(), err.getStatus());
+      }
+      throw new InternalServerErrorException(err);
+    }
+  }
+
   async getSubscribedspaces(
     filter: TSubscribedspacesFilter,
     user: Users,
@@ -158,7 +198,7 @@ export class SharedspacesService {
       });
 
       await qr.commitTransaction();
-      
+
       return created.url;
     } catch (err) {
       await qr.rollbackTransaction();
