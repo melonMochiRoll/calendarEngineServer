@@ -21,7 +21,7 @@ async function bootstrap() {
 
   const devCorsOption = {
     origin: allowlist,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     optionsSuccessStatus: 204,
     credentials: true,
   };
