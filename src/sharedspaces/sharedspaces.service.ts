@@ -158,6 +158,8 @@ export class SharedspacesService {
       });
 
       await qr.commitTransaction();
+      
+      return created.url;
     } catch (err) {
       await qr.rollbackTransaction();
 
@@ -168,8 +170,6 @@ export class SharedspacesService {
     } finally {
       await qr.release();
     }
-
-    return true;
   }
 
   async updateSharedspaceName(dto: UpdateSharedspaceNameDTO) {
