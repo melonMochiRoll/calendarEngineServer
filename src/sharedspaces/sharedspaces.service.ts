@@ -212,8 +212,11 @@ export class SharedspacesService {
     }
   }
 
-  async updateSharedspaceName(dto: UpdateSharedspaceNameDTO) {
-    const { name, SharedspaceId } = dto;
+  async updateSharedspaceName(
+    dto: UpdateSharedspaceNameDTO,
+    SharedspaceId: number,
+  ) {
+    const { name } = dto;
     
     try {
       const origin = await this.sharedspacesRepository.findOneBy({ id: SharedspaceId });
