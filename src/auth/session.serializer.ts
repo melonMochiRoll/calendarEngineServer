@@ -20,10 +20,6 @@ export class SessionSerializer extends PassportSerializer {
   };
 
   async deserializeUser(userId: number, done: CallableFunction) {
-    const cached = await this.cacheManagerService.getCache(userId, 'userData');
-    if (cached) {
-      return done(null, cached);
-    }
 
     const result = await this.usersRepository.findOneOrFail({
       where: { id: userId },
@@ -39,8 +35,6 @@ export class SessionSerializer extends PassportSerializer {
     if (!result) {
       return done(null, null);
     }
-
-    await this.cacheManagerService.setCache(userId, 'userData', result);
 
     return done(null, result);
   };
