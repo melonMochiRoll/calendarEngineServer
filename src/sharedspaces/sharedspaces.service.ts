@@ -121,11 +121,10 @@ export class SharedspacesService {
   async getTodosForSpace(
     url: string,
     date: string,
-    user: Users,
   ) {
     try {
-      const { id: SharedspaceId } = await this.getSpacePermission(url, user);
-      const todos = await this.todosService.getTodos(SharedspaceId, date);
+      const targetspace = await this.sharedspacesRepository.findOneBy({ url });
+      const todos = await this.todosService.getTodos(targetspace.id, date);
 
       const result = todos
         .sort((a: Todos, b: Todos) => {
