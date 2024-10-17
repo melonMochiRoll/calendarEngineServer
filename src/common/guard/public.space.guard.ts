@@ -13,7 +13,7 @@ export class PublicSpaceGuard implements CanActivate {
     private sharedspacesRepository: Repository<Sharedspaces>,
   ) {}
   
-  async canActivate(context: ExecutionContext) { // TODO: URL로 스페이스에 접근 -> 해당 스페이스의 비공개 여부 확인 -> 비공개 ? viewer 이상인지 확인 : 전부 true
+  async canActivate(context: ExecutionContext) {
     const url: string = context.switchToHttp().getRequest().params.url;
 
     if (!url) {
