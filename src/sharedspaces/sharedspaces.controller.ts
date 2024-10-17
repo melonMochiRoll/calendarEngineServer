@@ -13,6 +13,7 @@ import { LengthValidationPipe } from "src/common/pipe/length.validation.pipe";
 import { TSubscribedspacesFilter } from "src/typings/types";
 import { SubscribedFilterValidationPipe } from "src/common/pipe/subscribedFilter.validation.pipe";
 import { HeaderProperty } from "src/common/decorator/headerProperty.decorator";
+import { PublicSpaceGuard } from "src/common/guard/public.space.guard";
 
 @Controller('api/sharedspaces')
 export class SharedspacesController {
@@ -20,6 +21,7 @@ export class SharedspacesController {
     private sharedspacesService: SharedspacesService,
   ) {}
 
+  @UseGuards(PublicSpaceGuard)
   @Get('view/:url')
   getSharedspace(
     @Param('url', new LengthValidationPipe(5)) url: string,
@@ -37,6 +39,7 @@ export class SharedspacesController {
     return this.sharedspacesService.getSubscribedspaces(filter, user);
   }
 
+  @UseGuards(PublicSpaceGuard)
   @Get(':url/todos')
   getTodosForSpace(
     @Param('url', new LengthValidationPipe(5)) url: string,
