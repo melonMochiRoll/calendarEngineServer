@@ -1,5 +1,4 @@
 import { IsNumber } from "class-validator";
-import { IsExistSpace } from "src/common/validator/IsExistSpace";
 import { IsExistUser } from "src/common/validator/IsExistUser";
 
 export class UpdateSharedspaceOwnerDTO {
@@ -15,10 +14,4 @@ export class UpdateSharedspaceOwnerDTO {
   })
   @IsNumber()
   newOwnerId: number;
-
-  @IsExistSpace({
-    message: '$property은 존재하지 않는 스페이스입니다.'
-  })
-  @IsNumber()
-  SharedspaceId: number;
 }

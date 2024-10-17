@@ -236,8 +236,11 @@ export class SharedspacesService {
     return true;
   }
 
-  async updateSharedspaceOwner(dto: UpdateSharedspaceOwnerDTO) {
-    const { OwnerId, newOwnerId, SharedspaceId } = dto;
+  async updateSharedspaceOwner(
+    dto: UpdateSharedspaceOwnerDTO,
+    SharedspaceId: number,
+  ) {
+    const { OwnerId, newOwnerId } = dto;
 
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();

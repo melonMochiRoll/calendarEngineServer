@@ -69,8 +69,11 @@ export class SharedspacesController {
   @AuthRoleGuards()
   @OwnerOnlyRoles()
   @Patch('owner')
-  updateSharedspaceOwner(@Body() dto: UpdateSharedspaceOwnerDTO) {
-    return this.sharedspacesService.updateSharedspaceOwner(dto);
+  updateSharedspaceOwner(
+    @Body() dto: UpdateSharedspaceOwnerDTO,
+    @HeaderProperty('sharedspace-id', ParseIntPipe) SharedspaceId: number,
+  ) {
+    return this.sharedspacesService.updateSharedspaceOwner(dto, SharedspaceId);
   }
   
   @AuthRoleGuards()
