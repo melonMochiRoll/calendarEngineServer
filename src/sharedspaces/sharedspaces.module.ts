@@ -7,6 +7,7 @@ import { IsExistSpaceConstraint } from 'src/common/validator/IsExistSpace';
 import { SharedspaceMembers } from 'src/entities/SharedspaceMembers';
 import { TodosModule } from 'src/todos/todos.module';
 import { PublicSpaceGuard } from 'src/common/guard/public.space.guard';
+import { RolesGuard } from 'src/common/guard/roles.guard';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { PublicSpaceGuard } from 'src/common/guard/public.space.guard';
     SharedspacesService,
     IsExistSpaceConstraint,
     PublicSpaceGuard,
+    RolesGuard,
   ],
   exports: [
     SharedspacesService,
