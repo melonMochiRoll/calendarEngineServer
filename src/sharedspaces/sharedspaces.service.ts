@@ -24,10 +24,8 @@ export class SharedspacesService {
     private todosService: TodosService,
   ) {}
 
-  async getSharedspace(url: string, user: Users) {
+  async getSharedspace(url: string) {
     try {
-      const { id: SharedspaceId } = await this.getSpacePermission(url, user);
-
       return await this.sharedspacesRepository.findOne({
         select: {
           id: true,
@@ -53,7 +51,7 @@ export class SharedspacesService {
           },
         },
         where: {
-          id: SharedspaceId,
+          url,
         }
       });
     } catch (err) {
