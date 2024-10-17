@@ -25,9 +25,8 @@ export class SharedspacesController {
   @Get('view/:url')
   getSharedspace(
     @Param('url', new LengthValidationPipe(5)) url: string,
-    @User() user: Users,
   ) {
-    return this.sharedspacesService.getSharedspace(url, user);
+    return this.sharedspacesService.getSharedspace(url);
   }
 
   @UseGuards(IsAuthenicatedGuard)
