@@ -43,12 +43,10 @@ export class SharedspacesController {
   getTodosForSpace(
     @Param('url', new LengthValidationPipe(5)) url: string,
     @Query('date', DateValidationPipe) date: string,
-    @User() user: Users,
   ) {
     return this.sharedspacesService.getTodosForSpace(
       url,
       date,
-      user,
     );
   }
 
