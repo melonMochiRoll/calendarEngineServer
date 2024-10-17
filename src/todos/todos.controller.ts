@@ -4,6 +4,7 @@ import { CreateTodoDTO } from './dto/create.todo.dto';
 import { UpdateTodoDto } from './dto/update.todo.dto';
 import { AboveMemberRoles } from 'src/common/decorator/above.member.decorator';
 import { AuthRoleGuards } from 'src/common/decorator/auth.role.decorator';
+import { HeaderProperty } from 'src/common/decorator/headerProperty.decorator';
 
 @Controller('api/todos')
 export class TodosController {
@@ -14,8 +15,11 @@ export class TodosController {
   @AuthRoleGuards()
   @AboveMemberRoles()
   @Post()
-  createTodo(@Body() dto: CreateTodoDTO) {
-    return this.todosService.createTodo(dto);
+  createTodo(
+    @Body() dto: CreateTodoDTO,
+    @HeaderProperty('sharedspace-id', ParseIntPipe) SharedspaceId: number,
+  ) {
+    return this.todosService.createTodo(dto, SharedspaceId);
   }
 
   @AuthRoleGuards()

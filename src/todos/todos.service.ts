@@ -72,9 +72,15 @@ export class TodosService {
     }
   }
 
-  async createTodo(dto: CreateTodoDTO) {
+  async createTodo(
+    dto: CreateTodoDTO,
+    SharedspaceId: number,
+  ) {
     try {
-      await this.todosRepository.save({ ...dto });
+      await this.todosRepository.save({
+        ...dto,
+        SharedspaceId,
+      });
 
       return true;
     } catch (err: any) {

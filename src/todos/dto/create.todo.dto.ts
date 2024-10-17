@@ -1,5 +1,4 @@
 import { IsDateString, IsNotEmpty, IsNumber, MaxLength } from "class-validator";
-import { IsExistSpace } from "src/common/validator/IsExistSpace";
 import { IsExistUser } from "src/common/validator/IsExistUser";
 import { IsTimeFormat } from "src/common/validator/IsTimeFormat";
 
@@ -35,11 +34,4 @@ export class CreateTodoDTO {
   @IsNumber()
   @IsNotEmpty()
   AuthorId: number;
-
-  @IsExistSpace({
-    message: '$property은 존재하지 않는 스페이스입니다.'
-  })
-  @IsNumber()
-  @IsNotEmpty()
-  SharedspaceId: number;
 }
