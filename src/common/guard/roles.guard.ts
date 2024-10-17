@@ -1,14 +1,21 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, ForbiddenException, BadRequestException, NotFoundException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Roles } from '../decorator/roles.decorator';
 import { SharedspaceMembers } from 'src/entities/SharedspaceMembers';
-import { ACCESS_DENIED_MESSAGE } from '../constant/error.message';
+import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, NOT_FOUND_SPACE_MESSAGE } from '../constant/error.message';
+import { Repository } from 'typeorm';
+import { Sharedspaces } from 'src/entities/Sharedspaces';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(
+    private reflector: Reflector,
+    @InjectRepository(Sharedspaces)
+    private sharedspacesRepository: Repository<Sharedspaces>,
+  ) {}
   
-  canActivate(context: ExecutionContext) {
+  async canActivate(context: ExecutionContext) {
     const roles = this.reflector.get(Roles, context.getHandler());
     
     if (!roles) {
@@ -17,10 +24,20 @@ export class RolesGuard implements CanActivate {
 
     const userSpaces = context.switchToHttp().getRequest().user['Sharedspacemembers'];
 
-    const sharedspaceId = Number(context.switchToHttp().getRequest().headers['sharedspace-id']);
+    const sharedspaceId = context.switchToHttp().getRequest().headers['sharedspace-id'];
+
+    if (!sharedspaceId) {
+      throw new BadRequestException(BAD_REQUEST_MESSAGE);
+    }
+
+    const targetSpace = await this.sharedspacesRepository.findOneBy({ id: Number(sharedspaceId) });
+
+    if (!targetSpace) {
+      throw new NotFoundException(NOT_FOUND_SPACE_MESSAGE);
+    }
 
     const userRoles = userSpaces
-      .filter((item: SharedspaceMembers) => item.SharedspaceId === sharedspaceId)
+      .filter((item: SharedspaceMembers) => item.SharedspaceId === targetSpace.id)
       .map((item: SharedspaceMembers) => item?.role || '');
 
     if (!this.matchRoles(roles, userRoles)) {
