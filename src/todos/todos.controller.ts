@@ -6,7 +6,6 @@ import { AboveMemberRoles } from 'src/common/decorator/above.member.decorator';
 import { AuthRoleGuards } from 'src/common/decorator/auth.role.decorator';
 import { HeaderProperty } from 'src/common/decorator/headerProperty.decorator';
 import { PublicSpaceGuard } from 'src/common/guard/public.space.guard';
-import { LengthValidationPipe } from 'src/common/pipe/length.validation.pipe';
 import { DateValidationPipe } from 'src/common/pipe/date.validation.pipe';
 
 @Controller('api/sharedspaces')
@@ -18,7 +17,7 @@ export class TodosController {
   @UseGuards(PublicSpaceGuard)
   @Get(':url/todos')
   getTodosBySpace(
-    @Param('url', new LengthValidationPipe(5)) url: string,
+    @Param('url') url: string,
     @Query('date', DateValidationPipe) date: string,
   ) {
     return this.todosService.getTodosBySpace(

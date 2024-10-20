@@ -8,7 +8,6 @@ import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
 import { AuthRoleGuards } from "src/common/decorator/auth.role.decorator";
 import { IsAuthenicatedGuard } from "src/auth/local.auth.guard";
-import { LengthValidationPipe } from "src/common/pipe/length.validation.pipe";
 import { TSubscribedspacesFilter } from "src/typings/types";
 import { SubscribedFilterValidationPipe } from "src/common/pipe/subscribedFilter.validation.pipe";
 import { PublicSpaceGuard } from "src/common/guard/public.space.guard";
@@ -22,7 +21,7 @@ export class SharedspacesController {
   @UseGuards(PublicSpaceGuard)
   @Get(':url/view')
   getSharedspace(
-    @Param('url', new LengthValidationPipe(5)) url: string,
+    @Param('url') url: string,
   ) {
     return this.sharedspacesService.getSharedspace(url);
   }
@@ -47,7 +46,7 @@ export class SharedspacesController {
   @Patch(':url/name')
   updateSharedspaceName(
     @Body() dto: UpdateSharedspaceNameDTO,
-    @Param('url', new LengthValidationPipe(5)) url: string,
+    @Param('url') url: string,
   ) {
     return this.sharedspacesService.updateSharedspaceName(dto, url);
   }
@@ -57,7 +56,7 @@ export class SharedspacesController {
   @Patch(':url/owner')
   updateSharedspaceOwner(
     @Body() dto: UpdateSharedspaceOwnerDTO,
-    @Param('url', new LengthValidationPipe(5)) url: string,
+    @Param('url') url: string,
   ) {
     return this.sharedspacesService.updateSharedspaceOwner(dto, url);
   }
@@ -66,13 +65,13 @@ export class SharedspacesController {
   @OwnerOnlyRoles()
   @HttpCode(204)
   @Delete(':url')
-  deleteSharedspace(@Param('url', new LengthValidationPipe(5)) url: string) {
+  deleteSharedspace(@Param('url') url: string) {
     return this.sharedspacesService.deleteSharedspace(url);
   }
 
   @Get(':url/todos/search')
   searchTodos(
-    @Param('url', new LengthValidationPipe(5)) url: string,
+    @Param('url') url: string,
     @Query('query') query: string,
     @Query('offset', ParseIntPipe) offset: number,
     @Query('limit', ParseIntPipe) limit: number,
