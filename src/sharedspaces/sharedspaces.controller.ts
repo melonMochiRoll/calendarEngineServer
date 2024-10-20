@@ -38,18 +38,6 @@ export class SharedspacesController {
     return this.sharedspacesService.getSubscribedspaces(filter, user);
   }
 
-  @UseGuards(PublicSpaceGuard)
-  @Get(':url/todos')
-  getTodosForSpace(
-    @Param('url', new LengthValidationPipe(5)) url: string,
-    @Query('date', DateValidationPipe) date: string,
-  ) {
-    return this.sharedspacesService.getTodosForSpace(
-      url,
-      date,
-    );
-  }
-
   @UseGuards(IsAuthenicatedGuard)
   @Post()
   createSharedspace(@Body() dto: CreateSharedspaceDTO) {
