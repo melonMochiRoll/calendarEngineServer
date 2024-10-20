@@ -44,7 +44,7 @@ export class SharedspacesController {
 
   @AuthRoleGuards()
   @OwnerOnlyRoles()
-  @Patch('name')
+  @Patch(':url/name')
   updateSharedspaceName(
     @Body() dto: UpdateSharedspaceNameDTO,
     @Param('url', new LengthValidationPipe(5)) url: string,
@@ -54,7 +54,7 @@ export class SharedspacesController {
 
   @AuthRoleGuards()
   @OwnerOnlyRoles()
-  @Patch('owner')
+  @Patch(':url/owner')
   updateSharedspaceOwner(
     @Body() dto: UpdateSharedspaceOwnerDTO,
     @Param('url', new LengthValidationPipe(5)) url: string,
@@ -65,7 +65,7 @@ export class SharedspacesController {
   @AuthRoleGuards()
   @OwnerOnlyRoles()
   @HttpCode(204)
-  @Delete()
+  @Delete(':url')
   deleteSharedspace(@Param('url', new LengthValidationPipe(5)) url: string) {
     return this.sharedspacesService.deleteSharedspace(url);
   }
