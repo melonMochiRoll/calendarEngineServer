@@ -24,13 +24,13 @@ export class RolesGuard implements CanActivate {
 
     const userSpaces = context.switchToHttp().getRequest().user['Sharedspacemembers'];
 
-    const sharedspaceId = context.switchToHttp().getRequest().headers['sharedspace-id'];
+    const url: string | null = context.switchToHttp().getRequest().params.url;
 
-    if (!sharedspaceId) {
+    if (!url) {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
-    const targetSpace = await this.sharedspacesRepository.findOneBy({ id: Number(sharedspaceId) });
+    const targetSpace = await this.sharedspacesRepository.findOneBy({ url });
 
     if (!targetSpace) {
       throw new NotFoundException(NOT_FOUND_SPACE_MESSAGE);
