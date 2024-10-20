@@ -31,9 +31,9 @@ export class TodosController {
   @Post(':url/todos')
   createTodo(
     @Body() dto: CreateTodoDTO,
-    @HeaderProperty('sharedspace-id', ParseIntPipe) SharedspaceId: number,
+    @Param('url') url: string,
   ) {
-    return this.todosService.createTodo(dto, SharedspaceId);
+    return this.todosService.createTodo(dto, url);
   }
 
   @AuthRoleGuards()

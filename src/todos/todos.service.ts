@@ -6,7 +6,6 @@ import { Todos } from "src/entities/Todos";
 import { CreateTodoDTO } from "./dto/create.todo.dto";
 import { UpdateTodoDto } from "./dto/update.todo.dto";
 import { Sharedspaces } from "src/entities/Sharedspaces";
-import { Users } from "src/entities/Users";
 
 @Injectable()
 export class TodosService {
@@ -135,21 +134,23 @@ export class TodosService {
 
   async createTodo(
     dto: CreateTodoDTO,
-    SharedspaceId: number,
+    url: string,
   ) {
     try {
+      const targetspace = await this.sharedspacesRepository.findOneBy({ url });
+
       await this.todosRepository.save({
         ...dto,
-        SharedspaceId,
+        SharedspaceId: targetspace?.id,
       });
-
-      return true;
     } catch (err: any) {
       if (err instanceof HttpException) {
         throw new HttpException(err.getResponse(), err.getStatus());
       }
       throw new InternalServerErrorException(err);
     }
+
+    return true;
   }
 
   async updateTodo(dto: UpdateTodoDto) {
@@ -157,27 +158,27 @@ export class TodosService {
 
     try {
       await this.todosRepository.update({ id }, rest);
-
-      return true;
     } catch (err: any) {
       if (err instanceof HttpException) {
         throw new HttpException(err.getResponse(), err.getStatus());
       }
       throw new InternalServerErrorException(err);
     }
+
+    return true;
   }
 
   async deleteTodo(todoId: number) {
     try {
       await this.todosRepository.delete(todoId);
-
-      return true;
     } catch (err: any) {
       if (err instanceof HttpException) {
         throw new HttpException(err.getResponse(), err.getStatus());
       }
       throw new InternalServerErrorException(err);
     }
+
+    return true;
   }
 
   async searchTodos(
