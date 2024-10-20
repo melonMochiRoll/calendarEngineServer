@@ -153,18 +153,18 @@ export class SharedspacesService {
 
   async updateSharedspaceName(
     dto: UpdateSharedspaceNameDTO,
-    SharedspaceId: number,
+    url: string,
   ) {
     const { name } = dto;
     
     try {
-      const origin = await this.sharedspacesRepository.findOneBy({ id: SharedspaceId });
+      const origin = await this.sharedspacesRepository.findOneBy({ url });
 
       if (origin.name === name) {
         throw new ConflictException('동일한 이름으로 바꿀수 없습니다.');
       }
 
-      await this.sharedspacesRepository.update({ id: SharedspaceId }, { name });
+      await this.sharedspacesRepository.update({ url }, { name });
     } catch (err) {
       if (err instanceof HttpException) {
         throw new HttpException(err.getResponse(), err.getStatus());
@@ -177,7 +177,7 @@ export class SharedspacesService {
 
   async updateSharedspaceOwner(
     dto: UpdateSharedspaceOwnerDTO,
-    SharedspaceId: number,
+    url: string,
   ) {
     const { OwnerId, newOwnerId } = dto;
 
@@ -186,15 +186,15 @@ export class SharedspacesService {
     await qr.startTransaction();
 
     try {
-      const origin = await this.sharedspacesRepository.findOneBy({ id: SharedspaceId });
+      const origin = await this.sharedspacesRepository.findOneBy({ url });
 
       if (origin.OwnerId === newOwnerId) {
         throw new ConflictException('동일한 유저로 바꿀수 없습니다.');
       }
 
-      await qr.manager.update(Sharedspaces, { id: SharedspaceId }, { OwnerId: newOwnerId });
-      await qr.manager.update(SharedspaceMembers, { UserId: OwnerId, SharedspaceId }, { role: SharedspaceMembersRoles.MEMBER });
-      await qr.manager.save(SharedspaceMembers, { UserId: newOwnerId, SharedspaceId, role: SharedspaceMembersRoles.OWNER });
+      await qr.manager.update(Sharedspaces, { id: origin.id }, { OwnerId: newOwnerId });
+      await qr.manager.update(SharedspaceMembers, { UserId: OwnerId, SharedspaceId: origin.id }, { role: SharedspaceMembersRoles.MEMBER });
+      await qr.manager.save(SharedspaceMembers, { UserId: newOwnerId, SharedspaceId: origin.id, role: SharedspaceMembersRoles.OWNER });
 
       await qr.commitTransaction();
     } catch (err) {
@@ -211,9 +211,9 @@ export class SharedspacesService {
     return true;
   }
 
-  async deleteSharedspace(SharedspaceId: number) {
+  async deleteSharedspace(url: string) {
     try {
-      await this.sharedspacesRepository.delete({ id: SharedspaceId });
+      await this.sharedspacesRepository.delete({ url });
     } catch (err) {
       if (err instanceof HttpException) {
         throw new HttpException(err.getResponse(), err.getStatus());
