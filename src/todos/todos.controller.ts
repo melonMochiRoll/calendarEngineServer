@@ -1,16 +1,31 @@
-import { Body, Controller, Delete, HttpCode, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, ParseIntPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { TodosService } from './todos.service';
 import { CreateTodoDTO } from './dto/create.todo.dto';
 import { UpdateTodoDto } from './dto/update.todo.dto';
 import { AboveMemberRoles } from 'src/common/decorator/above.member.decorator';
 import { AuthRoleGuards } from 'src/common/decorator/auth.role.decorator';
 import { HeaderProperty } from 'src/common/decorator/headerProperty.decorator';
+import { PublicSpaceGuard } from 'src/common/guard/public.space.guard';
+import { LengthValidationPipe } from 'src/common/pipe/length.validation.pipe';
+import { DateValidationPipe } from 'src/common/pipe/date.validation.pipe';
 
 @Controller('api/sharedspaces')
 export class TodosController {
   constructor(
     private todosService: TodosService,
   ) {}
+
+  @UseGuards(PublicSpaceGuard)
+  @Get(':url/todos')
+  getTodosBySpace(
+    @Param('url', new LengthValidationPipe(5)) url: string,
+    @Query('date', DateValidationPipe) date: string,
+  ) {
+    return this.todosService.getTodosBySpace(
+      url,
+      date,
+    );
+  }
 
   @AuthRoleGuards()
   @AboveMemberRoles()

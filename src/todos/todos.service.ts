@@ -5,12 +5,15 @@ import { And, LessThanOrEqual, Like, MoreThanOrEqual, Repository } from "typeorm
 import { Todos } from "src/entities/Todos";
 import { CreateTodoDTO } from "./dto/create.todo.dto";
 import { UpdateTodoDto } from "./dto/update.todo.dto";
+import { Sharedspaces } from "src/entities/Sharedspaces";
 
 @Injectable()
 export class TodosService {
   constructor(
     @InjectRepository(Todos)
     private todosRepository: Repository<Todos>,
+    @InjectRepository(Sharedspaces)
+    private sharedspacesRepository: Repository<Sharedspaces>,
   ) {}
 
   async getTodos(
@@ -64,6 +67,63 @@ export class TodosService {
         skip: (offset - 1) * limit,
         take: limit,
       });
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw new HttpException(err.getResponse(), err.getStatus());
+      }
+      throw new InternalServerErrorException(err);
+    }
+  }
+
+  async getTodosBySpace(
+    url: string,
+    date: string,
+  ) {
+    try {
+      const targetspace = await this.sharedspacesRepository.findOneBy({ url });
+      const todos = await this.getTodos(targetspace.id, date);
+
+      const result = todos
+        .sort((a: Todos, b: Todos) => {
+          if (a.date > b.date) {
+            return 1;
+          }
+
+          if (a.date < b.date) {
+            return -1;
+          }
+
+          if (a.startTime > b.startTime) {
+            return 1;
+          }
+
+          if (a.startTime < b.startTime) {
+            return -1;
+          }
+
+          if (a.endTime > b.endTime) {
+            return 1;
+          }
+
+          if (a.endTime < b.endTime) {
+            return -1;
+          }
+
+          return 0;
+        })  
+        .reduce((acc: object, todo: Todos) => {
+          const dateStr = String(todo.date);
+
+          if (acc[dateStr]) {
+            acc[dateStr].push(todo);
+            return acc;
+          }
+
+          acc[dateStr] = [ todo ];
+          return acc;
+        }, {});
+
+      return result;
     } catch (err) {
       if (err instanceof HttpException) {
         throw new HttpException(err.getResponse(), err.getStatus());
