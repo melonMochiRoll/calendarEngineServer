@@ -267,28 +267,4 @@ export class SharedspacesService {
       throw new InternalServerErrorException(err);
     }
   }
-
-  async searchTodos(
-    url: string,
-    query: string,
-    offset: number,
-    limit: number,
-    user: Users,
-  ) {
-    try {
-      // const { id: SharedspaceId } = await this.getSpacePermission(url, user);
-
-      // return await this.todosService.getTodosByQuery(
-      //   SharedspaceId,
-      //   query,
-      //   offset,
-      //   limit,
-      // );
-    } catch (err) {
-      if (err instanceof HttpException) {
-        throw new HttpException(err.getResponse(), err.getStatus());
-      }
-      throw new InternalServerErrorException(err);
-    }
-  }
 }

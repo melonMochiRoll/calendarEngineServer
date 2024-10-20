@@ -50,4 +50,19 @@ export class TodosController {
   deleteTodo(@Param('id', ParseIntPipe) todoId: number) {
     return this.todosService.deleteTodo(todoId);
   }
+
+  @Get(':url/todos/search')
+  searchTodos(
+    @Param('url') url: string,
+    @Query('query') query: string,
+    @Query('offset', ParseIntPipe) offset: number,
+    @Query('limit', ParseIntPipe) limit: number,
+  ) {
+    return this.todosService.searchTodos(
+      url,
+      query,
+      offset,
+      limit,
+    );
+  }
 }

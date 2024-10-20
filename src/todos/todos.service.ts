@@ -6,6 +6,7 @@ import { Todos } from "src/entities/Todos";
 import { CreateTodoDTO } from "./dto/create.todo.dto";
 import { UpdateTodoDto } from "./dto/update.todo.dto";
 import { Sharedspaces } from "src/entities/Sharedspaces";
+import { Users } from "src/entities/Users";
 
 @Injectable()
 export class TodosService {
@@ -172,6 +173,28 @@ export class TodosService {
 
       return true;
     } catch (err: any) {
+      if (err instanceof HttpException) {
+        throw new HttpException(err.getResponse(), err.getStatus());
+      }
+      throw new InternalServerErrorException(err);
+    }
+  }
+
+  async searchTodos(
+    url: string,
+    query: string,
+    offset: number,
+    limit: number,
+  ) {
+    try {
+
+      // return await this.todosService.getTodosByQuery(
+      //   SharedspaceId,
+      //   query,
+      //   offset,
+      //   limit,
+      // );
+    } catch (err) {
       if (err instanceof HttpException) {
         throw new HttpException(err.getResponse(), err.getStatus());
       }

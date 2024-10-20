@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { SharedspacesService } from "./sharedspaces.service";
 import { CreateSharedspaceDTO } from "./dto/create.sharedspace.dto";
 import { UpdateSharedspaceNameDTO } from "./dto/update.sharedspace.name.dto";
@@ -67,22 +67,5 @@ export class SharedspacesController {
   @Delete(':url')
   deleteSharedspace(@Param('url') url: string) {
     return this.sharedspacesService.deleteSharedspace(url);
-  }
-
-  @Get(':url/todos/search')
-  searchTodos(
-    @Param('url') url: string,
-    @Query('query') query: string,
-    @Query('offset', ParseIntPipe) offset: number,
-    @Query('limit', ParseIntPipe) limit: number,
-    @User() user: Users,
-  ) {
-    return this.sharedspacesService.searchTodos(
-      url,
-      query,
-      offset,
-      limit,
-      user,
-    );
   }
 }
