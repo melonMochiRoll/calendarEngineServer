@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, HttpCode, ParseIntPipe, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, HttpCode, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
 import { TodosService } from './todos.service';
 import { CreateTodoDTO } from './dto/create.todo.dto';
 import { UpdateTodoDto } from './dto/update.todo.dto';
@@ -6,7 +6,7 @@ import { AboveMemberRoles } from 'src/common/decorator/above.member.decorator';
 import { AuthRoleGuards } from 'src/common/decorator/auth.role.decorator';
 import { HeaderProperty } from 'src/common/decorator/headerProperty.decorator';
 
-@Controller('api/todos')
+@Controller('api/sharedspaces')
 export class TodosController {
   constructor(
     private todosService: TodosService,
@@ -14,7 +14,7 @@ export class TodosController {
 
   @AuthRoleGuards()
   @AboveMemberRoles()
-  @Post()
+  @Post(':url/todos')
   createTodo(
     @Body() dto: CreateTodoDTO,
     @HeaderProperty('sharedspace-id', ParseIntPipe) SharedspaceId: number,
@@ -24,7 +24,7 @@ export class TodosController {
 
   @AuthRoleGuards()
   @AboveMemberRoles()
-  @Put()
+  @Put(':url/todos')
   updateTodo(@Body() dto: UpdateTodoDto) {
     return this.todosService.updateTodo(dto);
   }
@@ -32,8 +32,8 @@ export class TodosController {
   @AuthRoleGuards()
   @AboveMemberRoles()
   @HttpCode(204)
-  @Delete()
-  deleteTodo(@Query('ti', ParseIntPipe) todoId: number) {
+  @Delete(':url/todos/:id')
+  deleteTodo(@Param('id', ParseIntPipe) todoId: number) {
     return this.todosService.deleteTodo(todoId);
   }
 }
