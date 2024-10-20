@@ -39,16 +39,25 @@ export class TodosController {
   @AuthRoleGuards()
   @AboveMemberRoles()
   @Put(':url/todos')
-  updateTodo(@Body() dto: UpdateTodoDto) {
-    return this.todosService.updateTodo(dto);
+  updateTodo(
+    @Body() dto: UpdateTodoDto,
+    @Param('url') url: string,
+  ) {
+    return this.todosService.updateTodo(
+      dto,
+      url,
+    );
   }
 
   @AuthRoleGuards()
   @AboveMemberRoles()
   @HttpCode(204)
   @Delete(':url/todos/:id')
-  deleteTodo(@Param('id', ParseIntPipe) todoId: number) {
-    return this.todosService.deleteTodo(todoId);
+  deleteTodo(
+    @Param('url') url: string,
+    @Param('id', ParseIntPipe) todoId: number,
+  ) {
+    return this.todosService.deleteTodo(url, todoId);
   }
 
   @Get(':url/todos/search')
