@@ -8,11 +8,9 @@ import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
 import { AuthRoleGuards } from "src/common/decorator/auth.role.decorator";
 import { IsAuthenicatedGuard } from "src/auth/local.auth.guard";
-import { DateValidationPipe } from "src/common/pipe/date.validation.pipe";
 import { LengthValidationPipe } from "src/common/pipe/length.validation.pipe";
 import { TSubscribedspacesFilter } from "src/typings/types";
 import { SubscribedFilterValidationPipe } from "src/common/pipe/subscribedFilter.validation.pipe";
-import { HeaderProperty } from "src/common/decorator/headerProperty.decorator";
 import { PublicSpaceGuard } from "src/common/guard/public.space.guard";
 
 @Controller('api/sharedspaces')
@@ -49,9 +47,9 @@ export class SharedspacesController {
   @Patch('name')
   updateSharedspaceName(
     @Body() dto: UpdateSharedspaceNameDTO,
-    @HeaderProperty('sharedspace-id', ParseIntPipe) SharedspaceId: number,
+    @Param('url', new LengthValidationPipe(5)) url: string,
   ) {
-    return this.sharedspacesService.updateSharedspaceName(dto, SharedspaceId);
+    return this.sharedspacesService.updateSharedspaceName(dto, url);
   }
 
   @AuthRoleGuards()
@@ -59,17 +57,17 @@ export class SharedspacesController {
   @Patch('owner')
   updateSharedspaceOwner(
     @Body() dto: UpdateSharedspaceOwnerDTO,
-    @HeaderProperty('sharedspace-id', ParseIntPipe) SharedspaceId: number,
+    @Param('url', new LengthValidationPipe(5)) url: string,
   ) {
-    return this.sharedspacesService.updateSharedspaceOwner(dto, SharedspaceId);
+    return this.sharedspacesService.updateSharedspaceOwner(dto, url);
   }
   
   @AuthRoleGuards()
   @OwnerOnlyRoles()
   @HttpCode(204)
   @Delete()
-  deleteSharedspace(@HeaderProperty('sharedspace-id', ParseIntPipe) SharedspaceId: number) {
-    return this.sharedspacesService.deleteSharedspace(SharedspaceId);
+  deleteSharedspace(@Param('url', new LengthValidationPipe(5)) url: string) {
+    return this.sharedspacesService.deleteSharedspace(url);
   }
 
   @Get(':url/todos/search')
