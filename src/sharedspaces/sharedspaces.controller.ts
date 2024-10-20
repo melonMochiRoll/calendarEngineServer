@@ -22,7 +22,7 @@ export class SharedspacesController {
   ) {}
 
   @UseGuards(PublicSpaceGuard)
-  @Get('view/:url')
+  @Get(':url/view')
   getSharedspace(
     @Param('url', new LengthValidationPipe(5)) url: string,
   ) {
