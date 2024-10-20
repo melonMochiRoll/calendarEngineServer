@@ -1,4 +1,4 @@
-import { HttpException, Injectable, InternalServerErrorException } from "@nestjs/common";
+import { BadRequestException, HttpException, Injectable, InternalServerErrorException } from "@nestjs/common";
 import dayjs from "dayjs";
 import { InjectRepository } from "@nestjs/typeorm";
 import { And, LessThanOrEqual, Like, MoreThanOrEqual, Repository } from "typeorm";
@@ -6,6 +6,7 @@ import { Todos } from "src/entities/Todos";
 import { CreateTodoDTO } from "./dto/create.todo.dto";
 import { UpdateTodoDto } from "./dto/update.todo.dto";
 import { Sharedspaces } from "src/entities/Sharedspaces";
+import { BAD_REQUEST_MESSAGE } from "src/common/constant/error.message";
 
 @Injectable()
 export class TodosService {
@@ -153,11 +154,21 @@ export class TodosService {
     return true;
   }
 
-  async updateTodo(dto: UpdateTodoDto) {
-    const { id, ...rest } = dto;
+  async updateTodo(
+    dto: UpdateTodoDto,
+    url: string,
+  ) {
+    const { id: todoId, ...rest } = dto;
 
     try {
-      await this.todosRepository.update({ id }, rest);
+      const targetspace = await this.sharedspacesRepository.findOneBy({ url });
+      const targetTodo = await this.todosRepository.findOneBy({ id: todoId });
+
+      if (targetTodo?.SharedspaceId !== targetspace?.id) {
+        throw new BadRequestException(BAD_REQUEST_MESSAGE);
+      }
+
+      await this.todosRepository.update({ id: todoId }, rest);
     } catch (err: any) {
       if (err instanceof HttpException) {
         throw new HttpException(err.getResponse(), err.getStatus());
@@ -168,8 +179,18 @@ export class TodosService {
     return true;
   }
 
-  async deleteTodo(todoId: number) {
+  async deleteTodo(
+    url: string,
+    todoId: number,
+  ) {
     try {
+      const targetspace = await this.sharedspacesRepository.findOneBy({ url });
+      const targetTodo = await this.todosRepository.findOneBy({ id: todoId });
+
+      if (targetTodo?.SharedspaceId !== targetspace?.id) {
+        throw new BadRequestException(BAD_REQUEST_MESSAGE);
+      }
+
       await this.todosRepository.delete(todoId);
     } catch (err: any) {
       if (err instanceof HttpException) {
