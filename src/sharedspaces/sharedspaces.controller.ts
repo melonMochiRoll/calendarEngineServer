@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { SharedspacesService } from "./sharedspaces.service";
 import { CreateSharedspaceDTO } from "./dto/create.sharedspace.dto";
 import { UpdateSharedspaceNameDTO } from "./dto/update.sharedspace.name.dto";
@@ -89,5 +89,15 @@ export class SharedspacesController {
     @Body() dto: UpdateSharedspaceMembersDTO,
   ) {
     return this.sharedspacesService.updateSharedspaceMembers(url, dto);
+  }
+
+  @AuthRoleGuards()
+  @OwnerOnlyRoles()
+  @Delete(':url/members/:id')
+  deleteSharedspaceMembers(
+    @Param('url') url: string,
+    @Param('id', ParseIntPipe) UserId: number,
+  ) {
+    return this.sharedspacesService.deleteSharedspaceMembers(url, UserId);
   }
 }

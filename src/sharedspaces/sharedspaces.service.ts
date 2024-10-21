@@ -274,6 +274,33 @@ export class SharedspacesService {
     return true;
   }
 
+  async deleteSharedspaceMembers(
+    url: string,
+    UserId: number,
+  ) {
+    try {
+      const targetSpace = await this.sharedspacesRepository.findOneBy({ url });
+
+      const isMember = await this.sharedspaceMembersRepository.findOneBy({
+        UserId,
+        SharedspaceId: targetSpace?.id,
+      });
+
+      if (!isMember) {
+        throw new NotFoundException(NOT_FOUND_RESOURCE);
+      }
+
+      await this.sharedspaceMembersRepository.delete({
+        UserId,
+        SharedspaceId: targetSpace?.id,
+      });
+    } catch (err) {
+      handleError(err);
+    }
+
+    return true;
+  }
+
   async DEPRECATED_getSpacePermission(
     identifier: string | number,
     user: Users,
