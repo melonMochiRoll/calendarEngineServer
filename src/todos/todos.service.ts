@@ -138,11 +138,11 @@ export class TodosService {
     url: string,
   ) {
     try {
-      const targetspace = await this.sharedspacesRepository.findOneBy({ url });
+      const targetSpace = await this.sharedspacesRepository.findOneBy({ url });
 
       await this.todosRepository.save({
         ...dto,
-        SharedspaceId: targetspace?.id,
+        SharedspaceId: targetSpace?.id,
       });
     } catch (err: any) {
       if (err instanceof HttpException) {
@@ -161,10 +161,10 @@ export class TodosService {
     const { id: todoId, ...rest } = dto;
 
     try {
-      const targetspace = await this.sharedspacesRepository.findOneBy({ url });
+      const targetSpace = await this.sharedspacesRepository.findOneBy({ url });
       const targetTodo = await this.todosRepository.findOneBy({ id: todoId });
 
-      if (targetTodo?.SharedspaceId !== targetspace?.id) {
+      if (targetTodo?.SharedspaceId !== targetSpace?.id) {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
@@ -184,10 +184,10 @@ export class TodosService {
     todoId: number,
   ) {
     try {
-      const targetspace = await this.sharedspacesRepository.findOneBy({ url });
+      const targetSpace = await this.sharedspacesRepository.findOneBy({ url });
       const targetTodo = await this.todosRepository.findOneBy({ id: todoId });
 
-      if (targetTodo?.SharedspaceId !== targetspace?.id) {
+      if (targetTodo?.SharedspaceId !== targetSpace?.id) {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
