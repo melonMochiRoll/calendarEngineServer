@@ -11,6 +11,7 @@ import { IsAuthenicatedGuard } from "src/auth/local.auth.guard";
 import { TSubscribedspacesFilter } from "src/typings/types";
 import { SubscribedFilterValidationPipe } from "src/common/pipe/subscribedFilter.validation.pipe";
 import { PublicSpaceGuard } from "src/common/guard/public.space.guard";
+import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
 
 @Controller('api/sharedspaces')
 export class SharedspacesController {
@@ -45,20 +46,20 @@ export class SharedspacesController {
   @OwnerOnlyRoles()
   @Patch(':url/name')
   updateSharedspaceName(
-    @Body() dto: UpdateSharedspaceNameDTO,
     @Param('url') url: string,
+    @Body() dto: UpdateSharedspaceNameDTO,
   ) {
-    return this.sharedspacesService.updateSharedspaceName(dto, url);
+    return this.sharedspacesService.updateSharedspaceName(url, dto);
   }
 
   @AuthRoleGuards()
   @OwnerOnlyRoles()
   @Patch(':url/owner')
   updateSharedspaceOwner(
-    @Body() dto: UpdateSharedspaceOwnerDTO,
     @Param('url') url: string,
+    @Body() dto: UpdateSharedspaceOwnerDTO,
   ) {
-    return this.sharedspacesService.updateSharedspaceOwner(dto, url);
+    return this.sharedspacesService.updateSharedspaceOwner(url, dto);
   }
   
   @AuthRoleGuards()
@@ -67,5 +68,15 @@ export class SharedspacesController {
   @Delete(':url')
   deleteSharedspace(@Param('url') url: string) {
     return this.sharedspacesService.deleteSharedspace(url);
+  }
+
+  @AuthRoleGuards()
+  @OwnerOnlyRoles()
+  @Post(':url/members')
+  createSharedspaceMembers(
+    @Param('url') url: string,
+    @Body() dto: CreateSharedspaceMembersDTO,
+  ) {
+    return this.sharedspacesService.createSharedspaceMembers(url, dto);
   }
 }
