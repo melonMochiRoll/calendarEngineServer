@@ -9,8 +9,9 @@ import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { SharedspaceMembersRoles, SubscribedspacesFilter, TSubscribedspacesFilter } from "src/typings/types";
 import { Users } from "src/entities/Users";
-import { ACCESS_DENIED_MESSAGE, NOT_FOUND_SPACE_MESSAGE } from "src/common/constant/error.message";
+import { ACCESS_DENIED_MESSAGE, CONFLICT_MESSAGE, NOT_FOUND_SPACE_MESSAGE } from "src/common/constant/error.message";
 import { TodosService } from "src/todos/todos.service";
+import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
 
 @Injectable()
 export class SharedspacesService {
@@ -152,8 +153,8 @@ export class SharedspacesService {
   }
 
   async updateSharedspaceName(
-    dto: UpdateSharedspaceNameDTO,
     url: string,
+    dto: UpdateSharedspaceNameDTO,
   ) {
     const { name } = dto;
     
@@ -176,8 +177,8 @@ export class SharedspacesService {
   }
 
   async updateSharedspaceOwner(
-    dto: UpdateSharedspaceOwnerDTO,
     url: string,
+    dto: UpdateSharedspaceOwnerDTO,
   ) {
     const { OwnerId, newOwnerId } = dto;
 
@@ -214,6 +215,39 @@ export class SharedspacesService {
   async deleteSharedspace(url: string) {
     try {
       await this.sharedspacesRepository.delete({ url });
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw new HttpException(err.getResponse(), err.getStatus());
+      }
+      throw new InternalServerErrorException(err);
+    }
+
+    return true;
+  }
+
+  async createSharedspaceMembers(
+    url: string,
+    dto: CreateSharedspaceMembersDTO,
+  ) {
+    const { UserId, role } = dto;
+
+    try {
+      const targetSpace = await this.sharedspacesRepository.findOneBy({ url });
+
+      const isMember = await this.sharedspaceMembersRepository.findOneBy({
+        UserId,
+        SharedspaceId: targetSpace?.id,
+      });
+
+      if (isMember) {
+        throw new ConflictException(CONFLICT_MESSAGE);
+      }
+
+      await this.sharedspaceMembersRepository.save({
+        UserId,
+        SharedspaceId: targetSpace?.id,
+        role,
+      });
     } catch (err) {
       if (err instanceof HttpException) {
         throw new HttpException(err.getResponse(), err.getStatus());
