@@ -7,6 +7,8 @@ export const ACCESS_DENIED_MESSAGE = '접근 권한이 없습니다.'; // status
 
 export const NOT_FOUND_SPACE_MESSAGE = '존재하지 않는 스페이스입니다.'; // status: 404
 
+export const NOT_FOUND_RESOURCE = '요청하신 리소스를 찾을 수 없습니다.'; // status: 404
+
 export const CONFLICT_MESSAGE = '요청한 데이터와 서버의 데이터 상태가 일치하지 않습니다. 최신 상태를 확인하세요.'; // status: 409;
 
 export const INTERNAL_SERVER_MESSAGE = '서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'; // status: 500
