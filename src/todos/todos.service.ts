@@ -7,6 +7,7 @@ import { CreateTodoDTO } from "./dto/create.todo.dto";
 import { UpdateTodoDto } from "./dto/update.todo.dto";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import { BAD_REQUEST_MESSAGE } from "src/common/constant/error.message";
+import handleError from "src/common/function/handleError";
 
 @Injectable()
 export class TodosService {
@@ -36,11 +37,8 @@ export class TodosService {
           ),
         },
       });
-    } catch (err: any) {
-      if (err instanceof HttpException) {
-        throw new HttpException(err.getResponse(), err.getStatus());
-      }
-      throw new InternalServerErrorException(err);
+    } catch (err) {
+      handleError(err);
     }
   }
 
@@ -69,10 +67,7 @@ export class TodosService {
         take: limit,
       });
     } catch (err) {
-      if (err instanceof HttpException) {
-        throw new HttpException(err.getResponse(), err.getStatus());
-      }
-      throw new InternalServerErrorException(err);
+      handleError(err);
     }
   }
 
@@ -126,10 +121,7 @@ export class TodosService {
 
       return result;
     } catch (err) {
-      if (err instanceof HttpException) {
-        throw new HttpException(err.getResponse(), err.getStatus());
-      }
-      throw new InternalServerErrorException(err);
+      handleError(err);
     }
   }
 
@@ -145,10 +137,7 @@ export class TodosService {
         SharedspaceId: targetSpace?.id,
       });
     } catch (err: any) {
-      if (err instanceof HttpException) {
-        throw new HttpException(err.getResponse(), err.getStatus());
-      }
-      throw new InternalServerErrorException(err);
+      handleError(err);
     }
 
     return true;
@@ -193,10 +182,7 @@ export class TodosService {
 
       await this.todosRepository.delete(todoId);
     } catch (err: any) {
-      if (err instanceof HttpException) {
-        throw new HttpException(err.getResponse(), err.getStatus());
-      }
-      throw new InternalServerErrorException(err);
+      handleError(err);
     }
 
     return true;
@@ -217,10 +203,7 @@ export class TodosService {
       //   limit,
       // );
     } catch (err) {
-      if (err instanceof HttpException) {
-        throw new HttpException(err.getResponse(), err.getStatus());
-      }
-      throw new InternalServerErrorException(err);
+      handleError(err);
     }
   }
 }

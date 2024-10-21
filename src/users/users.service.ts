@@ -5,6 +5,7 @@ import { Repository } from "typeorm";
 import 'dotenv/config';
 import bcrypt from 'bcrypt';
 import { CreateUserDTO } from "./dto/create.user.dto";
+import handleError from "src/common/function/handleError";
 
 @Injectable()
 export class UsersService {
@@ -17,8 +18,7 @@ export class UsersService {
     try {
       return await this.usersRepository.findOneBy({ id });
     } catch (err) {
-      console.error(`getOneById : ${err}`);
-      throw new InternalServerErrorException(err);
+      handleError(err);
     }
   }
 
@@ -26,8 +26,7 @@ export class UsersService {
     try {
       return await this.usersRepository.findOneBy({ email });
     } catch (err) {
-      console.error(`getOneByEmail : ${err}`);
-      throw new InternalServerErrorException(err);
+      handleError(err);
     }
   }
 
@@ -37,8 +36,7 @@ export class UsersService {
         .then(() => true)
         .catch(() => false);
     } catch (err) {
-      console.error(err);
-      throw new InternalServerErrorException(err);
+      handleError(err);
     }
   }
 
@@ -56,8 +54,7 @@ export class UsersService {
       
       return true;
     } catch (err: any) {
-      console.log(`createUser : ${err}`);
-      throw new InternalServerErrorException(err);
+      handleError(err);
     }
   }
 }

@@ -13,6 +13,7 @@ import { ACCESS_DENIED_MESSAGE, CONFLICT_MESSAGE, NOT_FOUND_RESOURCE, NOT_FOUND_
 import { TodosService } from "src/todos/todos.service";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
 import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dto";
+import handleError from "src/common/function/handleError";
 
 @Injectable()
 export class SharedspacesService {
@@ -56,10 +57,7 @@ export class SharedspacesService {
         }
       });
     } catch (err) {
-      if (err instanceof HttpException) {
-        throw new HttpException(err.getResponse(), err.getStatus());
-      }
-      throw new InternalServerErrorException(err);
+      handleError(err);
     }
   }
 
@@ -112,10 +110,7 @@ export class SharedspacesService {
         },
       });
     } catch (err) {
-      if (err instanceof HttpException) {
-        throw new HttpException(err.getResponse(), err.getStatus());
-      }
-      throw new InternalServerErrorException(err);
+      handleError(err);
     }
   }
 
@@ -144,10 +139,7 @@ export class SharedspacesService {
     } catch (err) {
       await qr.rollbackTransaction();
 
-      if (err instanceof HttpException) {
-        throw new HttpException(err.getResponse(), err.getStatus());
-      }
-      throw new InternalServerErrorException(err);
+      handleError(err);
     } finally {
       await qr.release();
     }
@@ -168,10 +160,7 @@ export class SharedspacesService {
 
       await this.sharedspacesRepository.update({ url }, { name });
     } catch (err) {
-      if (err instanceof HttpException) {
-        throw new HttpException(err.getResponse(), err.getStatus());
-      }
-      throw new InternalServerErrorException(err);
+      handleError(err);
     }
 
     return true;
@@ -202,10 +191,7 @@ export class SharedspacesService {
     } catch (err) {
       await qr.rollbackTransaction();
 
-      if (err instanceof HttpException) {
-        throw new HttpException(err.getResponse(), err.getStatus());
-      }
-      throw new InternalServerErrorException(err);
+      handleError(err);
     } finally {
       await qr.release();
     }
@@ -217,10 +203,7 @@ export class SharedspacesService {
     try {
       await this.sharedspacesRepository.delete({ url });
     } catch (err) {
-      if (err instanceof HttpException) {
-        throw new HttpException(err.getResponse(), err.getStatus());
-      }
-      throw new InternalServerErrorException(err);
+      handleError(err);
     }
 
     return true;
@@ -250,10 +233,7 @@ export class SharedspacesService {
         role,
       });
     } catch (err) {
-      if (err instanceof HttpException) {
-        throw new HttpException(err.getResponse(), err.getStatus());
-      }
-      throw new InternalServerErrorException(err);
+      handleError(err);
     }
 
     return true;
@@ -287,12 +267,8 @@ export class SharedspacesService {
       },{
         role,
       });
-
     } catch (err) {
-      if (err instanceof HttpException) {
-        throw new HttpException(err.getResponse(), err.getStatus());
-      }
-      throw new InternalServerErrorException(err);
+      handleError(err);
     }
 
     return true;
