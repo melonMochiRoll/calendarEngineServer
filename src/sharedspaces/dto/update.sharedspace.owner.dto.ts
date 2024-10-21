@@ -1,4 +1,4 @@
-import { IsNumber } from "class-validator";
+import { Type } from "class-transformer";
 import { IsExistUser } from "src/common/validator/IsExistUser";
 
 export class UpdateSharedspaceOwnerDTO {
@@ -6,12 +6,12 @@ export class UpdateSharedspaceOwnerDTO {
   @IsExistUser({
     message: '$property은 존재하지 않는 회원입니다.'
   })
-  @IsNumber()
+  @Type(() => Number)
   OwnerId: number;
 
   @IsExistUser({
     message: '$property은 존재하지 않는 회원입니다.'
   })
-  @IsNumber()
+  @Type(() => Number)
   newOwnerId: number;
 }

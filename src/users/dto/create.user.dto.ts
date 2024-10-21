@@ -7,7 +7,6 @@ export class CreateUserDTO {
     message: '이미 존재하는 $property입니다.',
   })
   @IsEmail()
-  @IsNotEmpty()
   email: string;
 
   @IsString()
