@@ -12,6 +12,7 @@ import { TSubscribedspacesFilter } from "src/typings/types";
 import { SubscribedFilterValidationPipe } from "src/common/pipe/subscribedFilter.validation.pipe";
 import { PublicSpaceGuard } from "src/common/guard/public.space.guard";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
+import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dto";
 
 @Controller('api/sharedspaces')
 export class SharedspacesController {
@@ -78,5 +79,15 @@ export class SharedspacesController {
     @Body() dto: CreateSharedspaceMembersDTO,
   ) {
     return this.sharedspacesService.createSharedspaceMembers(url, dto);
+  }
+
+  @AuthRoleGuards()
+  @OwnerOnlyRoles()
+  @Patch(':url/members')
+  updateSharedspaceMembers(
+    @Param('url') url: string,
+    @Body() dto: UpdateSharedspaceMembersDTO,
+  ) {
+    return this.sharedspacesService.updateSharedspaceMembers(url, dto);
   }
 }

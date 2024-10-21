@@ -9,9 +9,10 @@ import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { SharedspaceMembersRoles, SubscribedspacesFilter, TSubscribedspacesFilter } from "src/typings/types";
 import { Users } from "src/entities/Users";
-import { ACCESS_DENIED_MESSAGE, CONFLICT_MESSAGE, NOT_FOUND_SPACE_MESSAGE } from "src/common/constant/error.message";
+import { ACCESS_DENIED_MESSAGE, CONFLICT_MESSAGE, NOT_FOUND_RESOURCE, NOT_FOUND_SPACE_MESSAGE } from "src/common/constant/error.message";
 import { TodosService } from "src/todos/todos.service";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
+import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dto";
 
 @Injectable()
 export class SharedspacesService {
@@ -248,6 +249,45 @@ export class SharedspacesService {
         SharedspaceId: targetSpace?.id,
         role,
       });
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw new HttpException(err.getResponse(), err.getStatus());
+      }
+      throw new InternalServerErrorException(err);
+    }
+
+    return true;
+  }
+
+  async updateSharedspaceMembers(
+    url: string,
+    dto: UpdateSharedspaceMembersDTO,
+  ) {
+    const { UserId, role } = dto;
+
+    try {
+      if (role === SharedspaceMembersRoles.OWNER) {
+        throw new ConflictException(CONFLICT_MESSAGE);
+      }
+
+      const targetSpace = await this.sharedspacesRepository.findOneBy({ url });
+
+      const isMember = await this.sharedspaceMembersRepository.findOneBy({
+        UserId,
+        SharedspaceId: targetSpace?.id,
+      });
+
+      if (!isMember) {
+        throw new NotFoundException(NOT_FOUND_RESOURCE);
+      }
+
+      await this.sharedspaceMembersRepository.update({
+        UserId,
+        SharedspaceId: targetSpace?.id,
+      },{
+        role,
+      });
+
     } catch (err) {
       if (err instanceof HttpException) {
         throw new HttpException(err.getResponse(), err.getStatus());
