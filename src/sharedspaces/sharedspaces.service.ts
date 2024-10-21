@@ -14,6 +14,7 @@ import { TodosService } from "src/todos/todos.service";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
 import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dto";
 import handleError from "src/common/function/handleError";
+import { UpdateSharedspacePrivateDTO } from "./dto/update.sharedspace.private.dto";
 
 @Injectable()
 export class SharedspacesService {
@@ -194,6 +195,19 @@ export class SharedspacesService {
       handleError(err);
     } finally {
       await qr.release();
+    }
+
+    return true;
+  }
+
+  async updateSharedspacePrivate(
+    url: string,
+    dto: UpdateSharedspacePrivateDTO,
+  ) {
+    try {
+      await this.sharedspacesRepository.update({ url }, { ...dto });
+    } catch (err) {
+      handleError(err);
     }
 
     return true;

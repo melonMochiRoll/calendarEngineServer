@@ -13,6 +13,7 @@ import { SubscribedFilterValidationPipe } from "src/common/pipe/subscribedFilter
 import { PublicSpaceGuard } from "src/common/guard/public.space.guard";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
 import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dto";
+import { UpdateSharedspacePrivateDTO } from "./dto/update.sharedspace.private.dto";
 
 @Controller('api/sharedspaces')
 export class SharedspacesController {
@@ -61,6 +62,16 @@ export class SharedspacesController {
     @Body() dto: UpdateSharedspaceOwnerDTO,
   ) {
     return this.sharedspacesService.updateSharedspaceOwner(url, dto);
+  }
+
+  @AuthRoleGuards()
+  @OwnerOnlyRoles()
+  @Patch(':url/private')
+  updateSharedspacePrivate(
+    @Param('url') url: string,
+    @Body() dto: UpdateSharedspacePrivateDTO,
+  ) {
+    return this.sharedspacesService.updateSharedspacePrivate(url, dto);
   }
   
   @AuthRoleGuards()
