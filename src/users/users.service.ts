@@ -1,11 +1,12 @@
-import { Injectable, InternalServerErrorException } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Users } from "src/entities/Users";
-import { Repository } from "typeorm";
+import { IsNull, Like, Repository } from "typeorm";
 import 'dotenv/config';
 import bcrypt from 'bcrypt';
 import { CreateUserDTO } from "./dto/create.user.dto";
 import handleError from "src/common/function/handleError";
+import { BAD_REQUEST_MESSAGE } from "src/common/constant/error.message";
 
 @Injectable()
 export class UsersService {
@@ -35,6 +36,29 @@ export class UsersService {
       return await this.usersRepository.findOneByOrFail({ email })
         .then(() => true)
         .catch(() => false);
+    } catch (err) {
+      handleError(err);
+    }
+  }
+
+  async searchUsers(query: string) {
+    const trimmedQuery = query.trim();
+
+    try {
+      if (!trimmedQuery) {
+        throw new BadRequestException(BAD_REQUEST_MESSAGE);
+      }
+
+      return await this.usersRepository.find({
+        select: {
+          id: true,
+          email: true,
+        },
+        where: {
+          deletedAt: IsNull(),
+          email: Like(`${trimmedQuery}%`),
+        },
+      });
     } catch (err) {
       handleError(err);
     }
