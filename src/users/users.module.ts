@@ -12,6 +12,7 @@ import { IsNotExistEmailConstraint } from 'src/common/validator/IsNotExistEmail'
   providers: [
     UsersService,
     IsExistUserConstraint,
+    IsExistUserConstraint,
     IsNotExistEmailConstraint,
   ],
   exports: [ UsersService ],
