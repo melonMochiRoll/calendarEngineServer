@@ -36,6 +36,7 @@ export class SharedspacesService {
           url: true,
           private: true,
           Owner: {
+            id: true,
             email: true,
           },
           Sharedspacemembers: {
