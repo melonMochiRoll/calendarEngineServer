@@ -53,6 +53,13 @@ export class UsersService {
         select: {
           id: true,
           email: true,
+          Sharedspacemembers: {
+            SharedspaceId: true,
+            role: true,
+          },
+        },
+        relations: {
+          Sharedspacemembers: true,
         },
         where: {
           deletedAt: IsNull(),
