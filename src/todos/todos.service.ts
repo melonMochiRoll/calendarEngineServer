@@ -159,10 +159,7 @@ export class TodosService {
 
       await this.todosRepository.update({ id: todoId }, rest);
     } catch (err: any) {
-      if (err instanceof HttpException) {
-        throw new HttpException(err.getResponse(), err.getStatus());
-      }
-      throw new InternalServerErrorException(err);
+      handleError(err);
     }
 
     return true;
