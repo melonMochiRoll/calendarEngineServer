@@ -29,6 +29,18 @@ export class TodosService {
       const endDate = dayjs(`${year}-${month}-31`).toDate();
 
       return await this.todosRepository.find({
+        select: {
+          Author: {
+            email: true,
+          },
+          Editor: {
+            email: true,
+          },
+        },
+        relations: {
+          Author: true,
+          Editor: true,
+        },
         where: {
           SharedspaceId,
           date: And(
