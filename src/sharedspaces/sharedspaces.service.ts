@@ -315,48 +315,4 @@ export class SharedspacesService {
 
     return true;
   }
-
-  async DEPRECATED_getSpacePermission(
-    identifier: string | number,
-    user: Users,
-  ) {
-    try {
-      const condition = {};
-
-      if (typeof identifier === 'string') {
-        Object.assign(condition, { url: identifier });
-      }
-  
-      if (typeof identifier === 'number') {
-        Object.assign(condition, { id: identifier });
-      }
-  
-      const space = await this.sharedspacesRepository.findOne({
-        select: {
-          id: true,
-          private: true,
-        },
-        where: condition,
-      });
-  
-      const target = user?.Sharedspacemembers?.find(ele => ele?.SharedspaceId === space?.id);
-  
-      if (!space) {
-        throw new NotFoundException(NOT_FOUND_SPACE_MESSAGE);
-      }
-  
-      if (space.private) {
-        if (!user || !target) {
-          throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
-        }
-      }
-  
-      return space;
-    } catch (err) {
-      if (err instanceof HttpException) {
-        throw new HttpException(err.getResponse(), err.getStatus());
-      }
-      throw new InternalServerErrorException(err);
-    }
-  }
 }
