@@ -1,6 +1,7 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { Users } from "./Users";
 import { Sharedspaces } from "./Sharedspaces";
+import { Roles } from "./Roles";
 
 @Entity({ name: 'sharedspacemembers' })
 export class SharedspaceMembers {
@@ -11,8 +12,8 @@ export class SharedspaceMembers {
   @PrimaryColumn({ type: 'int', name: 'SharedspaceId' })
   SharedspaceId: number;
 
-  @Column({ type: 'varchar', length: 100 })
-  role: string;
+  @Column({ type: 'varchar', name: 'RoleName' })
+  RoleName: string;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -39,4 +40,15 @@ export class SharedspaceMembers {
     referencedColumnName: 'id',
   })
   Sharedspace: Sharedspaces;
+
+  @ManyToOne(() => Roles, roles => roles.SharedspaceMembers, {
+    onUpdate: 'CASCADE',
+    onDelete: 'RESTRICT',
+  })
+  @JoinColumn({
+    name: 'RoleName',
+    referencedColumnName: 'name',
+    foreignKeyConstraintName: 'sharedspacemembers_RoleName_fk'
+  })
+  Role: Roles;
 }
