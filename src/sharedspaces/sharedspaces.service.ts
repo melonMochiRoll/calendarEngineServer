@@ -41,7 +41,7 @@ export class SharedspacesService {
           },
           Sharedspacemembers: {
             UserId: true,
-            role: true,
+            RoleName: true,
             createdAt: true,
             User: {
               email: true,
@@ -90,7 +90,7 @@ export class SharedspacesService {
         select: {
           UserId: true,
           SharedspaceId: true,
-          role: true,
+          RoleName: true,
           createdAt: true,
           Sharedspace: {
             name: true,
@@ -186,8 +186,8 @@ export class SharedspacesService {
       }
 
       await qr.manager.update(Sharedspaces, { id: origin.id }, { OwnerId: newOwnerId });
-      await qr.manager.update(SharedspaceMembers, { UserId: OwnerId, SharedspaceId: origin.id }, { role: SharedspaceMembersRoles.MEMBER });
-      await qr.manager.save(SharedspaceMembers, { UserId: newOwnerId, SharedspaceId: origin.id, role: SharedspaceMembersRoles.OWNER });
+      await qr.manager.update(SharedspaceMembers, { UserId: OwnerId, SharedspaceId: origin.id }, { RoleName: SharedspaceMembersRoles.MEMBER });
+      await qr.manager.save(SharedspaceMembers, { UserId: newOwnerId, SharedspaceId: origin.id, RoleName: SharedspaceMembersRoles.OWNER });
 
       await qr.commitTransaction();
     } catch (err) {
@@ -228,7 +228,7 @@ export class SharedspacesService {
     url: string,
     dto: CreateSharedspaceMembersDTO,
   ) {
-    const { UserId, role } = dto;
+    const { UserId, RoleName } = dto;
 
     try {
       const targetSpace = await this.sharedspacesRepository.findOneBy({ url });
@@ -245,7 +245,7 @@ export class SharedspacesService {
       await this.sharedspaceMembersRepository.save({
         UserId,
         SharedspaceId: targetSpace?.id,
-        role,
+        RoleName,
       });
     } catch (err) {
       handleError(err);
@@ -258,10 +258,10 @@ export class SharedspacesService {
     url: string,
     dto: UpdateSharedspaceMembersDTO,
   ) {
-    const { UserId, role } = dto;
+    const { UserId, RoleName } = dto;
 
     try {
-      if (role === SharedspaceMembersRoles.OWNER) {
+      if (RoleName === SharedspaceMembersRoles.OWNER) {
         throw new ConflictException(CONFLICT_MESSAGE);
       }
 
@@ -280,7 +280,7 @@ export class SharedspacesService {
         UserId,
         SharedspaceId: targetSpace?.id,
       },{
-        role,
+        RoleName,
       });
     } catch (err) {
       handleError(err);

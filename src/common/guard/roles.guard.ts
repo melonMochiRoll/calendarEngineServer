@@ -38,7 +38,7 @@ export class RolesGuard implements CanActivate {
 
     const userRoles = userSpaces
       .filter((item: SharedspaceMembers) => item.SharedspaceId === targetSpace.id)
-      .map((item: SharedspaceMembers) => item?.role || '');
+      .map((item: SharedspaceMembers) => item?.RoleName || '');
 
     if (!this.matchRoles(roles, userRoles)) {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);

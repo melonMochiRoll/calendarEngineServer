@@ -55,7 +55,7 @@ export class UsersService {
           email: true,
           Sharedspacemembers: {
             SharedspaceId: true,
-            role: true,
+            RoleName: true,
           },
         },
         relations: {

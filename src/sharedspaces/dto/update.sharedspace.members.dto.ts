@@ -15,5 +15,5 @@ export class UpdateSharedspaceMembersDTO {
     message: '$property는 유효하지 않는 등급입니다.'
   })
   @IsString()
-  role: string;
+  RoleName: string;
 }
