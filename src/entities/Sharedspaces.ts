@@ -2,6 +2,7 @@ import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, 
 import { Users } from "./Users";
 import { Todos } from "./Todos";
 import { SharedspaceMembers } from "./SharedspaceMembers";
+import { JoinRequests } from "./JoinRequests";
 
 @Index('sharedspaces_OwnerId_idx', ['OwnerId'])
 @Unique('sharedspaces_url_idx', ['url'])
@@ -47,6 +48,9 @@ export class Sharedspaces {
 
   @OneToMany(() => SharedspaceMembers, sharedspaceMembers => sharedspaceMembers.Sharedspace)
   Sharedspacemembers: SharedspaceMembers[];
+
+  @OneToMany(() => JoinRequests, joinRequests => joinRequests.Sharedspace)
+  JoinRequests: JoinRequests[];
 
   @ManyToMany(() => Users, users => users.Sharedspaces)
   Members: Users[];

@@ -2,6 +2,7 @@ import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinTable, ManyToMa
 import { Todos } from "./Todos";
 import { Sharedspaces } from "./Sharedspaces";
 import { SharedspaceMembers } from "./SharedspaceMembers";
+import { JoinRequests } from "./JoinRequests";
 
 @Unique('users_email_idx', ['email'])
 @Entity({ name: 'users' })
@@ -35,6 +36,9 @@ export class Users {
 
   @OneToMany(() => SharedspaceMembers, sharedspacemembers => sharedspacemembers.User)
   Sharedspacemembers: SharedspaceMembers[];
+
+  @OneToMany(() => JoinRequests, joinRequests => joinRequests.Requestor)
+  JoinRequests: JoinRequests[];
 
   @ManyToMany(() => Sharedspaces, sharedspaces => sharedspaces.Members)
   @JoinTable({
