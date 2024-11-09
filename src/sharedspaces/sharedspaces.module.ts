@@ -8,12 +8,14 @@ import { SharedspaceMembers } from 'src/entities/SharedspaceMembers';
 import { TodosModule } from 'src/todos/todos.module';
 import { PublicSpaceGuard } from 'src/common/guard/public.space.guard';
 import { RolesGuard } from 'src/common/guard/roles.guard';
+import { Roles } from 'src/entities/Roles';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       Sharedspaces,
       SharedspaceMembers,
+      Roles,
     ]),
     TodosModule,
   ],
