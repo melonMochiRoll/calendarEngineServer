@@ -76,17 +76,17 @@ export class SharedspacesService {
     };
 
     if (filter === SubscribedspacesFilter.OWNED) {
-      Object.assign(whereCondition, { role: SharedspaceMembersRoles.OWNER });
+      Object.assign(whereCondition, { RoleName: SharedspaceMembersRoles.OWNER });
     }
 
     if (filter === SubscribedspacesFilter.UNOWNED) {
       const result =
         Object
           .values(SharedspaceMembersRoles)
-          .filter(role => role !== SharedspaceMembersRoles.OWNER)
-          .map(role => Equal(role));
+          .filter(RoleName => RoleName !== SharedspaceMembersRoles.OWNER)
+          .map(RoleName => Equal(RoleName));
 
-      Object.assign(whereCondition, { role: Or(...result) });
+      Object.assign(whereCondition, { RoleName: Or(...result) });
     }
 
     try {
@@ -136,7 +136,7 @@ export class SharedspacesService {
       await qr.manager.save(SharedspaceMembers, {
         UserId: OwnerId,
         SharedspaceId: created.id,
-        role: SharedspaceMembersRoles.OWNER,
+        RoleName: SharedspaceMembersRoles.OWNER,
       });
 
       await qr.commitTransaction();
