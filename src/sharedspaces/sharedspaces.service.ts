@@ -9,7 +9,7 @@ import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { SharedspaceMembersRoles, SubscribedspacesFilter, TSubscribedspacesFilter } from "src/typings/types";
 import { Users } from "src/entities/Users";
-import { BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, NOT_FOUND_RESOURCE } from "src/common/constant/error.message";
+import { BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, NOT_FOUND_RESOURCE, NOT_FOUND_SPACE_MESSAGE } from "src/common/constant/error.message";
 import { TodosService } from "src/todos/todos.service";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
 import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dto";
@@ -220,6 +220,12 @@ export class SharedspacesService {
 
   async deleteSharedspace(url: string) {
     try {
+      const targetSpace = await this.findActiveSpaceByUrl(url);
+
+      if (!targetSpace) {
+        throw new NotFoundException(NOT_FOUND_SPACE_MESSAGE);
+      }
+
       await this.sharedspacesRepository.softDelete({ url });
     } catch (err) {
       handleError(err);
