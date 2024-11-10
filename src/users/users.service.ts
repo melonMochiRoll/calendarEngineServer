@@ -17,7 +17,7 @@ export class UsersService {
 
   async getOneById(id: number) {
     try {
-      return await this.usersRepository.findOneBy({ id });
+      return await this.usersRepository.findOneBy({ deletedAt: IsNull(), id });
     } catch (err) {
       handleError(err);
     }
@@ -25,7 +25,7 @@ export class UsersService {
 
   async getOneByEmail(email: string) {
     try {
-      return await this.usersRepository.findOneBy({ email });
+      return await this.usersRepository.findOneBy({ deletedAt: IsNull(), email });
     } catch (err) {
       handleError(err);
     }
@@ -33,7 +33,7 @@ export class UsersService {
 
   async isUser(email: string) {
     try {
-      return await this.usersRepository.findOneByOrFail({ email })
+      return await this.usersRepository.findOneByOrFail({ deletedAt: IsNull(), email })
         .then(() => true)
         .catch(() => false);
     } catch (err) {
