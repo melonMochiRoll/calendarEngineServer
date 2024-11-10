@@ -159,7 +159,7 @@ export class SharedspacesService {
     const { name } = dto;
     
     try {
-      const origin = await this.sharedspacesRepository.findOneBy({ url });
+      const origin = await this.findActiveSpaceByUrl(url);
 
       if (origin.name === name) {
         throw new ConflictException('동일한 이름으로 바꿀수 없습니다.');
@@ -184,7 +184,7 @@ export class SharedspacesService {
     await qr.startTransaction();
 
     try {
-      const origin = await this.sharedspacesRepository.findOneBy({ url });
+      const origin = await this.findActiveSpaceByUrl(url);
 
       if (origin.OwnerId === newOwnerId) {
         throw new ConflictException('동일한 유저로 바꿀수 없습니다.');
@@ -242,7 +242,7 @@ export class SharedspacesService {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
-      const targetSpace = await this.sharedspacesRepository.findOneBy({ url });
+      const targetSpace = await this.findActiveSpaceByUrl(url);
 
       const isMember = await this.sharedspaceMembersRepository.findOneBy({
         UserId,
@@ -282,7 +282,7 @@ export class SharedspacesService {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
-      const targetSpace = await this.sharedspacesRepository.findOneBy({ url });
+      const targetSpace = await this.findActiveSpaceByUrl(url);
 
       const isMember = await this.sharedspaceMembersRepository.findOneBy({
         UserId,
@@ -311,7 +311,7 @@ export class SharedspacesService {
     UserId: number,
   ) {
     try {
-      const targetSpace = await this.sharedspacesRepository.findOneBy({ url });
+      const targetSpace = await this.findActiveSpaceByUrl(url);
 
       const isMember = await this.sharedspaceMembersRepository.findOneBy({
         UserId,
