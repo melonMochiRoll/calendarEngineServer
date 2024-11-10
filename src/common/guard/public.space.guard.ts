@@ -1,7 +1,7 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException, BadRequestException, NotFoundException } from '@nestjs/common';
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, NOT_FOUND_SPACE_MESSAGE } from '../constant/error.message';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { Sharedspaces } from 'src/entities/Sharedspaces';
 import { Users } from 'src/entities/Users';
 import { SharedspaceMembersRoles } from 'src/typings/types';
@@ -20,7 +20,7 @@ export class PublicSpaceGuard implements CanActivate {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
-    const targetSpace = await this.sharedspacesRepository.findOneBy({ url });
+    const targetSpace = await this.sharedspacesRepository.findOneBy({ deletedAt: IsNull(), url });
 
     if (!targetSpace) {
       throw new NotFoundException(NOT_FOUND_SPACE_MESSAGE);

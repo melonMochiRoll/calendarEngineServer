@@ -3,7 +3,7 @@ import { Reflector } from '@nestjs/core';
 import { Roles } from '../decorator/roles.decorator';
 import { SharedspaceMembers } from 'src/entities/SharedspaceMembers';
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, NOT_FOUND_SPACE_MESSAGE } from '../constant/error.message';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { Sharedspaces } from 'src/entities/Sharedspaces';
 import { InjectRepository } from '@nestjs/typeorm';
 
@@ -30,7 +30,7 @@ export class RolesGuard implements CanActivate {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
-    const targetSpace = await this.sharedspacesRepository.findOneBy({ url });
+    const targetSpace = await this.sharedspacesRepository.findOneBy({ deletedAt: IsNull(), url });
 
     if (!targetSpace) {
       throw new NotFoundException(NOT_FOUND_SPACE_MESSAGE);
