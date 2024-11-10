@@ -7,7 +7,7 @@ import {
 } from 'class-validator';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Users } from 'src/entities/Users';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 
 @ValidatorConstraint({ name: 'isExistEmail', async: true })
@@ -19,7 +19,7 @@ export class IsExistEmailConstraint implements ValidatorConstraintInterface {
   ) {}
 
   async validate(email: any, args: ValidationArguments) {
-    return await this.usersRepository.findOneByOrFail({ email })
+    return await this.usersRepository.findOneByOrFail({ deletedAt: IsNull(), email })
       .then(() => true)
       .catch(() => false);
   }

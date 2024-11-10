@@ -6,7 +6,7 @@ import {
   ValidationArguments,
 } from 'class-validator';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { Sharedspaces } from 'src/entities/Sharedspaces';
 import { Injectable } from '@nestjs/common';
 
@@ -19,7 +19,7 @@ export class IsExistSpaceConstraint implements ValidatorConstraintInterface {
   ) {}
 
   async validate(id: any, args: ValidationArguments) {
-    return await this.sharedspacesRepository.findOneByOrFail({ id })
+    return await this.sharedspacesRepository.findOneByOrFail({ deletedAt: IsNull(), id })
       .then(() => {
         return true;
       })
