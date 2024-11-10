@@ -4,6 +4,8 @@ import { Sharedspaces } from 'src/entities/Sharedspaces';
 import { SharedspaceMembers } from 'src/entities/SharedspaceMembers';
 import { Todos } from 'src/entities/Todos';
 import { Users } from 'src/entities/Users';
+import { JoinRequests } from 'src/entities/JoinRequests';
+import { Roles } from 'src/entities/Roles';
 
 const ormconfig: TypeOrmModuleOptions = {
   type: "mysql",
@@ -17,10 +19,13 @@ const ormconfig: TypeOrmModuleOptions = {
     Todos,
     Sharedspaces,
     SharedspaceMembers,
+    JoinRequests,
+    Roles,
   ],
   synchronize: false,
   autoLoadEntities: true,
   charset: 'utf8mb4',
+  logging: false,
 }
 
 export default ormconfig;
