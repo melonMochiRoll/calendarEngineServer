@@ -1,7 +1,7 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { CreateSharedspaceDTO } from "./dto/create.sharedspace.dto";
 import { InjectRepository } from "@nestjs/typeorm";
-import { DataSource, Equal, Or, Repository } from "typeorm";
+import { DataSource, Equal, IsNull, Or, Repository } from "typeorm";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import { nanoid } from "nanoid";
 import { UpdateSharedspaceNameDTO } from "./dto/update.sharedspace.name.dto";
@@ -219,7 +219,7 @@ export class SharedspacesService {
 
   async deleteSharedspace(url: string) {
     try {
-      await this.sharedspacesRepository.delete({ url });
+      await this.sharedspacesRepository.softDelete({ url });
     } catch (err) {
       handleError(err);
     }
