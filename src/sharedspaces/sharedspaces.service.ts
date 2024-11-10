@@ -58,6 +58,7 @@ export class SharedspacesService {
           },
         },
         where: {
+          deletedAt: IsNull(),
           url,
         }
       });
