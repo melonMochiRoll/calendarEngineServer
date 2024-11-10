@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { CreateSharedspaceDTO } from "./dto/create.sharedspace.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, Equal, Or, Repository } from "typeorm";
@@ -9,12 +9,13 @@ import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { SharedspaceMembersRoles, SubscribedspacesFilter, TSubscribedspacesFilter } from "src/typings/types";
 import { Users } from "src/entities/Users";
-import { ACCESS_DENIED_MESSAGE, CONFLICT_MESSAGE, NOT_FOUND_RESOURCE, NOT_FOUND_SPACE_MESSAGE } from "src/common/constant/error.message";
+import { BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, NOT_FOUND_RESOURCE } from "src/common/constant/error.message";
 import { TodosService } from "src/todos/todos.service";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
 import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dto";
 import handleError from "src/common/function/handleError";
 import { UpdateSharedspacePrivateDTO } from "./dto/update.sharedspace.private.dto";
+import { Roles } from "src/entities/Roles";
 
 @Injectable()
 export class SharedspacesService {
@@ -24,6 +25,8 @@ export class SharedspacesService {
     private sharedspacesRepository: Repository<Sharedspaces>,
     @InjectRepository(SharedspaceMembers)
     private sharedspaceMembersRepository: Repository<SharedspaceMembers>,
+    @InjectRepository(Roles)
+    private rolesRepository: Repository<Roles>,
     private todosService: TodosService,
   ) {}
 
@@ -231,6 +234,12 @@ export class SharedspacesService {
     const { UserId, RoleName } = dto;
 
     try {
+      const role = await this.rolesRepository.findOneBy({ name: RoleName });
+
+      if (!role) {
+        throw new BadRequestException(BAD_REQUEST_MESSAGE);
+      }
+
       const targetSpace = await this.sharedspacesRepository.findOneBy({ url });
 
       const isMember = await this.sharedspaceMembersRepository.findOneBy({
@@ -245,7 +254,7 @@ export class SharedspacesService {
       await this.sharedspaceMembersRepository.save({
         UserId,
         SharedspaceId: targetSpace?.id,
-        RoleName,
+        RoleName: role.name,
       });
     } catch (err) {
       handleError(err);
@@ -265,6 +274,12 @@ export class SharedspacesService {
         throw new ConflictException(CONFLICT_MESSAGE);
       }
 
+      const role = await this.rolesRepository.findOneBy({ name: RoleName });
+
+      if (!role) {
+        throw new BadRequestException(BAD_REQUEST_MESSAGE);
+      }
+
       const targetSpace = await this.sharedspacesRepository.findOneBy({ url });
 
       const isMember = await this.sharedspaceMembersRepository.findOneBy({
@@ -280,7 +295,7 @@ export class SharedspacesService {
         UserId,
         SharedspaceId: targetSpace?.id,
       },{
-        RoleName,
+        RoleName: role.name,
       });
     } catch (err) {
       handleError(err);
