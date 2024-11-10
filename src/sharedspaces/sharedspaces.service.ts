@@ -72,7 +72,6 @@ export class SharedspacesService {
     user: Users,
   ) {
     const whereCondition = {
-      deletedAt: IsNull(),
       UserId: user.id,
     };
 
