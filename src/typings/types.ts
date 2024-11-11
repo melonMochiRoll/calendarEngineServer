@@ -1,3 +1,14 @@
+import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
+import { Sharedspaces } from "src/entities/Sharedspaces";
+import { Users } from "src/entities/Users";
+
+export type TUserData =
+  Pick<Users, 'id' | 'email'> &
+  {
+    Sharedspacemembers: Array<
+      Pick<SharedspaceMembers, 'RoleName'> & { Sharedspace: Pick<Sharedspaces, 'url' | 'private'> }
+    >,
+  };
 
 export const SharedspaceMembersRoles = {
   OWNER: 'owner',
