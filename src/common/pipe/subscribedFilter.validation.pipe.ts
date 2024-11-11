@@ -5,14 +5,14 @@ import { SubscribedspacesFilter, TSubscribedspacesFilter } from 'src/typings/typ
 @Injectable()
 export class SubscribedFilterValidationPipe implements PipeTransform<TSubscribedspacesFilter> {
   transform(value: string): string {
-    if (!this.isESubscribedspacesFilter(value)) {
+    if (!this.isSubscribedspacesFilter(value)) {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
     return value;
   }
 
-  private isESubscribedspacesFilter(value: any): value is TSubscribedspacesFilter {
+  private isSubscribedspacesFilter(value: any): value is TSubscribedspacesFilter {
     return Object.values(SubscribedspacesFilter).includes(value);
   }
 }
