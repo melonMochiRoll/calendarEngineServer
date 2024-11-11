@@ -7,6 +7,8 @@ import { AuthRoleGuards } from 'src/common/decorator/auth.role.decorator';
 import { HeaderProperty } from 'src/common/decorator/headerProperty.decorator';
 import { PublicSpaceGuard } from 'src/common/guard/public.space.guard';
 import { DateValidationPipe } from 'src/common/pipe/date.validation.pipe';
+import { TransformSpacePipe } from 'src/common/pipe/transform.space.pipe';
+import { Sharedspaces } from 'src/entities/Sharedspaces';
 
 @Controller('api/sharedspaces')
 export class TodosController {
@@ -17,11 +19,11 @@ export class TodosController {
   @UseGuards(PublicSpaceGuard)
   @Get(':url/todos')
   getTodosBySpace(
-    @Param('url') url: string,
+    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
     @Query('date', DateValidationPipe) date: string,
   ) {
     return this.todosService.getTodosBySpace(
-      url,
+      targetSpace,
       date,
     );
   }
@@ -30,22 +32,22 @@ export class TodosController {
   @AboveMemberRoles()
   @Post(':url/todos')
   createTodo(
+    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
     @Body() dto: CreateTodoDTO,
-    @Param('url') url: string,
   ) {
-    return this.todosService.createTodo(dto, url);
+    return this.todosService.createTodo(targetSpace, dto);
   }
 
   @AuthRoleGuards()
   @AboveMemberRoles()
   @Put(':url/todos')
   updateTodo(
+    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
     @Body() dto: UpdateTodoDto,
-    @Param('url') url: string,
   ) {
     return this.todosService.updateTodo(
+      targetSpace,
       dto,
-      url,
     );
   }
 
@@ -54,10 +56,10 @@ export class TodosController {
   @HttpCode(204)
   @Delete(':url/todos/:id')
   deleteTodo(
-    @Param('url') url: string,
+    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
     @Param('id', ParseIntPipe) todoId: number,
   ) {
-    return this.todosService.deleteTodo(url, todoId);
+    return this.todosService.deleteTodo(targetSpace, todoId);
   }
 
   @Get(':url/todos/search')

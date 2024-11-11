@@ -84,12 +84,11 @@ export class TodosService {
   }
 
   async getTodosBySpace(
-    url: string,
+    targetSpace: Sharedspaces,
     date: string,
   ) {
     try {
-      const targetspace = await this.sharedspacesRepository.findOneBy({ url });
-      const todos = await this.getTodos(targetspace.id, date);
+      const todos = await this.getTodos(targetSpace.id, date);
 
       const result = todos
         .sort((a: Todos, b: Todos) => {
@@ -138,15 +137,13 @@ export class TodosService {
   }
 
   async createTodo(
+    targetSpace: Sharedspaces,
     dto: CreateTodoDTO,
-    url: string,
   ) {
     try {
-      const targetSpace = await this.sharedspacesRepository.findOneBy({ url });
-
       await this.todosRepository.save({
         ...dto,
-        SharedspaceId: targetSpace?.id,
+        SharedspaceId: targetSpace.id,
       });
     } catch (err: any) {
       handleError(err);
@@ -156,16 +153,15 @@ export class TodosService {
   }
 
   async updateTodo(
+    targetSpace: Sharedspaces,
     dto: UpdateTodoDto,
-    url: string,
   ) {
     const { id: todoId, ...rest } = dto;
 
     try {
-      const targetSpace = await this.sharedspacesRepository.findOneBy({ url });
       const targetTodo = await this.todosRepository.findOneBy({ id: todoId });
 
-      if (targetTodo?.SharedspaceId !== targetSpace?.id) {
+      if (targetTodo?.SharedspaceId !== targetSpace.id) {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
@@ -178,14 +174,13 @@ export class TodosService {
   }
 
   async deleteTodo(
-    url: string,
+    targetSpace: Sharedspaces,
     todoId: number,
   ) {
     try {
-      const targetSpace = await this.sharedspacesRepository.findOneBy({ url });
       const targetTodo = await this.todosRepository.findOneBy({ id: todoId });
 
-      if (targetTodo?.SharedspaceId !== targetSpace?.id) {
+      if (targetTodo?.SharedspaceId !== targetSpace.id) {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
