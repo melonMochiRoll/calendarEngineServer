@@ -14,6 +14,8 @@ import { PublicSpaceGuard } from "src/common/guard/public.space.guard";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
 import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dto";
 import { UpdateSharedspacePrivateDTO } from "./dto/update.sharedspace.private.dto";
+import { TransformSpacePipe } from "src/common/pipe/transform.space.pipe";
+import { Sharedspaces } from "src/entities/Sharedspaces";
 
 @Controller('api/sharedspaces')
 export class SharedspacesController {
@@ -48,67 +50,67 @@ export class SharedspacesController {
   @OwnerOnlyRoles()
   @Patch(':url/name')
   updateSharedspaceName(
-    @Param('url') url: string,
+    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
     @Body() dto: UpdateSharedspaceNameDTO,
   ) {
-    return this.sharedspacesService.updateSharedspaceName(url, dto);
+    return this.sharedspacesService.updateSharedspaceName(targetSpace, dto);
   }
 
   @AuthRoleGuards()
   @OwnerOnlyRoles()
   @Patch(':url/owner')
   updateSharedspaceOwner(
-    @Param('url') url: string,
+    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
     @Body() dto: UpdateSharedspaceOwnerDTO,
   ) {
-    return this.sharedspacesService.updateSharedspaceOwner(url, dto);
+    return this.sharedspacesService.updateSharedspaceOwner(targetSpace, dto);
   }
 
   @AuthRoleGuards()
   @OwnerOnlyRoles()
   @Patch(':url/private')
   updateSharedspacePrivate(
-    @Param('url') url: string,
+    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
     @Body() dto: UpdateSharedspacePrivateDTO,
   ) {
-    return this.sharedspacesService.updateSharedspacePrivate(url, dto);
+    return this.sharedspacesService.updateSharedspacePrivate(targetSpace, dto);
   }
   
   @AuthRoleGuards()
   @OwnerOnlyRoles()
   @HttpCode(204)
   @Delete(':url')
-  deleteSharedspace(@Param('url') url: string) {
-    return this.sharedspacesService.deleteSharedspace(url);
+  deleteSharedspace(@Param('url', TransformSpacePipe) targetSpace: Sharedspaces) {
+    return this.sharedspacesService.deleteSharedspace(targetSpace);
   }
 
   @AuthRoleGuards()
   @OwnerOnlyRoles()
   @Post(':url/members')
   createSharedspaceMembers(
-    @Param('url') url: string,
+    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
     @Body() dto: CreateSharedspaceMembersDTO,
   ) {
-    return this.sharedspacesService.createSharedspaceMembers(url, dto);
+    return this.sharedspacesService.createSharedspaceMembers(targetSpace, dto);
   }
 
   @AuthRoleGuards()
   @OwnerOnlyRoles()
   @Patch(':url/members')
   updateSharedspaceMembers(
-    @Param('url') url: string,
+    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
     @Body() dto: UpdateSharedspaceMembersDTO,
   ) {
-    return this.sharedspacesService.updateSharedspaceMembers(url, dto);
+    return this.sharedspacesService.updateSharedspaceMembers(targetSpace, dto);
   }
 
   @AuthRoleGuards()
   @OwnerOnlyRoles()
   @Delete(':url/members/:id')
   deleteSharedspaceMembers(
-    @Param('url') url: string,
+    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
     @Param('id', ParseIntPipe) UserId: number,
   ) {
-    return this.sharedspacesService.deleteSharedspaceMembers(url, UserId);
+    return this.sharedspacesService.deleteSharedspaceMembers(targetSpace, UserId);
   }
 }

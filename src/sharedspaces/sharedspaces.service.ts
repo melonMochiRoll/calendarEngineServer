@@ -152,19 +152,17 @@ export class SharedspacesService {
   }
 
   async updateSharedspaceName(
-    url: string,
+    targetSpace: Sharedspaces,
     dto: UpdateSharedspaceNameDTO,
   ) {
     const { name } = dto;
     
     try {
-      const origin = await this.findActiveSpaceByUrl(url);
-
-      if (origin.name === name) {
+      if (targetSpace.name === name) {
         throw new ConflictException('동일한 이름으로 바꿀수 없습니다.');
       }
 
-      await this.sharedspacesRepository.update({ url }, { name });
+      await this.sharedspacesRepository.update({ id: targetSpace.id }, { name });
     } catch (err) {
       handleError(err);
     }
@@ -173,7 +171,7 @@ export class SharedspacesService {
   }
 
   async updateSharedspaceOwner(
-    url: string,
+    targetSpace: Sharedspaces,
     dto: UpdateSharedspaceOwnerDTO,
   ) {
     const { OwnerId, newOwnerId } = dto;
@@ -183,15 +181,13 @@ export class SharedspacesService {
     await qr.startTransaction();
 
     try {
-      const origin = await this.findActiveSpaceByUrl(url);
-
-      if (origin.OwnerId === newOwnerId) {
+      if (targetSpace.OwnerId === newOwnerId) {
         throw new ConflictException('동일한 유저로 바꿀수 없습니다.');
       }
 
-      await qr.manager.update(Sharedspaces, { id: origin.id }, { OwnerId: newOwnerId });
-      await qr.manager.update(SharedspaceMembers, { UserId: OwnerId, SharedspaceId: origin.id }, { RoleName: SharedspaceMembersRoles.MEMBER });
-      await qr.manager.save(SharedspaceMembers, { UserId: newOwnerId, SharedspaceId: origin.id, RoleName: SharedspaceMembersRoles.OWNER });
+      await qr.manager.update(Sharedspaces, { id: targetSpace.id }, { OwnerId: newOwnerId });
+      await qr.manager.update(SharedspaceMembers, { UserId: OwnerId, SharedspaceId: targetSpace.id }, { RoleName: SharedspaceMembersRoles.MEMBER });
+      await qr.manager.save(SharedspaceMembers, { UserId: newOwnerId, SharedspaceId: targetSpace.id, RoleName: SharedspaceMembersRoles.OWNER });
 
       await qr.commitTransaction();
     } catch (err) {
@@ -206,11 +202,11 @@ export class SharedspacesService {
   }
 
   async updateSharedspacePrivate(
-    url: string,
+    targetSpace: Sharedspaces,
     dto: UpdateSharedspacePrivateDTO,
   ) {
     try {
-      await this.sharedspacesRepository.update({ url }, { ...dto });
+      await this.sharedspacesRepository.update({ id: targetSpace.id }, { ...dto });
     } catch (err) {
       handleError(err);
     }
@@ -218,15 +214,9 @@ export class SharedspacesService {
     return true;
   }
 
-  async deleteSharedspace(url: string) {
+  async deleteSharedspace(targetSpace: Sharedspaces) {
     try {
-      const targetSpace = await this.findActiveSpaceByUrl(url);
-
-      if (!targetSpace) {
-        throw new NotFoundException(NOT_FOUND_SPACE_MESSAGE);
-      }
-
-      await this.sharedspacesRepository.softDelete({ url });
+      await this.sharedspacesRepository.softDelete({ id: targetSpace.id });
     } catch (err) {
       handleError(err);
     }
@@ -235,7 +225,7 @@ export class SharedspacesService {
   }
 
   async createSharedspaceMembers(
-    url: string,
+    targetSpace: Sharedspaces,
     dto: CreateSharedspaceMembersDTO,
   ) {
     const { UserId, RoleName } = dto;
@@ -247,11 +237,9 @@ export class SharedspacesService {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
-      const targetSpace = await this.findActiveSpaceByUrl(url);
-
       const isMember = await this.sharedspaceMembersRepository.findOneBy({
         UserId,
-        SharedspaceId: targetSpace?.id,
+        SharedspaceId: targetSpace.id,
       });
 
       if (isMember) {
@@ -260,7 +248,7 @@ export class SharedspacesService {
 
       await this.sharedspaceMembersRepository.save({
         UserId,
-        SharedspaceId: targetSpace?.id,
+        SharedspaceId: targetSpace.id,
         RoleName: role.name,
       });
     } catch (err) {
@@ -271,7 +259,7 @@ export class SharedspacesService {
   }
 
   async updateSharedspaceMembers(
-    url: string,
+    targetSpace: Sharedspaces,
     dto: UpdateSharedspaceMembersDTO,
   ) {
     const { UserId, RoleName } = dto;
@@ -287,11 +275,9 @@ export class SharedspacesService {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
-      const targetSpace = await this.findActiveSpaceByUrl(url);
-
       const isMember = await this.sharedspaceMembersRepository.findOneBy({
         UserId,
-        SharedspaceId: targetSpace?.id,
+        SharedspaceId: targetSpace.id,
       });
 
       if (!isMember) {
@@ -300,7 +286,7 @@ export class SharedspacesService {
 
       await this.sharedspaceMembersRepository.update({
         UserId,
-        SharedspaceId: targetSpace?.id,
+        SharedspaceId: targetSpace.id,
       },{
         RoleName: role.name,
       });
@@ -312,11 +298,10 @@ export class SharedspacesService {
   }
 
   async deleteSharedspaceMembers(
-    url: string,
+    targetSpace: Sharedspaces,
     UserId: number,
   ) {
     try {
-      const targetSpace = await this.findActiveSpaceByUrl(url);
 
       const isMember = await this.sharedspaceMembersRepository.findOneBy({
         UserId,
@@ -329,7 +314,7 @@ export class SharedspacesService {
 
       await this.sharedspaceMembersRepository.delete({
         UserId,
-        SharedspaceId: targetSpace?.id,
+        SharedspaceId: targetSpace.id,
       });
     } catch (err) {
       handleError(err);
