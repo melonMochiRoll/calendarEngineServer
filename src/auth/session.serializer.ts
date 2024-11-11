@@ -21,14 +21,25 @@ export class SessionSerializer extends PassportSerializer {
 
   async deserializeUser(userId: number, done: CallableFunction) {
 
-    const result = await this.usersRepository.findOneOrFail({
-      where: { id: userId },
-      select: [
-        'id',
-        'email',
-      ],
+    const result = await this.usersRepository.findOne({
+      select: {
+        id: true,
+        email: true,
+        Sharedspacemembers: {
+          RoleName: true,
+          Sharedspace: {
+            url: true,
+            private: true,
+          },
+        },
+      },
       relations: {
-        Sharedspacemembers: true, // Use in RolesGuard
+        Sharedspacemembers: {
+          Sharedspace: true,
+        },
+      },
+      where: {
+        id: userId,
       },
     });
 
