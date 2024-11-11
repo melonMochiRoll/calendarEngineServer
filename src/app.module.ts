@@ -7,6 +7,8 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { TodosModule } from './todos/todos.module';
 import { SharedspacesModule } from './sharedspaces/sharedspaces.module';
+import { JoinRequestsModule } from './joinRequests/joinRequests.module';
+import { RolesModule } from './roles/roles.module';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { SharedspacesModule } from './sharedspaces/sharedspaces.module';
     UsersModule,
     TodosModule,
     SharedspacesModule,
+    JoinRequestsModule,
+    RolesModule,
   ],
   controllers: [],
   providers: [],
