@@ -8,6 +8,7 @@ import { SharedspaceMembers } from 'src/entities/SharedspaceMembers';
 import { TodosModule } from 'src/todos/todos.module';
 import { PublicSpaceGuard } from 'src/common/guard/public.space.guard';
 import { Roles } from 'src/entities/Roles';
+import { TransformSpacePipe } from 'src/common/pipe/transform.space.pipe';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { Roles } from 'src/entities/Roles';
     SharedspacesService,
     IsExistSpaceConstraint,
     PublicSpaceGuard,
+    TransformSpacePipe,
   ],
   exports: [
     SharedspacesService,
