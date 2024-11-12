@@ -191,9 +191,12 @@ export class SharedspacesService {
         throw new ConflictException('동일한 유저로 바꿀수 없습니다.');
       }
 
+      const owner = await this.rolesRepository.findOneBy({ name: SharedspaceMembersRoles.OWNER });
+      const member = await this.rolesRepository.findOneBy({ name: SharedspaceMembersRoles.MEMBER });
+
       await qr.manager.update(Sharedspaces, { id: targetSpace.id }, { OwnerId: newOwnerId });
-      await qr.manager.update(SharedspaceMembers, { UserId: OwnerId, SharedspaceId: targetSpace.id }, { RoleName: SharedspaceMembersRoles.MEMBER });
-      await qr.manager.save(SharedspaceMembers, { UserId: newOwnerId, SharedspaceId: targetSpace.id, RoleName: SharedspaceMembersRoles.OWNER });
+      await qr.manager.update(SharedspaceMembers, { UserId: OwnerId, SharedspaceId: targetSpace.id }, { RoleName: member.name });
+      await qr.manager.save(SharedspaceMembers, { UserId: newOwnerId, SharedspaceId: targetSpace.id, RoleName: owner.name });
 
       await qr.commitTransaction();
     } catch (err) {
