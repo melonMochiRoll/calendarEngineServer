@@ -8,12 +8,24 @@ import { TransformSpacePipe } from "src/common/pipe/transform.space.pipe";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import { TransformJoinRequestsPipe } from "src/common/pipe/transform.joinrequest.pipe";
 import { JoinRequests } from "src/entities/JoinRequests";
+import { OwnerOnlyRoles } from "src/common/decorator/owner.only.decorator";
+import { AuthRoleGuards } from "src/common/decorator/auth.role.decorator";
 
 @Controller('api/sharedspaces')
 export class JoinRequestsController {
   constructor(
     private joinRequestsService: JoinRequestsService,
   ) {}
+  
+  @AuthRoleGuards()
+  @OwnerOnlyRoles()
+  @Post(':url/joinrequest/:id')
+  resolveJoinRequest(
+    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
+    @Param('id', TransformJoinRequestsPipe) targetJoinRequest: JoinRequests,
+  ) {
+    return this.joinRequestsService.resolveJoinRequest(targetSpace, targetJoinRequest);
+  }
 
   @UseGuards(IsAuthenicatedGuard)
   @Post(':url/joinrequest')

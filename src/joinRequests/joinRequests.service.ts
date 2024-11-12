@@ -1,7 +1,7 @@
 import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
 import { Users } from "src/entities/Users";
 import { CreateJoinRequestDTO } from "./dto/create.joinRequest.dto";
-import { Repository } from "typeorm";
+import { DataSource, Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 import { JoinRequests } from "src/entities/JoinRequests";
 import handleError from "src/common/function/handleError";
@@ -12,11 +12,44 @@ import { BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE } from "src/common/constant/error
 @Injectable()
 export class JoinRequestsService {
   constructor(
+    private dataSource: DataSource,
     @InjectRepository(JoinRequests)
     private joinRequestsRepository: Repository<JoinRequests>,
     @InjectRepository(SharedspaceMembers)
     private sharedspaceMembers: Repository<SharedspaceMembers>,
   ) {}
+
+  async resolveJoinRequest(
+    targetSpace: Sharedspaces,
+    targetJoinRequest: JoinRequests,
+  ) {
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+
+    try {
+      if (targetSpace.id !== targetJoinRequest.SharedspaceId) {
+        throw new BadRequestException(BAD_REQUEST_MESSAGE);
+      }
+
+      await qr.manager.save(SharedspaceMembers, {
+        UserId: targetJoinRequest.RequestorId,
+        SharedspaceId: targetJoinRequest.SharedspaceId,
+        RoleName: targetJoinRequest.RoleName,
+      });
+      await qr.manager.delete(JoinRequests, { id: targetJoinRequest.id });
+      
+      await qr.commitTransaction();
+    } catch (err) {
+      await qr.rollbackTransaction();
+
+      handleError(err);
+    } finally {
+      await qr.release();
+    }
+
+    return true;
+  }
   
   async createJoinRequest(
     targetSpace: Sharedspaces,
