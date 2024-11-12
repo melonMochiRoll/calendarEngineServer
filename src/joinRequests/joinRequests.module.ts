@@ -4,12 +4,14 @@ import { JoinRequestsService } from './joinRequests.service';
 import { JoinRequests } from 'src/entities/JoinRequests';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Sharedspaces } from 'src/entities/Sharedspaces';
+import { SharedspaceMembers } from 'src/entities/SharedspaceMembers';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       JoinRequests,
       Sharedspaces,
+      SharedspaceMembers,
     ]),
   ],
   controllers: [ JoinRequestsController ],
