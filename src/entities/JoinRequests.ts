@@ -12,13 +12,13 @@ export class JoinRequests {
   SharedspaceId: number;
 
   @Column({ type: 'int', name: 'RequestorId', nullable: true })
-  RequestorId: number;
+  RequestorId: number | null;
 
   @CreateDateColumn()
   createdAt: Date;
 
   @DeleteDateColumn()
-  detetedAt: Date | null;
+  deletedAt: Date | null;
 
   @Column({ type: 'varchar', name: 'RoleName' })
   RoleName: string;
