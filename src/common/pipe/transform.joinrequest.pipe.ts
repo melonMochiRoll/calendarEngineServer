@@ -12,7 +12,12 @@ export class TransformJoinRequestsPipe implements PipeTransform<string> {
   ) {}
 
   async transform(id: string) {
-    const isValid = await this.joinRequestsRepository.findOneBy({ id: Number(id) });
+    const isValid = await this.joinRequestsRepository.findOne({
+      where: {
+        id: Number(id),
+      },
+      withDeleted: true,
+    });
 
     if (!isValid) {
       throw new NotFoundException(NOT_FOUND_RESOURCE);
