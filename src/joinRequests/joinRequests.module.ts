@@ -15,4 +15,4 @@ import { TypeOrmModule } from '@nestjs/typeorm';
   exports: [],
 })
 
-export class SharedspacesModule {}
+export class JoinRequestsModule {}
