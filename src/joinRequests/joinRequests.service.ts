@@ -50,6 +50,23 @@ export class JoinRequestsService {
 
     return true;
   }
+
+  async rejectJoinRequest(
+    targetSpace: Sharedspaces,
+    targetJoinRequest: JoinRequests,
+  ) {
+    try {
+      if (targetSpace.id !== targetJoinRequest.SharedspaceId) {
+        throw new BadRequestException(BAD_REQUEST_MESSAGE);
+      }
+      
+      await this.joinRequestsRepository.softDelete({ id: targetJoinRequest.id });
+    } catch (err) {
+      handleError(err);
+    }
+
+    return true;
+  }
   
   async createJoinRequest(
     targetSpace: Sharedspaces,

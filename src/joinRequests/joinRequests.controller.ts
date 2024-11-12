@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Param, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import { IsAuthenicatedGuard } from "src/auth/local.auth.guard";
 import { JoinRequestsService } from "./joinRequests.service";
 import { User } from "src/common/decorator/user.decorator";
@@ -25,6 +25,16 @@ export class JoinRequestsController {
     @Param('id', TransformJoinRequestsPipe) targetJoinRequest: JoinRequests,
   ) {
     return this.joinRequestsService.resolveJoinRequest(targetSpace, targetJoinRequest);
+  }
+
+  @AuthRoleGuards()
+  @OwnerOnlyRoles()
+  @Post(':url/joinrequest/:id/reject')
+  rejectJoinRequest(
+    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
+    @Param('id', TransformJoinRequestsPipe) targetJoinRequest: JoinRequests,
+  ) {
+    return this.joinRequestsService.rejectJoinRequest(targetSpace, targetJoinRequest);
   }
 
   @UseGuards(IsAuthenicatedGuard)
