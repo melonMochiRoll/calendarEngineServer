@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Users } from "./Users";
 import { Sharedspaces } from "./Sharedspaces";
 import { Roles } from "./Roles";
@@ -16,6 +16,9 @@ export class JoinRequests {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @DeleteDateColumn()
+  detetedAt: Date | null;
 
   @Column({ type: 'varchar', name: 'RoleName' })
   RoleName: string;
