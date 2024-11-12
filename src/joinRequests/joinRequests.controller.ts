@@ -19,7 +19,7 @@ export class JoinRequestsController {
   
   @AuthRoleGuards()
   @OwnerOnlyRoles()
-  @Post(':url/joinrequest/:id')
+  @Post(':url/joinrequest/:id/resolve')
   resolveJoinRequest(
     @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
     @Param('id', TransformJoinRequestsPipe) targetJoinRequest: JoinRequests,
