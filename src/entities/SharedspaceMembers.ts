@@ -43,12 +43,10 @@ export class SharedspaceMembers {
 
   @ManyToOne(() => Roles, roles => roles.SharedspaceMembers, {
     onUpdate: 'CASCADE',
-    onDelete: 'RESTRICT',
   })
   @JoinColumn({
     name: 'RoleName',
     referencedColumnName: 'name',
-    foreignKeyConstraintName: 'sharedspacemembers_RoleName_fk'
   })
   Role: Roles;
 }
