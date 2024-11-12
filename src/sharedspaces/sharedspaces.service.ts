@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { CreateSharedspaceDTO } from "./dto/create.sharedspace.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, Equal, IsNull, Or, Repository } from "typeorm";
@@ -9,7 +9,7 @@ import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { SharedspaceMembersRoles, SubscribedspacesFilter, TSubscribedspacesFilter } from "src/typings/types";
 import { Users } from "src/entities/Users";
-import { BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, NOT_FOUND_RESOURCE, NOT_FOUND_SPACE_MESSAGE } from "src/common/constant/error.message";
+import { BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, INTERNAL_SERVER_MESSAGE, NOT_FOUND_RESOURCE, NOT_FOUND_SPACE_MESSAGE } from "src/common/constant/error.message";
 import { TodosService } from "src/todos/todos.service";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
 import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dto";
@@ -132,11 +132,17 @@ export class SharedspacesService {
         url: nanoid(5),
         ...dto,
       });
+
+      const owner = await this.rolesRepository.findOneBy({ name: SharedspaceMembersRoles.OWNER });
+
+      if (!owner) {
+        throw new InternalServerErrorException(INTERNAL_SERVER_MESSAGE);
+      }
       
       await qr.manager.save(SharedspaceMembers, {
         UserId: OwnerId,
         SharedspaceId: created.id,
-        RoleName: SharedspaceMembersRoles.OWNER,
+        RoleName: owner.name,
       });
 
       await qr.commitTransaction();
