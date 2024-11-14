@@ -24,7 +24,7 @@ export class JoinRequestsService {
     user: Users,
   ) {
     try {
-      const requests = await this.joinRequestsRepository.findBy({
+      const requests = await this.joinRequestsRepository.findOneBy({
         RequestorId: user.id,
         SharedspaceId: targetSpace.id,
       });
@@ -93,6 +93,12 @@ export class JoinRequestsService {
       const isMember = await this.sharedspaceMembers.findOneBy({ UserId: user.id, SharedspaceId: targetSpace.id });
 
       if (isMember?.RoleName === dto.RoleName) {
+        throw new ConflictException(CONFLICT_MESSAGE);
+      }
+
+      const isRequested = await this.joinRequestsRepository.findOneBy({ RequestorId: user.id, SharedspaceId: targetSpace.id });
+
+      if (isRequested) {
         throw new ConflictException(CONFLICT_MESSAGE);
       }
 
