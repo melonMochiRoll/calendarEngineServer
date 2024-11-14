@@ -19,6 +19,22 @@ export class JoinRequestsService {
     private sharedspaceMembers: Repository<SharedspaceMembers>,
   ) {}
 
+  async getMyJoinRequest(
+    targetSpace: Sharedspaces,
+    user: Users,
+  ) {
+    try {
+      const requests = await this.joinRequestsRepository.findBy({
+        RequestorId: user.id,
+        SharedspaceId: targetSpace.id,
+      });
+
+      return requests;
+    } catch (err) {
+      handleError(err);
+    }
+  }
+
   async resolveJoinRequest(
     targetSpace: Sharedspaces,
     targetJoinRequest: JoinRequests,
