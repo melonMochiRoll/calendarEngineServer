@@ -1,3 +1,4 @@
+import { Roles } from "src/entities/Roles";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import { Users } from "src/entities/Users";
@@ -6,7 +7,10 @@ export type TUserData =
   Pick<Users, 'id' | 'email'> &
   {
     Sharedspacemembers: Array<
-      Pick<SharedspaceMembers, 'RoleName'> & { Sharedspace: Pick<Sharedspaces, 'url' | 'private'> }
+      Pick<SharedspaceMembers, 'RoleId'> & {
+        Sharedspace: Pick<Sharedspaces, 'url' | 'private'>,
+        Role: Pick<Roles, 'name'>
+      }
     >,
   };
 
