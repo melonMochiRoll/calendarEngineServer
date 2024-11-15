@@ -17,7 +17,7 @@ export class JoinRequestsService {
     @InjectRepository(JoinRequests)
     private joinRequestsRepository: Repository<JoinRequests>,
     @InjectRepository(SharedspaceMembers)
-    private sharedspaceMembers: Repository<SharedspaceMembers>,
+    private sharedspaceMembersRepository: Repository<SharedspaceMembers>,
     @InjectRepository(Roles)
     private rolesRepository: Repository<Roles>,
   ) {}
@@ -93,7 +93,7 @@ export class JoinRequestsService {
     user: Users,
   ) {
     try {
-      const isMember = await this.sharedspaceMembers.findOneBy({ UserId: user.id, SharedspaceId: targetSpace.id });
+      const isMember = await this.sharedspaceMembersRepository.findOneBy({ UserId: user.id, SharedspaceId: targetSpace.id });
 
       if (isMember?.Role.name === dto.RoleName) {
         throw new ConflictException(CONFLICT_MESSAGE);
