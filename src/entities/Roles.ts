@@ -16,9 +16,13 @@ export class Roles {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @OneToMany(() => SharedspaceMembers, sharedspaceMembers => sharedspaceMembers.Role)
+  @OneToMany(() => SharedspaceMembers, sharedspaceMembers => sharedspaceMembers.Role, {
+    cascade: ['update', 'soft-remove', 'recover'],
+  })
   SharedspaceMembers: SharedspaceMembers[];
 
-  @OneToMany(() => JoinRequests, joinRequests => joinRequests.Role)
+  @OneToMany(() => JoinRequests, joinRequests => joinRequests.Role, {
+    cascade: ['update', 'soft-remove', 'recover'],
+  })
   JoinRequests: JoinRequests[];
 }
