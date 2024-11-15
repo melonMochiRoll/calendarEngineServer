@@ -12,8 +12,8 @@ export class SharedspaceMembers {
   @PrimaryColumn({ type: 'int', name: 'SharedspaceId' })
   SharedspaceId: number;
 
-  @Column({ type: 'varchar', name: 'RoleName' })
-  RoleName: string;
+  @Column({ type: 'varchar', name: 'RoleId' })
+  RoleId: string;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -38,15 +38,18 @@ export class SharedspaceMembers {
   @JoinColumn({
     name: 'SharedspaceId',
     referencedColumnName: 'id',
+    foreignKeyConstraintName: 'sharedspacemembers_SharedspaceId_fk'
   })
   Sharedspace: Sharedspaces;
 
   @ManyToOne(() => Roles, roles => roles.SharedspaceMembers, {
     onUpdate: 'CASCADE',
+    onDelete: 'RESTRICT',
   })
   @JoinColumn({
-    name: 'RoleName',
-    referencedColumnName: 'name',
+    name: 'RoleId',
+    referencedColumnName: 'id',
+    foreignKeyConstraintName: 'sharedspacemembers_RoleId_fk'
   })
   Role: Roles;
 }

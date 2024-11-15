@@ -20,8 +20,8 @@ export class JoinRequests {
   @Column({ type: 'text' })
   message: string;
 
-  @Column({ type: 'varchar', name: 'RoleName' })
-  RoleName: string;
+  @Column({ type: 'varchar', name: 'RoleId' })
+  RoleId: string;
 
   @ManyToOne(() => Sharedspaces, sharedspaces => sharedspaces.JoinRequests, {
     onUpdate: 'CASCADE',
@@ -50,9 +50,9 @@ export class JoinRequests {
     onDelete: 'RESTRICT',
   })
   @JoinColumn({
-    name: 'RoleName',
-    referencedColumnName: 'name',
-    foreignKeyConstraintName: 'joinrequests_RoleName_fk'
+    name: 'RoleId',
+    referencedColumnName: 'id',
+    foreignKeyConstraintName: 'joinrequests_RoleId_fk'
   })
   Role: Roles;
 }
