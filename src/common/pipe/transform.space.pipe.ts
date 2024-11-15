@@ -12,7 +12,7 @@ export class TransformSpacePipe implements PipeTransform<string> {
   ) {}
 
   async transform(url: string) {
-    const targetSpace = await this.sharedspacesRepository.findOneBy({ deletedAt: IsNull(), url });
+    const targetSpace = await this.sharedspacesRepository.findOneBy({ url });
 
     if (!targetSpace) {
       throw new NotFoundException(NOT_FOUND_SPACE_MESSAGE);
