@@ -29,6 +29,7 @@ export class JoinRequests {
   @ManyToOne(() => Sharedspaces, sharedspaces => sharedspaces.JoinRequests, {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
+    orphanedRowAction: 'soft-delete',
   })
   @JoinColumn({
     name: 'SharedspaceId',
