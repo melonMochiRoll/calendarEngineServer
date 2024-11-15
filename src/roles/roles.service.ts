@@ -15,7 +15,7 @@ export class RolesService {
   
   async createRole(dto: CreateRoleDTO) {
     try {
-      const isExist = this.rolesRepository.findOneBy({ name: dto.name });
+      const isExist = await this.rolesRepository.findOneBy({ name: dto.name });
 
       if (isExist) {
         throw new ConflictException(CONFLICT_MESSAGE);
