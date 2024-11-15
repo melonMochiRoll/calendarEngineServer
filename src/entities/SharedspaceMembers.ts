@@ -12,8 +12,8 @@ export class SharedspaceMembers {
   @PrimaryColumn({ type: 'int', name: 'SharedspaceId' })
   SharedspaceId: number;
 
-  @Column({ type: 'varchar', name: 'RoleId' })
-  RoleId: string;
+  @Column({ type: 'int', name: 'RoleId' })
+  RoleId: number;
 
   @CreateDateColumn()
   createdAt: Date;

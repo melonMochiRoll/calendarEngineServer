@@ -14,14 +14,14 @@ export class JoinRequests {
   @Column({ type: 'int', name: 'RequestorId', nullable: true })
   RequestorId: number | null;
 
+  @Column({ type: 'int', name: 'RoleId' })
+  RoleId: number;
+
   @CreateDateColumn()
   createdAt: Date;
 
   @Column({ type: 'text' })
   message: string;
-
-  @Column({ type: 'varchar', name: 'RoleId' })
-  RoleId: string;
 
   @ManyToOne(() => Sharedspaces, sharedspaces => sharedspaces.JoinRequests, {
     onUpdate: 'CASCADE',
