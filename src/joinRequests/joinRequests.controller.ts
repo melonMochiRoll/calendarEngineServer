@@ -36,16 +36,6 @@ export class JoinRequestsController {
     return this.joinRequestsService.resolveJoinRequest(targetSpace, targetJoinRequest);
   }
 
-  @AuthRoleGuards()
-  @OwnerOnlyRoles()
-  @Post(':url/joinrequest/:id/reject')
-  rejectJoinRequest(
-    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
-    @Param('id', TransformJoinRequestsPipe) targetJoinRequest: JoinRequests,
-  ) {
-    return this.joinRequestsService.rejectJoinRequest(targetSpace, targetJoinRequest);
-  }
-
   @UseGuards(IsAuthenicatedGuard)
   @Post(':url/joinrequest')
   createJoinRequest(
