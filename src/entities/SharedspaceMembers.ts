@@ -36,7 +36,6 @@ export class SharedspaceMembers {
 
   @ManyToOne(() => Sharedspaces, sharedspace => sharedspace.Sharedspacemembers, {
     onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
     orphanedRowAction: 'soft-delete',
   })
   @JoinColumn({
