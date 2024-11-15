@@ -7,7 +7,7 @@ export class Roles {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
   id: number;
 
-  @Column({ type: 'varchar', name: 'name', length: 100 })
+  @Column({ type: 'varchar', name: 'name', length: 100, unique: true })
   name: string;
 
   @CreateDateColumn()
