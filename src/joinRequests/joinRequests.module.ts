@@ -5,6 +5,7 @@ import { JoinRequests } from 'src/entities/JoinRequests';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Sharedspaces } from 'src/entities/Sharedspaces';
 import { SharedspaceMembers } from 'src/entities/SharedspaceMembers';
+import { Roles } from 'src/entities/Roles';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { SharedspaceMembers } from 'src/entities/SharedspaceMembers';
       JoinRequests,
       Sharedspaces,
       SharedspaceMembers,
+      Roles,
     ]),
   ],
   controllers: [ JoinRequestsController ],
