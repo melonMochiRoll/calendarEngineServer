@@ -44,8 +44,10 @@ export class SharedspacesService {
           },
           Sharedspacemembers: {
             UserId: true,
-            RoleName: true,
             createdAt: true,
+            Role: {
+              name: true,
+            },
             User: {
               email: true,
             }
@@ -55,6 +57,7 @@ export class SharedspacesService {
           Owner: true,
           Sharedspacemembers: {
             User: true,
+            Role: true,
           },
         },
         where: {
@@ -94,7 +97,7 @@ export class SharedspacesService {
         select: {
           UserId: true,
           SharedspaceId: true,
-          RoleName: true,
+          RoleId: true,
           createdAt: true,
           Sharedspace: {
             name: true,
@@ -104,11 +107,15 @@ export class SharedspacesService {
               email: true,
             },
           },
+          Role: {
+            name: true,
+          },
         },
         relations: {
           Sharedspace: {
             Owner: true,
           },
+          Role: true,
         },
         where: whereCondition,
         order: {
@@ -142,7 +149,7 @@ export class SharedspacesService {
       await qr.manager.save(SharedspaceMembers, {
         UserId: OwnerId,
         SharedspaceId: created.id,
-        RoleName: owner.name,
+        RoleId: owner.id,
       });
 
       await qr.commitTransaction();
@@ -195,8 +202,8 @@ export class SharedspacesService {
       const member = await this.rolesRepository.findOneBy({ name: SharedspaceMembersRoles.MEMBER });
 
       await qr.manager.update(Sharedspaces, { id: targetSpace.id }, { OwnerId: newOwnerId });
-      await qr.manager.update(SharedspaceMembers, { UserId: OwnerId, SharedspaceId: targetSpace.id }, { RoleName: member.name });
-      await qr.manager.save(SharedspaceMembers, { UserId: newOwnerId, SharedspaceId: targetSpace.id, RoleName: owner.name });
+      await qr.manager.update(SharedspaceMembers, { UserId: OwnerId, SharedspaceId: targetSpace.id }, { RoleId: member.id });
+      await qr.manager.save(SharedspaceMembers, { UserId: newOwnerId, SharedspaceId: targetSpace.id, RoleId: owner.id });
 
       await qr.commitTransaction();
     } catch (err) {
@@ -258,7 +265,7 @@ export class SharedspacesService {
       await this.sharedspaceMembersRepository.save({
         UserId,
         SharedspaceId: targetSpace.id,
-        RoleName: role.name,
+        RoleName: role.id,
       });
     } catch (err) {
       handleError(err);
@@ -297,7 +304,7 @@ export class SharedspacesService {
         UserId,
         SharedspaceId: targetSpace.id,
       },{
-        RoleName: role.name,
+        RoleId: role.id,
       });
     } catch (err) {
       handleError(err);

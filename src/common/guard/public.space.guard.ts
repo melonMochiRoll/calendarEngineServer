@@ -37,7 +37,7 @@ export class PublicSpaceGuard implements CanActivate {
 
     const isMember = user.Sharedspacemembers
       .filter((Sharedspacemember) => Sharedspacemember.Sharedspace.url === url)
-      .some((space) => Object.values(SharedspaceMembersRoles).includes(space.RoleName as any));
+      .some((space) => Object.values(SharedspaceMembersRoles).includes(space.Role.name as any));
 
     if (!isMember) {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);

@@ -26,16 +26,20 @@ export class SessionSerializer extends PassportSerializer {
         id: true,
         email: true,
         Sharedspacemembers: {
-          RoleName: true,
+          RoleId: true,
           Sharedspace: {
             url: true,
             private: true,
+          },
+          Role: {
+            name: true,
           },
         },
       },
       relations: {
         Sharedspacemembers: {
           Sharedspace: true,
+          Role: true,
         },
       },
       where: {

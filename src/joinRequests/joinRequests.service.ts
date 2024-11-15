@@ -8,6 +8,7 @@ import handleError from "src/common/function/handleError";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE } from "src/common/constant/error.message";
+import { Roles } from "src/entities/Roles";
 
 @Injectable()
 export class JoinRequestsService {
@@ -17,6 +18,8 @@ export class JoinRequestsService {
     private joinRequestsRepository: Repository<JoinRequests>,
     @InjectRepository(SharedspaceMembers)
     private sharedspaceMembers: Repository<SharedspaceMembers>,
+    @InjectRepository(Roles)
+    private rolesRepository: Repository<Roles>,
   ) {}
 
   async getMyJoinRequest(
@@ -51,7 +54,7 @@ export class JoinRequestsService {
       await qr.manager.save(SharedspaceMembers, {
         UserId: targetJoinRequest.RequestorId,
         SharedspaceId: targetJoinRequest.SharedspaceId,
-        RoleName: targetJoinRequest.RoleName,
+        RoleId: targetJoinRequest.RoleId,
       });
       await qr.manager.delete(JoinRequests, { id: targetJoinRequest.id });
       
@@ -92,7 +95,7 @@ export class JoinRequestsService {
     try {
       const isMember = await this.sharedspaceMembers.findOneBy({ UserId: user.id, SharedspaceId: targetSpace.id });
 
-      if (isMember?.RoleName === dto.RoleName) {
+      if (isMember?.Role.name === dto.RoleName) {
         throw new ConflictException(CONFLICT_MESSAGE);
       }
 
@@ -102,10 +105,12 @@ export class JoinRequestsService {
         throw new ConflictException(CONFLICT_MESSAGE);
       }
 
+      const role = await this.rolesRepository.findOneBy({ name: dto.RoleName });
+
       await this.joinRequestsRepository.save({
         SharedspaceId: targetSpace.id,
         RequestorId: user.id,
-        RoleName: dto.RoleName,
+        RoleId: role.id,
       });
     } catch (err) {
       handleError(err);
