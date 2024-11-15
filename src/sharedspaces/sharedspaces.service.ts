@@ -232,7 +232,7 @@ export class SharedspacesService {
 
   async deleteSharedspace(targetSpace: Sharedspaces) {
     try {
-      await this.sharedspacesRepository.softDelete({ id: targetSpace.id });
+      await this.sharedspacesRepository.softRemove(targetSpace);
     } catch (err) {
       handleError(err);
     }
