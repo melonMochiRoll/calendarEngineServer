@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { Users } from "./Users";
 import { Sharedspaces } from "./Sharedspaces";
 import { Roles } from "./Roles";
@@ -20,6 +20,9 @@ export class SharedspaceMembers {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt: Date | null; 
 
   @ManyToOne(() => Users, users => users.Sharedspacemembers, {
     onUpdate: 'CASCADE',
@@ -44,7 +47,6 @@ export class SharedspaceMembers {
 
   @ManyToOne(() => Roles, roles => roles.SharedspaceMembers, {
     onUpdate: 'CASCADE',
-    onDelete: 'RESTRICT',
   })
   @JoinColumn({
     name: 'RoleId',

@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Users } from "./Users";
 import { Sharedspaces } from "./Sharedspaces";
 import { Roles } from "./Roles";
@@ -19,6 +19,9 @@ export class JoinRequests {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt: Date | null; 
 
   @Column({ type: 'text' })
   message: string;
@@ -47,7 +50,6 @@ export class JoinRequests {
 
   @ManyToOne(() => Roles, roles => roles.JoinRequests, {
     onUpdate: 'CASCADE',
-    onDelete: 'RESTRICT',
   })
   @JoinColumn({
     name: 'RoleId',
