@@ -19,14 +19,14 @@ export class SessionSerializer extends PassportSerializer {
     return done(null, user?.id);
   };
 
-  async deserializeUser(userId: number, done: CallableFunction) {
+  async deserializeUser(UserId: number, done: CallableFunction) {
 
     const result = await this.usersRepository.findOne({
       select: {
         id: true,
         email: true,
         Sharedspacemembers: {
-          RoleId: true,
+          SharedspaceId: true,
           Sharedspace: {
             url: true,
             private: true,
@@ -43,7 +43,7 @@ export class SessionSerializer extends PassportSerializer {
         },
       },
       where: {
-        id: userId,
+        id: UserId,
       },
     });
 
