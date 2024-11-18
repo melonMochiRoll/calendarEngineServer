@@ -94,6 +94,7 @@ export class JoinRequestsService {
         SharedspaceId: targetSpace.id,
         RequestorId: user.id,
         RoleId: role.id,
+        message: dto.message,
       });
     } catch (err) {
       handleError(err);
