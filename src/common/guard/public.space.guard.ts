@@ -19,20 +19,20 @@ export class PublicSpaceGuard implements CanActivate {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
+    const targetSpace = await this.sharedspacesRepository.findOneBy({ url });
+
+    if (!targetSpace) {
+      throw new NotFoundException(NOT_FOUND_SPACE_MESSAGE);
+    }
+
+    if (!targetSpace.private) {
+      return true;
+    }
+
     const user: TUserData = context.switchToHttp().getRequest().user;
 
     if (!user) {
-      const targetSpace = await this.sharedspacesRepository.findOneBy({ deletedAt: IsNull(), url });
-
-      if (!targetSpace) {
-        throw new NotFoundException(NOT_FOUND_SPACE_MESSAGE);
-      }
-
-      if (targetSpace.private) {
-        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
-      }
-
-      return true;
+      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
     const isMember = user.Sharedspacemembers
