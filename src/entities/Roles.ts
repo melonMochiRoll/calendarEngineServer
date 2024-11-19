@@ -1,6 +1,5 @@
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { SharedspaceMembers } from "./SharedspaceMembers";
-import { JoinRequests } from "./JoinRequests";
 
 @Entity({ name: 'roles' })
 export class Roles {
@@ -20,9 +19,4 @@ export class Roles {
     cascade: ['update', 'soft-remove', 'recover'],
   })
   SharedspaceMembers: SharedspaceMembers[];
-
-  @OneToMany(() => JoinRequests, joinRequests => joinRequests.Role, {
-    cascade: ['update', 'soft-remove', 'recover'],
-  })
-  JoinRequests: JoinRequests[];
 }
