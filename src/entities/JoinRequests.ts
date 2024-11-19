@@ -1,7 +1,6 @@
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Users } from "./Users";
 import { Sharedspaces } from "./Sharedspaces";
-import { Roles } from "./Roles";
 
 @Entity({ name: 'joinrequests' })
 export class JoinRequests {
@@ -13,9 +12,6 @@ export class JoinRequests {
 
   @Column({ type: 'int', name: 'RequestorId', nullable: true })
   RequestorId: number | null;
-
-  @Column({ type: 'int', name: 'RoleId' })
-  RoleId: number;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -47,14 +43,4 @@ export class JoinRequests {
     foreignKeyConstraintName: 'joinrequests_RequestorId_fk'
   })
   Requestor: Users;
-
-  @ManyToOne(() => Roles, roles => roles.JoinRequests, {
-    onUpdate: 'CASCADE',
-  })
-  @JoinColumn({
-    name: 'RoleId',
-    referencedColumnName: 'id',
-    foreignKeyConstraintName: 'joinrequests_RoleId_fk'
-  })
-  Role: Roles;
 }
