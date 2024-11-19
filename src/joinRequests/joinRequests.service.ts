@@ -9,7 +9,7 @@ import { Sharedspaces } from "src/entities/Sharedspaces";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE } from "src/common/constant/error.message";
 import { Roles } from "src/entities/Roles";
-import { ResolveJoinRequestDTO } from "./dto/resolveJoinRequest.dto";
+import { ResolveJoinRequestDTO } from "./dto/resolve.joinRequest.dto";
 import { SharedspaceMembersRoles } from "src/typings/types";
 
 @Injectable()

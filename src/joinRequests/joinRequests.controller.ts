@@ -10,7 +10,7 @@ import { TransformJoinRequestsPipe } from "src/common/pipe/transform.joinrequest
 import { JoinRequests } from "src/entities/JoinRequests";
 import { OwnerOnlyRoles } from "src/common/decorator/owner.only.decorator";
 import { AuthRoleGuards } from "src/common/decorator/auth.role.decorator";
-import { ResolveJoinRequestDTO } from "./dto/resolveJoinRequest.dto";
+import { ResolveJoinRequestDTO } from "./dto/resolve.joinRequest.dto";
 
 @Controller('api/sharedspaces')
 export class JoinRequestsController {
