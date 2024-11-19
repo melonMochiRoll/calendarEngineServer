@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
+import { BadRequestException, ConflictException, ForbiddenException, Injectable } from "@nestjs/common";
 import { Users } from "src/entities/Users";
 import { CreateJoinRequestDTO } from "./dto/create.joinRequest.dto";
 import { DataSource, Repository } from "typeorm";
@@ -7,8 +7,10 @@ import { JoinRequests } from "src/entities/JoinRequests";
 import handleError from "src/common/function/handleError";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
-import { BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE } from "src/common/constant/error.message";
+import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE } from "src/common/constant/error.message";
 import { Roles } from "src/entities/Roles";
+import { ResolveJoinRequestDTO } from "./dto/resolveJoinRequest.dto";
+import { SharedspaceMembersRoles } from "src/typings/types";
 
 @Injectable()
 export class JoinRequestsService {
@@ -27,6 +29,18 @@ export class JoinRequestsService {
   ) {
     try {
       const requests = await this.joinRequestsRepository.find({
+        select: {
+          id: true,
+          RequestorId: true,
+          createdAt: true,
+          message: true,
+          Requestor: {
+            email: true,
+          },
+        },
+        relations: {
+          Requestor: true,
+        },
         where: {
           SharedspaceId: targetSpace.id,
         },
@@ -44,6 +58,7 @@ export class JoinRequestsService {
   async resolveJoinRequest(
     targetSpace: Sharedspaces,
     targetJoinRequest: JoinRequests,
+    dto: ResolveJoinRequestDTO,
   ) {
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
@@ -54,10 +69,16 @@ export class JoinRequestsService {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
+      if (dto.RoleName === SharedspaceMembersRoles.OWNER) {
+        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+      }
+
+      const role = await this.rolesRepository.findOneBy({ name: dto.RoleName });
+
       await qr.manager.save(SharedspaceMembers, {
         UserId: targetJoinRequest.RequestorId,
         SharedspaceId: targetJoinRequest.SharedspaceId,
-        RoleId: targetJoinRequest.RoleId,
+        RoleId: role.id,
       });
       await qr.manager.delete(JoinRequests, { id: targetJoinRequest.id });
       
@@ -91,12 +112,9 @@ export class JoinRequestsService {
         throw new ConflictException(CONFLICT_MESSAGE);
       }
 
-      const role = await this.rolesRepository.findOneBy({ name: dto.RoleName });
-
       await this.joinRequestsRepository.save({
         SharedspaceId: targetSpace.id,
         RequestorId: user.id,
-        RoleId: role.id,
         message: dto.message,
       });
     } catch (err) {

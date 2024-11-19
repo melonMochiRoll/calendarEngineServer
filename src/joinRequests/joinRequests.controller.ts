@@ -10,6 +10,7 @@ import { TransformJoinRequestsPipe } from "src/common/pipe/transform.joinrequest
 import { JoinRequests } from "src/entities/JoinRequests";
 import { OwnerOnlyRoles } from "src/common/decorator/owner.only.decorator";
 import { AuthRoleGuards } from "src/common/decorator/auth.role.decorator";
+import { ResolveJoinRequestDTO } from "./dto/resolveJoinRequest.dto";
 
 @Controller('api/sharedspaces')
 export class JoinRequestsController {
@@ -32,8 +33,9 @@ export class JoinRequestsController {
   resolveJoinRequest(
     @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
     @Param('id', TransformJoinRequestsPipe) targetJoinRequest: JoinRequests,
+    @Body() dto: ResolveJoinRequestDTO,
   ) {
-    return this.joinRequestsService.resolveJoinRequest(targetSpace, targetJoinRequest);
+    return this.joinRequestsService.resolveJoinRequest(targetSpace, targetJoinRequest, dto);
   }
 
   @UseGuards(IsAuthenicatedGuard)
