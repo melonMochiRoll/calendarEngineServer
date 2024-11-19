@@ -22,14 +22,17 @@ export class JoinRequestsService {
     private rolesRepository: Repository<Roles>,
   ) {}
 
-  async getMyJoinRequest(
+  async getJoinRequest(
     targetSpace: Sharedspaces,
-    user: Users,
   ) {
     try {
-      const requests = await this.joinRequestsRepository.findOneBy({
-        RequestorId: user.id,
-        SharedspaceId: targetSpace.id,
+      const requests = await this.joinRequestsRepository.find({
+        where: {
+          SharedspaceId: targetSpace.id,
+        },
+        order: {
+          createdAt: 'DESC',
+        },
       });
 
       return requests;

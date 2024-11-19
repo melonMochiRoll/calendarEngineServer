@@ -17,13 +17,13 @@ export class JoinRequestsController {
     private joinRequestsService: JoinRequestsService,
   ) {}
 
-  @UseGuards(IsAuthenicatedGuard)
+  @AuthRoleGuards()
+  @OwnerOnlyRoles()
   @Get(':url/joinrequest')
-  getMyJoinRequest(
+  getJoinRequest(
     @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
-    @User() user: Users,
   ) {
-    return this.joinRequestsService.getMyJoinRequest(targetSpace, user);
+    return this.joinRequestsService.getJoinRequest(targetSpace);
   }
   
   @AuthRoleGuards()
