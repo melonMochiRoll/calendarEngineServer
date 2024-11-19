@@ -48,13 +48,13 @@ export class JoinRequestsController {
     return this.joinRequestsService.createJoinRequest(targetSpace, dto, user);
   }
 
-  @UseGuards(IsAuthenicatedGuard)
+  @AuthRoleGuards()
+  @OwnerOnlyRoles()
   @Delete(':url/joinrequest/:id')
   deleteJoinRequest(
     @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
     @Param('id', TransformJoinRequestsPipe) targetJoinRequest: JoinRequests,
-    @User() user: Users,
   ) {
-    return this.joinRequestsService.deleteJoinRequest(targetSpace, targetJoinRequest, user);
+    return this.joinRequestsService.deleteJoinRequest(targetSpace, targetJoinRequest);
   }
 }

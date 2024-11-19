@@ -126,14 +126,10 @@ export class JoinRequestsService {
 
   async deleteJoinRequest(
     targetSpace: Sharedspaces,
-    targetJoinRequest: JoinRequests,
-    user: Users,
+    targetJoinRequest: JoinRequests
   ) {
     try {
-      if (
-        targetSpace.id !== targetJoinRequest.SharedspaceId ||
-        user.id !== targetJoinRequest.RequestorId
-      ) {
+      if (targetSpace.id !== targetJoinRequest.SharedspaceId) {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
