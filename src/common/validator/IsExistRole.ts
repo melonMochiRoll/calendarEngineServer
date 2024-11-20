@@ -6,15 +6,15 @@ import {
   ValidationArguments,
 } from 'class-validator';
 import { Injectable } from '@nestjs/common';
-import { SharedspaceMembersRoles } from 'src/typings/types';
+import { SharedspaceMembersRoles, TSharedspaceMembersRole } from 'src/typings/types';
 
 @ValidatorConstraint({ name: 'isExistRole', async: false })
 @Injectable()
 export class IsExistRoleConstraint implements ValidatorConstraintInterface {
   constructor() {}
 
-  async validate(roleName: string, args: ValidationArguments) {
-    return Object.keys(SharedspaceMembersRoles).includes(roleName);
+  async validate(RoleName: string, args: ValidationArguments) {
+    return Object.values(SharedspaceMembersRoles).includes(RoleName as TSharedspaceMembersRole);
   }
 }
 
