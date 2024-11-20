@@ -55,7 +55,7 @@ export class TodosService {
   }
 
   async getTodosByQuery(
-    SharedspaceId: number,
+    url: string,
     query: string,
     offset: number,
     limit: number,
@@ -63,13 +63,22 @@ export class TodosService {
     try {
       return await this.todosRepository.find({
         select: {
+          id: true,
           description: true,
           date: true,
           startTime: true,
           endTime: true,
+          Sharedspace: {
+            url: true,
+          },
+        },
+        relations: {
+          Sharedspace: true,
         },
         where: {
-          SharedspaceId,
+          Sharedspace: {
+            url,
+          },
           description: Like(`%${query}%`),
         },
         order: {
@@ -199,13 +208,12 @@ export class TodosService {
     limit: number,
   ) {
     try {
-
-      // return await this.todosService.getTodosByQuery(
-      //   SharedspaceId,
-      //   query,
-      //   offset,
-      //   limit,
-      // );
+      return await this.getTodosByQuery(
+        url,
+        query,
+        offset,
+        limit,
+      );
     } catch (err) {
       handleError(err);
     }
