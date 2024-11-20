@@ -42,28 +42,25 @@ export class UsersService {
   }
 
   async searchUsers(query: string) {
-    const trimmedQuery = query.trim();
-
     try {
-      if (!trimmedQuery) {
-        throw new BadRequestException(BAD_REQUEST_MESSAGE);
-      }
-
       return await this.usersRepository.find({
         select: {
           id: true,
           email: true,
           Sharedspacemembers: {
             SharedspaceId: true,
-            RoleName: true,
+            Role: {
+              name: true,
+            }
           },
         },
         relations: {
-          Sharedspacemembers: true,
+          Sharedspacemembers: {
+            Role: true,
+          },
         },
         where: {
-          deletedAt: IsNull(),
-          email: Like(`${trimmedQuery}%`),
+          email: Like(`${query}%`),
         },
       });
     } catch (err) {
