@@ -17,7 +17,7 @@ export class SessionSerializer extends PassportSerializer {
 
   serializeUser(user: Users, done: CallableFunction) {
     return done(null, user?.id);
-  };
+  }
 
   async deserializeUser(UserId: number, done: CallableFunction) {
 
@@ -25,6 +25,7 @@ export class SessionSerializer extends PassportSerializer {
       select: {
         id: true,
         email: true,
+        profileImage: true,
         Sharedspacemembers: {
           SharedspaceId: true,
           Sharedspace: {
@@ -45,12 +46,12 @@ export class SessionSerializer extends PassportSerializer {
       where: {
         id: UserId,
       },
-    });
+    })
 
     if (!result) {
       return done(null, null);
     }
 
     return done(null, result);
-  };
+  }
 }
