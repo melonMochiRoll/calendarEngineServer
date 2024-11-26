@@ -50,6 +50,7 @@ export class SharedspacesService {
             },
             User: {
               email: true,
+              profileImage: true,
             }
           },
         },

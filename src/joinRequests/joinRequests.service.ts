@@ -36,6 +36,7 @@ export class JoinRequestsService {
           message: true,
           Requestor: {
             email: true,
+            profileImage: true,
           },
         },
         relations: {

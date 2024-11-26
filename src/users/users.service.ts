@@ -47,6 +47,7 @@ export class UsersService {
         select: {
           id: true,
           email: true,
+          profileImage: true,
           Sharedspacemembers: {
             SharedspaceId: true,
             Role: {
