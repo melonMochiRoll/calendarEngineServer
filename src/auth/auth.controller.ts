@@ -4,6 +4,7 @@ import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
 import { Request, Response } from "express";
 import { CacheManagerService } from "src/cacheManager/cacheManager.service";
+import { NaverAuthGuard } from "./naver.auth.guard";
 
 @Controller('api/auth')
 export class AuthController {
@@ -13,9 +14,15 @@ export class AuthController {
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  async login(@User() user: Users) {
+  login(@User() user: Users) {
     return user;
-  };
+  }
+
+  @UseGuards(NaverAuthGuard)
+  @Post('login/oauth2/naver')
+  loginOAuth2Naver(@User() user: Users) {
+    return user;
+  }
 
   @UseGuards(IsAuthenicatedGuard)
   @Post('logout')
