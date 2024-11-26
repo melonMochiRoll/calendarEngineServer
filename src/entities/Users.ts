@@ -16,6 +16,12 @@ export class Users {
   @Column({ type: 'varchar', length: 100, select: false })
   password: string;
 
+  @Column({ type: 'varchar', length: 255, default: 'local' })
+  provider: string;
+
+  @Column({ type: 'text', nullable: true })
+  profileImage: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
