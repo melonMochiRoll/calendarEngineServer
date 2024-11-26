@@ -16,7 +16,7 @@ export class Users {
   @Column({ type: 'varchar', length: 100, select: false, nullable: true })
   password: string;
 
-  @Column({ type: 'varchar', length: 255, default: 'local' })
+  @Column({ type: 'varchar', length: 255 })
   provider: string;
 
   @Column({ type: 'text', nullable: true })
