@@ -11,4 +11,6 @@ export const NOT_FOUND_RESOURCE = '요청하신 리소스를 찾을 수 없습�
 
 export const CONFLICT_MESSAGE = '요청한 데이터와 서버의 데이터 상태가 일치하지 않습니다. 최신 상태를 확인하세요.'; // status: 409;
 
+export const CONFLICT_ACCOUNT_MESSAGE = '이미 가입된 이메일입니다.'; // status: 409;
+
 export const INTERNAL_SERVER_MESSAGE = '서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'; // status: 500
