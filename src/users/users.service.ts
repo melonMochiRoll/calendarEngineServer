@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Users } from "src/entities/Users";
 import { IsNull, Like, Repository } from "typeorm";
@@ -6,7 +6,7 @@ import 'dotenv/config';
 import bcrypt from 'bcrypt';
 import { CreateUserDTO } from "./dto/create.user.dto";
 import handleError from "src/common/function/handleError";
-import { BAD_REQUEST_MESSAGE } from "src/common/constant/error.message";
+import { ProviderList } from "src/typings/types";
 
 @Injectable()
 export class UsersService {
@@ -78,6 +78,7 @@ export class UsersService {
       await this.usersRepository.save({
         email,
         password: hash,
+        provider: ProviderList.LOCAL,
       });
       
       return true;
