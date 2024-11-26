@@ -37,16 +37,21 @@ export interface IErrorResponse {
 };
 
 export type TNaverProfile = {
-    provider: string,
+  provider: string,
+  id: string,
+  displayName: string | undefined,
+  emails: Array<{ value: string }>,
+  _json: {
+    email: string,
+    nickname: string | undefined,
+    profile_image: string,
+    age: string | undefined,
+    birthday: string | undefined,
     id: string,
-    displayName: string | undefined,
-    emails: Array<{ value: string }>,
-    _json: {
-      email: string,
-      nickname: string | undefined,
-      profile_image: string,
-      age: string | undefined,
-      birthday: string | undefined,
-      id: string,
-    }
+  }
 };
+
+export const ProviderList = {
+  LOCAL: 'local',
+  NAVER: 'naver',
+} as const;
