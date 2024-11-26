@@ -8,6 +8,7 @@ import { SessionSerializer } from './session.serializer';
 import { CacheManagerModule } from 'src/cacheManager/cacheManager.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Users } from 'src/entities/Users';
+import { NaverStrategy } from './naver.strategy';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { Users } from 'src/entities/Users';
   providers: [
     AuthService,
     LocalStrategy,
+    NaverStrategy,
     SessionSerializer,
   ],
 })
