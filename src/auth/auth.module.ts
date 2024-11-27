@@ -3,12 +3,12 @@ import { AuthService } from './auth.service';
 import { PassportModule } from '@nestjs/passport';
 import { UsersModule } from 'src/users/users.module';
 import { AuthController } from './auth.controller';
-import { LocalStrategy } from './local.strategy';
+import { LocalStrategy } from './strategy/local.strategy';
 import { SessionSerializer } from './session.serializer';
 import { CacheManagerModule } from 'src/cacheManager/cacheManager.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Users } from 'src/entities/Users';
-import { NaverStrategy } from './naver.strategy';
+import { NaverStrategy } from './strategy/naver.strategy';
 import { GoogleStrategy } from './strategy/google.strategy';
 
 @Module({
