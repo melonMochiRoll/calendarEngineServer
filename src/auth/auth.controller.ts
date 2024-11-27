@@ -5,6 +5,7 @@ import { Users } from "src/entities/Users";
 import { Request, Response } from "express";
 import { CacheManagerService } from "src/cacheManager/cacheManager.service";
 import { NaverAuthGuard } from "./naver.auth.guard";
+import { GoogleAuthGuard } from "./authGuard/google.auth.guard";
 
 @Controller('api/auth')
 export class AuthController {
@@ -15,6 +16,12 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   login(@User() user: Users) {
+    return user;
+  }
+
+  @UseGuards(GoogleAuthGuard)
+  @Post('login/oauth2/google')
+  loginOAuth2Google(@User() user: Users) {
     return user;
   }
 
