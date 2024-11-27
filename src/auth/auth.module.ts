@@ -9,6 +9,7 @@ import { CacheManagerModule } from 'src/cacheManager/cacheManager.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Users } from 'src/entities/Users';
 import { NaverStrategy } from './naver.strategy';
+import { GoogleStrategy } from './strategy/google.strategy';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { NaverStrategy } from './naver.strategy';
   providers: [
     AuthService,
     LocalStrategy,
+    GoogleStrategy,
     NaverStrategy,
     SessionSerializer,
   ],
