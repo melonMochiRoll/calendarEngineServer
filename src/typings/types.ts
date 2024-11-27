@@ -36,6 +36,28 @@ export interface IErrorResponse {
   statusCode: number,
 };
 
+export type TGoogleProfile = {
+  id: string,
+  displayName: string,
+  name: { familyName: string | undefined, givenName: string },
+  emails: Array<{ value: string, verified: boolean }>,
+  photos: [
+    {
+      value: string
+    }
+  ],
+  provider: string
+  _raw: string,
+  _json: {
+    sub: string,
+    name: string,
+    given_name: string,
+    picture: string,
+    email: string,
+    email_verified: boolean,
+  }
+};
+
 export type TNaverProfile = {
   provider: string,
   id: string,
@@ -54,4 +76,5 @@ export type TNaverProfile = {
 export const ProviderList = {
   LOCAL: 'local',
   NAVER: 'naver',
+  GOOGLE: 'google',
 } as const;
