@@ -1,10 +1,10 @@
 import { Controller, Post, Req, Res, UseGuards } from "@nestjs/common";
-import { IsAuthenicatedGuard, LocalAuthGuard } from "./local.auth.guard";
+import { IsAuthenicatedGuard, LocalAuthGuard } from "./authGuard/local.auth.guard";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
 import { Request, Response } from "express";
 import { CacheManagerService } from "src/cacheManager/cacheManager.service";
-import { NaverAuthGuard } from "./naver.auth.guard";
+import { NaverAuthGuard } from "./authGuard/naver.auth.guard";
 import { GoogleAuthGuard } from "./authGuard/google.auth.guard";
 
 @Controller('api/auth')
