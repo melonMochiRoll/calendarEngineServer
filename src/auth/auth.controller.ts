@@ -1,4 +1,4 @@
-import { Controller, Post, Req, Res, UseGuards } from "@nestjs/common";
+import { Controller, Get, Post, Redirect, Req, Res, Session, UseGuards } from "@nestjs/common";
 import { IsAuthenicatedGuard, LocalAuthGuard } from "./authGuard/local.auth.guard";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
@@ -6,10 +6,12 @@ import { Request, Response } from "express";
 import { CacheManagerService } from "src/cacheManager/cacheManager.service";
 import { NaverAuthGuard } from "./authGuard/naver.auth.guard";
 import { GoogleAuthGuard } from "./authGuard/google.auth.guard";
+import { AuthService } from "./auth.service";
 
 @Controller('api/auth')
 export class AuthController {
   constructor(
+    private authService: AuthService,
     private cacheManagerService: CacheManagerService,
   ) {}
 
@@ -19,9 +21,15 @@ export class AuthController {
     return user;
   }
 
+  @Get('login/oauth2/google')
+  loginOAuth2Google(@Session() session: Record<string, any>) {
+    return this.authService.getGoogleAuthorizationUrl(session);
+  }
+
+  @Redirect('http://localhost:9000')
   @UseGuards(GoogleAuthGuard)
-  @Post('login/oauth2/google')
-  loginOAuth2Google(@User() user: Users) {
+  @Get('login/oauth2/google/callback')
+  loginOAuth2GoogleCallback(@User() user: Users) {
     return user;
   }
 
