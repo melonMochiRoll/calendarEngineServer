@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, Query, UseGuards } from "@nestjs/common";
 import { UsersService } from "./users.service";
-import { IsAuthenicatedGuard, IsNotAuthenicatedGuard } from "src/auth/local.auth.guard";
+import { IsAuthenicatedGuard, IsNotAuthenicatedGuard } from "src/auth/authGuard/local.auth.guard";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
 import { CreateUserDTO } from "./dto/create.user.dto";

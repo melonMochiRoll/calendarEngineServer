@@ -7,7 +7,7 @@ import { OwnerOnlyRoles } from "src/common/decorator/owner.only.decorator";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
 import { AuthRoleGuards } from "src/common/decorator/auth.role.decorator";
-import { IsAuthenicatedGuard } from "src/auth/local.auth.guard";
+import { IsAuthenicatedGuard } from "src/auth/authGuard/local.auth.guard";
 import { TSubscribedspacesFilter } from "src/typings/types";
 import { SubscribedFilterValidationPipe } from "src/common/pipe/subscribedFilter.validation.pipe";
 import { PublicSpaceGuard } from "src/common/guard/public.space.guard";

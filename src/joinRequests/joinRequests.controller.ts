@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, UseGuards } from "@nestjs/common";
-import { IsAuthenicatedGuard } from "src/auth/local.auth.guard";
+import { IsAuthenicatedGuard } from "src/auth/authGuard/local.auth.guard";
 import { JoinRequestsService } from "./joinRequests.service";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
