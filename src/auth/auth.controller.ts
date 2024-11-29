@@ -33,9 +33,16 @@ export class AuthController {
     return user;
   }
 
+  
+  @Get('login/oauth2/naver')
+  loginOAuth2Naver(@Session() session: Record<string, any>) {
+    return this.authService.getNaverAuthorizationUrl(session);
+  }
+
+  @Redirect('http://localhost:9000')
   @UseGuards(NaverAuthGuard)
-  @Post('login/oauth2/naver')
-  loginOAuth2Naver(@User() user: Users) {
+  @Get('login/oauth2/naver/callback')
+  loginOAuth2NaverCallback(@User() user: Users) {
     return user;
   }
 
