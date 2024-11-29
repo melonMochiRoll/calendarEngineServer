@@ -29,6 +29,16 @@ export class AuthService {
     return `${request_url}?client_id=${client_id}&response_type=code&state=${state}&redirect_uri=${redirect_uri}&scope=${scope}&prompt=${prompt}`;
   }
 
+  getNaverAuthorizationUrl(session: Record<string, any>) {
+    const request_url = 'https://nid.naver.com/oauth2.0/authorize';
+    const client_id = process.env.NAVER_CLIENT_ID;
+    const state = nanoid(Number(process.env.SALT_OR_ROUNDS));
+    const redirect_uri = 'http://localhost:3000/api/auth/login/oauth2/naver/callback';
+
+    session['state'] = state;
+    return `${request_url}?response_type=code&client_id=${client_id}&state=${state}&redirect_uri=${redirect_uri}`;
+  }
+
   async validateUser(
     email: string,
     password: string,
