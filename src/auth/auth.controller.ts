@@ -7,6 +7,7 @@ import { CacheManagerService } from "src/cacheManager/cacheManager.service";
 import { NaverAuthGuard } from "./authGuard/naver.auth.guard";
 import { GoogleAuthGuard } from "./authGuard/google.auth.guard";
 import { AuthService } from "./auth.service";
+import { OAuth2CSRFGuard } from "./authGuard/oauth2.csrf.guard";
 
 @Controller('api/auth')
 export class AuthController {
@@ -27,7 +28,7 @@ export class AuthController {
   }
 
   @Redirect(`${process.env.CLIENT_ORIGIN}`)
-  @UseGuards(GoogleAuthGuard)
+  @UseGuards(OAuth2CSRFGuard, GoogleAuthGuard)
   @Get('login/oauth2/google/callback')
   loginOAuth2GoogleCallback(@User() user: Users) {
     return user;
@@ -40,7 +41,7 @@ export class AuthController {
   }
 
   @Redirect(`${process.env.CLIENT_ORIGIN}`)
-  @UseGuards(NaverAuthGuard)
+  @UseGuards(OAuth2CSRFGuard, NaverAuthGuard)
   @Get('login/oauth2/naver/callback')
   loginOAuth2NaverCallback(@User() user: Users) {
     return user;
