@@ -1,5 +1,6 @@
 import { ExecutionContext, Injectable } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
+import { Users } from "src/entities/Users";
 
 @Injectable()
 export class GoogleAuthGuard extends AuthGuard('google') {
@@ -12,5 +13,16 @@ export class GoogleAuthGuard extends AuthGuard('google') {
     }
 
     return result;
+  }
+
+  handleRequest<TUser = Users>(err: Error | null, user: TUser | false, info: never, ctx: ExecutionContext) {
+    const res = ctx.switchToHttp().getResponse();
+
+    if (err || !user) {
+      console.error(err);
+      return res.redirect(`${process.env.CLIENT_ORIGIN}/login`);
+    }
+
+    return user;
   }
 }
