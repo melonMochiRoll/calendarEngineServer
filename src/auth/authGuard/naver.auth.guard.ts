@@ -1,5 +1,7 @@
 import { ExecutionContext, Injectable } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
+import { INTERNAL_SERVER_MESSAGE } from "src/common/constant/error.message";
+import { RedirectingException } from "src/common/exception/redirecting.exception";
 import { Users } from "src/entities/Users";
 
 @Injectable()
@@ -16,11 +18,10 @@ export class NaverAuthGuard extends AuthGuard('naver') {
   }
 
   handleRequest<TUser = Users>(err: Error | null, user: TUser | false, info: never, ctx: ExecutionContext) {
-    const res = ctx.switchToHttp().getResponse();
 
     if (err || !user) {
       console.error(err);
-      return res.redirect(`${process.env.CLIENT_ORIGIN}/login`);
+      throw new RedirectingException(`${process.env.CLIENT_ORIGIN}/login?error=${INTERNAL_SERVER_MESSAGE}`);
     }
 
     return user;
