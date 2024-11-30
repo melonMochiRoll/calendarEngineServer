@@ -6,6 +6,7 @@ import passport from 'passport';
 import { ValidationPipe } from '@nestjs/common';
 import { useContainer } from 'class-validator';
 import { HttpExceptionFilter } from './common/exception/http-exception.filter';
+import { RedirectingExceptionFilter } from './common/exception/redirecting-exception.filter';
 
 declare const module: any;
 
@@ -35,7 +36,10 @@ async function bootstrap() {
     })
   );
 
-  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalFilters(
+    new HttpExceptionFilter(),
+    new RedirectingExceptionFilter(),
+  );
 
   const sessionOption = {
     secret: process.env.COOKIE_SECRET,
