@@ -17,7 +17,7 @@ export class AuthService {
     const request_url = 'https://accounts.google.com/o/oauth2/v2/auth';
     const client_id = process.env.GOOGLE_CLIENT_ID;
     const state = nanoid(Number(process.env.SALT_OR_ROUNDS));
-    const redirect_uri = 'http://localhost:3000/api/auth/login/oauth2/google/callback';
+    const redirect_uri = `${process.env.SERVER_ORIGIN}/api/auth/login/oauth2/google/callback`;
     const scopes = [
       'https://www.googleapis.com/auth/userinfo.email',
       'https://www.googleapis.com/auth/userinfo.profile',
@@ -33,7 +33,7 @@ export class AuthService {
     const request_url = 'https://nid.naver.com/oauth2.0/authorize';
     const client_id = process.env.NAVER_CLIENT_ID;
     const state = nanoid(Number(process.env.SALT_OR_ROUNDS));
-    const redirect_uri = 'http://localhost:3000/api/auth/login/oauth2/naver/callback';
+    const redirect_uri = `${process.env.SERVER_ORIGIN}/api/auth/login/oauth2/naver/callback`;
 
     session['state'] = state;
     return `${request_url}?response_type=code&client_id=${client_id}&state=${state}&redirect_uri=${redirect_uri}`;
