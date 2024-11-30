@@ -14,29 +14,40 @@ export class AuthService {
   ) {}
 
   getGoogleAuthorizationUrl(session: Record<string, any>) {
-    const request_url = 'https://accounts.google.com/o/oauth2/v2/auth';
-    const client_id = process.env.GOOGLE_CLIENT_ID;
     const state = nanoid(Number(process.env.SALT_OR_ROUNDS));
-    const redirect_uri = `${process.env.SERVER_ORIGIN}/api/auth/login/oauth2/google/callback`;
     const scopes = [
       'https://www.googleapis.com/auth/userinfo.email',
       'https://www.googleapis.com/auth/userinfo.profile',
     ];
-    const scope = encodeURIComponent(scopes.join(' '));
-    const prompt = 'select_account';
 
     session['state'] = state;
-    return `${request_url}?client_id=${client_id}&response_type=code&state=${state}&redirect_uri=${redirect_uri}&scope=${scope}&prompt=${prompt}`;
+
+    const request_url = 'https://accounts.google.com/o/oauth2/v2/auth';
+    const params = new URLSearchParams({
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      response_type: 'code',
+      state,
+      redirect_uri: `${process.env.SERVER_ORIGIN}/api/auth/login/oauth2/google/callback`,
+      scope: scopes.join(' '),
+      prompt: 'select_account',
+    }).toString();
+
+    return `${request_url}?${params}`;
   }
 
   getNaverAuthorizationUrl(session: Record<string, any>) {
-    const request_url = 'https://nid.naver.com/oauth2.0/authorize';
-    const client_id = process.env.NAVER_CLIENT_ID;
     const state = nanoid(Number(process.env.SALT_OR_ROUNDS));
-    const redirect_uri = `${process.env.SERVER_ORIGIN}/api/auth/login/oauth2/naver/callback`;
-
     session['state'] = state;
-    return `${request_url}?response_type=code&client_id=${client_id}&state=${state}&redirect_uri=${redirect_uri}`;
+
+    const request_url = 'https://nid.naver.com/oauth2.0/authorize';
+    const params = new URLSearchParams({
+      client_id: process.env.NAVER_CLIENT_ID,
+      response_type: 'code',
+      state,
+      redirect_uri: `${process.env.SERVER_ORIGIN}/api/auth/login/oauth2/naver/callback`,
+    }).toString();
+
+    return `${request_url}?${params}`
   }
 
   async validateUser(
