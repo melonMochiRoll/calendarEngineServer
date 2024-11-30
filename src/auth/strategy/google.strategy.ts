@@ -1,9 +1,9 @@
-import { ConflictException, ForbiddenException, Injectable } from "@nestjs/common";
+import { ConflictException, Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Request } from "express";
 import { Strategy } from "passport-google-oauth20";
-import { CONFLICT_ACCOUNT_MESSAGE, MISMATCH_STATE_MESSAGE } from "src/common/constant/error.message";
+import { CONFLICT_ACCOUNT_MESSAGE } from "src/common/constant/error.message";
 import handleError from "src/common/function/handleError";
 import { Users } from "src/entities/Users";
 import { ProviderList, TGoogleProfile } from "src/typings/types";
@@ -24,17 +24,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google'){
   }
 
   async validate(req: Request, accessToken: string, refreshToken: string, profile: TGoogleProfile) {
-    const state = req.session['state'];
-    const providedState = req.query?.state;
-
-    if (state !== providedState) {
-      await fetch(`https://oauth2.googleapis.com/revoke?token=${accessToken}`, {
-        method: 'post',
-      });
-      
-      throw new ForbiddenException(MISMATCH_STATE_MESSAGE);
-    }
-
     try {
       const exUser = await this.usersRepository.findOneBy({ email: profile.emails[0].value });
 
