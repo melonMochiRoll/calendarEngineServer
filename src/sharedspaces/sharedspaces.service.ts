@@ -63,6 +63,11 @@ export class SharedspacesService {
         },
         where: {
           url,
+        },
+        order: {
+          Sharedspacemembers: {
+            createdAt: 'ASC',
+          },
         }
       });
     } catch (err) {
