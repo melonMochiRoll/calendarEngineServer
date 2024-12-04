@@ -9,6 +9,7 @@ import { TodosModule } from './todos/todos.module';
 import { SharedspacesModule } from './sharedspaces/sharedspaces.module';
 import { JoinRequestsModule } from './joinRequests/joinRequests.module';
 import { RolesModule } from './roles/roles.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { RolesModule } from './roles/roles.module';
     SharedspacesModule,
     JoinRequestsModule,
     RolesModule,
+    EventsModule,
   ],
   controllers: [],
   providers: [],
