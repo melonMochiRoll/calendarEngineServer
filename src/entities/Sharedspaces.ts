@@ -3,6 +3,7 @@ import { Users } from "./Users";
 import { Todos } from "./Todos";
 import { SharedspaceMembers } from "./SharedspaceMembers";
 import { JoinRequests } from "./JoinRequests";
+import { Chats } from "./Chats";
 
 @Index('sharedspaces_OwnerId_idx', ['OwnerId'])
 @Unique('sharedspaces_url_idx', ['url'])
@@ -55,6 +56,11 @@ export class Sharedspaces {
     cascade: ['update', 'soft-remove', 'recover'],
   })
   JoinRequests: JoinRequests[];
+
+  @OneToMany(() => Chats, chats => chats.Sharedspace, {
+    cascade: ['update', 'soft-remove', 'recover'],
+  })
+  Chats: Chats[];
 
   @ManyToMany(() => Users, users => users.Sharedspaces)
   Members: Users[];

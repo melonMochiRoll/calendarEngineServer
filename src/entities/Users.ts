@@ -3,6 +3,7 @@ import { Todos } from "./Todos";
 import { Sharedspaces } from "./Sharedspaces";
 import { SharedspaceMembers } from "./SharedspaceMembers";
 import { JoinRequests } from "./JoinRequests";
+import { Chats } from "./Chats";
 
 @Unique('users_email_idx', ['email'])
 @Entity({ name: 'users' })
@@ -45,6 +46,9 @@ export class Users {
 
   @OneToMany(() => JoinRequests, joinRequests => joinRequests.Requestor)
   JoinRequests: JoinRequests[];
+
+  @OneToMany(() => Chats, chats => chats.Sender)
+  Chats: Chats[];
 
   @ManyToMany(() => Sharedspaces, sharedspaces => sharedspaces.Members)
   @JoinTable({
