@@ -9,6 +9,7 @@ import { TodosModule } from 'src/todos/todos.module';
 import { PublicSpaceGuard } from 'src/common/guard/public.space.guard';
 import { Roles } from 'src/entities/Roles';
 import { Chats } from 'src/entities/Chats';
+import { EventsModule } from 'src/events/events.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { Chats } from 'src/entities/Chats';
       Chats,
     ]),
     TodosModule,
+    EventsModule,
   ],
   controllers: [ SharedspacesController ],
   providers: [
