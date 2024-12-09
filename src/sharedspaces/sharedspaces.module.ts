@@ -8,6 +8,7 @@ import { SharedspaceMembers } from 'src/entities/SharedspaceMembers';
 import { TodosModule } from 'src/todos/todos.module';
 import { PublicSpaceGuard } from 'src/common/guard/public.space.guard';
 import { Roles } from 'src/entities/Roles';
+import { Chats } from 'src/entities/Chats';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { Roles } from 'src/entities/Roles';
       Sharedspaces,
       SharedspaceMembers,
       Roles,
+      Chats,
     ]),
     TodosModule,
   ],
