@@ -10,12 +10,14 @@ import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { SharedspaceMembersRoles, SubscribedspacesFilter, TSubscribedspacesFilter } from "src/typings/types";
 import { Users } from "src/entities/Users";
 import { BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, INTERNAL_SERVER_MESSAGE, NOT_FOUND_RESOURCE, NOT_FOUND_SPACE_MESSAGE } from "src/common/constant/error.message";
-import { TodosService } from "src/todos/todos.service";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
 import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dto";
 import handleError from "src/common/function/handleError";
 import { UpdateSharedspacePrivateDTO } from "./dto/update.sharedspace.private.dto";
 import { Roles } from "src/entities/Roles";
+import { Chats } from "src/entities/Chats";
+import { CreateSharedspaceChatDTO } from "./dto/create.sharedspace.chat.dto";
+import { EventsGateway } from "src/events/events.gateway";
 
 @Injectable()
 export class SharedspacesService {
@@ -27,7 +29,9 @@ export class SharedspacesService {
     private sharedspaceMembersRepository: Repository<SharedspaceMembers>,
     @InjectRepository(Roles)
     private rolesRepository: Repository<Roles>,
-    private todosService: TodosService,
+    @InjectRepository(Chats)
+    private chatsRepository: Repository<Chats>,
+    private readonly eventsGateway: EventsGateway,
   ) {}
 
   async getSharedspace(url: string) {
@@ -344,7 +348,104 @@ export class SharedspacesService {
     return true;
   }
 
-  async findActiveSpaceByUrl(url: string) {
+  async getSharedspaceChats(
+    targetSpace: Sharedspaces,
+    offset: number,
+    limit: number,
+  ) {
+    try {
+      const result = await this.chatsRepository.find({
+        select: {
+          id: true,
+          content: true,
+          SenderId: true,
+          SharedspaceId: true,
+          createdAt: true,
+          Sender: {
+            email: true,
+            profileImage: true,
+          },
+        },
+        relations: {
+          Sender: true,
+        },
+        where: {
+          SharedspaceId: targetSpace.id,
+        },
+        order: {
+          createdAt: 'DESC',
+        },
+        skip: (offset - 1) * limit,
+        take: limit,
+      });
+
+      if (result.length < 10) {
+        return {
+          chats: result,
+          hasMoreData: false,
+        };
+      }
+
+      const count = await this.chatsRepository.count({
+        where: {
+          SharedspaceId: targetSpace.id,
+        },
+      });
+
+      return {
+        chats: result,
+        hasMoreData: !Boolean((offset - 1) * limit >= count),
+      };
+    } catch (err) {
+      handleError(err);
+    }
+  }
+
+  async createSharedspaceChats(
+    targetSpace: Sharedspaces,
+    dto: CreateSharedspaceChatDTO,
+    user: Users,
+  ) {
+    const { content } = dto;
+
+    try {
+      const chat = await this.chatsRepository.save({
+        content,
+        SenderId: user.id,
+        SharedspaceId: targetSpace.id,
+      });
+
+      const chatWithUser = await this.chatsRepository.findOne({
+        select: {
+          id: true,
+          content: true,
+          SenderId: true,
+          SharedspaceId: true,
+          createdAt: true,
+          Sender: {
+            email: true,
+            profileImage: true,
+          },
+        },
+        where: {
+          id: chat.id,
+        },
+        relations: {
+          Sender: true,
+        },
+      });
+
+      this.eventsGateway.server
+        .to(`/sharedspace-${targetSpace.url}`)
+        .emit('publicChats', chatWithUser);
+    } catch (err) {
+      handleError(err);
+    }
+
+    return true;
+  }
+
+  async DEPRECATED_findActiveSpaceByUrl(url: string) {
     try {
       const targetSpace = await this.sharedspacesRepository.findOneBy({ deletedAt: IsNull(), url });
 
