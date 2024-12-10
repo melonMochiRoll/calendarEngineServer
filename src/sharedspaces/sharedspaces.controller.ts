@@ -16,6 +16,7 @@ import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dt
 import { UpdateSharedspacePrivateDTO } from "./dto/update.sharedspace.private.dto";
 import { TransformSpacePipe } from "src/common/pipe/transform.space.pipe";
 import { Sharedspaces } from "src/entities/Sharedspaces";
+import { CreateSharedspaceChatDTO } from "./dto/create.sharedspace.chat.dto";
 
 @Controller('api/sharedspaces')
 export class SharedspacesController {
@@ -112,5 +113,25 @@ export class SharedspacesController {
     @Param('id', ParseIntPipe) UserId: number,
   ) {
     return this.sharedspacesService.deleteSharedspaceMembers(targetSpace, UserId);
+  }
+
+  @UseGuards(PublicSpaceGuard)
+  @Get(':url/chats')
+  getSharedspaceChats(
+    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
+    @Query('offset', ParseIntPipe) offset: number,
+    @Query('limit', ParseIntPipe) limit: number,
+  ) {
+    return this.sharedspacesService.getSharedspaceChats(targetSpace, offset, limit);
+  }
+
+  @UseGuards(PublicSpaceGuard)
+  @Post(':url/chats')
+  createSharedspaceChats(
+    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
+    @Body() dto: CreateSharedspaceChatDTO,
+    @User() user: Users,
+  ) {
+    return this.sharedspacesService.createSharedspaceChats(targetSpace, dto, user);
   }
 }
