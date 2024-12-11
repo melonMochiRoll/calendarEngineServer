@@ -444,14 +444,4 @@ export class SharedspacesService {
 
     return true;
   }
-
-  async DEPRECATED_findActiveSpaceByUrl(url: string) {
-    try {
-      const targetSpace = await this.sharedspacesRepository.findOneBy({ deletedAt: IsNull(), url });
-
-      return targetSpace || null;
-    } catch (err) {
-      handleError(err);
-    }
-  };
 }
