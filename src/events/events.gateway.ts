@@ -12,11 +12,10 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   server: Server;
 
   handleConnection(@ConnectedSocket() socket: Socket) {
-    console.log(socket.nsp.name);
     socket.join(socket.nsp.name);
   }
 
   handleDisconnect() {
-    console.log(`disconnection`);
+    // disconnection
   }
 }
