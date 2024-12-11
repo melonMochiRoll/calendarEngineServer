@@ -379,7 +379,7 @@ export class SharedspacesService {
         take: limit,
       });
 
-      if (result.length < 10) {
+      if (result.length < limit) {
         return {
           chats: result,
           hasMoreData: false,
