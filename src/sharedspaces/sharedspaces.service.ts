@@ -18,6 +18,7 @@ import { Roles } from "src/entities/Roles";
 import { Chats } from "src/entities/Chats";
 import { CreateSharedspaceChatDTO } from "./dto/create.sharedspace.chat.dto";
 import { EventsGateway } from "src/events/events.gateway";
+import { Images } from "src/entities/Images";
 
 @Injectable()
 export class SharedspacesService {
@@ -361,13 +362,19 @@ export class SharedspacesService {
           SenderId: true,
           SharedspaceId: true,
           createdAt: true,
+          updatedAt: true,
           Sender: {
             email: true,
             profileImage: true,
           },
+          Images: {
+            id: true,
+            path: true,
+          },
         },
         relations: {
           Sender: true,
+          Images: true,
         },
         where: {
           SharedspaceId: targetSpace.id,
@@ -404,16 +411,31 @@ export class SharedspacesService {
   async createSharedspaceChats(
     targetSpace: Sharedspaces,
     dto: CreateSharedspaceChatDTO,
+    files: Express.Multer.File[],
     user: Users,
   ) {
     const { content } = dto;
 
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+
     try {
-      const chat = await this.chatsRepository.save({
+      const chat = await qr.manager.save(Chats, {
         content,
         SenderId: user.id,
         SharedspaceId: targetSpace.id,
       });
+
+      for (let i=0; i<files.length; i++) {
+        await qr.manager.save(Images, {
+          path: files[i].path,
+          ChatId: chat.id,
+        });
+      }
+
+      await qr.commitTransaction();
+      await qr.release();
 
       const chatWithUser = await this.chatsRepository.findOne({
         select: {
@@ -426,12 +448,17 @@ export class SharedspacesService {
             email: true,
             profileImage: true,
           },
-        },
-        where: {
-          id: chat.id,
+          Images: {
+            id: true,
+            path: true,
+          },
         },
         relations: {
           Sender: true,
+          Images: true,
+        },
+        where: {
+          id: chat.id,
         },
       });
 
@@ -439,6 +466,9 @@ export class SharedspacesService {
         .to(`/sharedspace-${targetSpace.url}`)
         .emit('publicChats', chatWithUser);
     } catch (err) {
+      await qr.rollbackTransaction();
+      await qr.release();
+
       handleError(err);
     }
 
