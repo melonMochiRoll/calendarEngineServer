@@ -7,6 +7,7 @@ import { Users } from 'src/entities/Users';
 import { JoinRequests } from 'src/entities/JoinRequests';
 import { Roles } from 'src/entities/Roles';
 import { Chats } from 'src/entities/Chats';
+import { Images } from 'src/entities/Images';
 
 const ormconfig: TypeOrmModuleOptions = {
   type: "mysql",
@@ -23,6 +24,7 @@ const ormconfig: TypeOrmModuleOptions = {
     JoinRequests,
     SharedspaceMembers,
     Chats,
+    Images,
   ],
   synchronize: false,
   autoLoadEntities: true,
