@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, Param, ParseIntPipe, Patch, Post, Query, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
 import { SharedspacesService } from "./sharedspaces.service";
 import { CreateSharedspaceDTO } from "./dto/create.sharedspace.dto";
 import { UpdateSharedspaceNameDTO } from "./dto/update.sharedspace.name.dto";
@@ -17,6 +17,8 @@ import { UpdateSharedspacePrivateDTO } from "./dto/update.sharedspace.private.dt
 import { TransformSpacePipe } from "src/common/pipe/transform.space.pipe";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import { CreateSharedspaceChatDTO } from "./dto/create.sharedspace.chat.dto";
+import { FilesInterceptor } from "@nestjs/platform-express";
+import { multerImageOptions } from "src/common/config/multer.image.options";
 
 @Controller('api/sharedspaces')
 export class SharedspacesController {
@@ -125,13 +127,15 @@ export class SharedspacesController {
     return this.sharedspacesService.getSharedspaceChats(targetSpace, offset, limit);
   }
 
+  @UseInterceptors(FilesInterceptor('images', 6, multerImageOptions))
   @UseGuards(PublicSpaceGuard)
   @Post(':url/chats')
   createSharedspaceChats(
     @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
     @Body() dto: CreateSharedspaceChatDTO,
+    @UploadedFiles() files: Express.Multer.File[],
     @User() user: Users,
   ) {
-    return this.sharedspacesService.createSharedspaceChats(targetSpace, dto, user);
+    return this.sharedspacesService.createSharedspaceChats(targetSpace, dto, files, user);
   }
 }
