@@ -1,6 +1,7 @@
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Users } from "./Users";
 import { Sharedspaces } from "./Sharedspaces";
+import { Images } from "./Images";
 
 @Entity({ name: 'chats' })
 export class Chats {
@@ -24,6 +25,11 @@ export class Chats {
   
   @DeleteDateColumn()
   deletedAt: Date | null;
+
+  @OneToMany(() => Images, images => images.Chat, {
+    cascade: ['update', 'soft-remove', 'recover'],
+  })
+  Images: Images[];
 
   @ManyToOne(() => Users, users => users.Todos, {
     onUpdate: 'CASCADE',
