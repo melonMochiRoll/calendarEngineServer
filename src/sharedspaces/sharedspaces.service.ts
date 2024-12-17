@@ -409,7 +409,7 @@ export class SharedspacesService {
     }
   }
 
-  async createSharedspaceChats(
+  async createSharedspaceChat(
     targetSpace: Sharedspaces,
     dto: CreateSharedspaceChatDTO,
     files: Express.Multer.File[],
@@ -504,7 +504,7 @@ export class SharedspacesService {
       if (targetChat.SenderId !== user.id || targetChat.SharedspaceId !== targetSpace.id) {
         throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
       }
-      
+
       targetChat.Images.map(async (image: Images) => {
         await qr.manager.delete(Images, { id: image.id });
         fs.unlinkSync(image.path);

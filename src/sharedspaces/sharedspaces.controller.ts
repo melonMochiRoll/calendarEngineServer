@@ -130,13 +130,13 @@ export class SharedspacesController {
   @UseInterceptors(FilesInterceptor('images', 6, multerImageOptions))
   @UseGuards(PublicSpaceGuard)
   @Post(':url/chats')
-  createSharedspaceChats(
+  createSharedspaceChat(
     @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
     @Body() dto: CreateSharedspaceChatDTO,
     @UploadedFiles() files: Express.Multer.File[],
     @User() user: Users,
   ) {
-    return this.sharedspacesService.createSharedspaceChats(targetSpace, dto, files, user);
+    return this.sharedspacesService.createSharedspaceChat(targetSpace, dto, files, user);
   }
 
   @UseGuards(IsAuthenicatedGuard)
