@@ -27,7 +27,7 @@ export class Chats {
   deletedAt: Date | null;
 
   @OneToMany(() => Images, images => images.Chat, {
-    cascade: ['update', 'soft-remove', 'recover'],
+    cascade: true,
   })
   Images: Images[];
 

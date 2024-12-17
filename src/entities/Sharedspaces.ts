@@ -48,17 +48,17 @@ export class Sharedspaces {
   Todos: Todos[];
 
   @OneToMany(() => SharedspaceMembers, sharedspaceMembers => sharedspaceMembers.Sharedspace, {
-    cascade: ['update', 'soft-remove', 'recover'],
+    cascade: true,
   })
   Sharedspacemembers: SharedspaceMembers[];
 
   @OneToMany(() => JoinRequests, joinRequests => joinRequests.Sharedspace, {
-    cascade: ['update', 'soft-remove', 'recover'],
+    cascade: true,
   })
   JoinRequests: JoinRequests[];
 
   @OneToMany(() => Chats, chats => chats.Sharedspace, {
-    cascade: ['update', 'soft-remove', 'recover'],
+    cascade: true,
   })
   Chats: Chats[];
 

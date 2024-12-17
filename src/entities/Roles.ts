@@ -16,7 +16,7 @@ export class Roles {
   updatedAt: Date;
 
   @OneToMany(() => SharedspaceMembers, sharedspaceMembers => sharedspaceMembers.Role, {
-    cascade: ['update', 'soft-remove', 'recover'],
+    cascade: true,
   })
   SharedspaceMembers: SharedspaceMembers[];
 }
