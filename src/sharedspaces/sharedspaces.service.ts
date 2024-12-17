@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { CreateSharedspaceDTO } from "./dto/create.sharedspace.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, Equal, IsNull, Or, Repository } from "typeorm";
@@ -9,7 +9,7 @@ import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { SharedspaceMembersRoles, SubscribedspacesFilter, TSubscribedspacesFilter } from "src/typings/types";
 import { Users } from "src/entities/Users";
-import { BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, INTERNAL_SERVER_MESSAGE, NOT_FOUND_RESOURCE, NOT_FOUND_SPACE_MESSAGE } from "src/common/constant/error.message";
+import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, INTERNAL_SERVER_MESSAGE, NOT_FOUND_RESOURCE, NOT_FOUND_SPACE_MESSAGE } from "src/common/constant/error.message";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
 import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dto";
 import handleError from "src/common/function/handleError";
@@ -19,6 +19,7 @@ import { Chats } from "src/entities/Chats";
 import { CreateSharedspaceChatDTO } from "./dto/create.sharedspace.chat.dto";
 import { EventsGateway } from "src/events/events.gateway";
 import { Images } from "src/entities/Images";
+import fs from 'fs';
 
 @Injectable()
 export class SharedspacesService {
@@ -473,5 +474,51 @@ export class SharedspacesService {
     }
 
     return true;
+  }
+
+  async deleteSharedspaceChat(
+    targetSpace: Sharedspaces,
+    chatId: number,
+    user: Users,
+  ) {
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+
+    try {
+      const targetChat = await this.chatsRepository.findOne({
+        select: {
+          id: true,
+          SenderId: true,
+          SharedspaceId: true,
+          Images: true,
+        },
+        relations: {
+          Images: true,
+        },
+        where: {
+          id: chatId,
+        },
+      });
+
+      if (targetChat.SenderId !== user.id || targetChat.SharedspaceId !== targetSpace.id) {
+        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+      }
+      
+      targetChat.Images.map(async (image: Images) => {
+        await qr.manager.delete(Images, { id: image.id });
+        fs.unlinkSync(image.path);
+      });
+
+      await qr.manager.delete(Chats, { id: chatId });
+
+      await qr.commitTransaction();
+    } catch (err) {
+      await qr.rollbackTransaction();
+
+      handleError(err);
+    } finally {
+      await qr.release();
+    }
   }
 }

@@ -138,4 +138,15 @@ export class SharedspacesController {
   ) {
     return this.sharedspacesService.createSharedspaceChats(targetSpace, dto, files, user);
   }
+
+  @UseGuards(IsAuthenicatedGuard)
+  @HttpCode(204)
+  @Delete(':url/chats/:id')
+  deleteSharedspaceChat(
+    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
+    @Param('id', ParseIntPipe) chatId: number,
+    @User() user: Users,
+  ) {
+    return this.sharedspacesService.deleteSharedspaceChat(targetSpace, chatId, user);
+  }
 }
