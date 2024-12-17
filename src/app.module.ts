@@ -10,11 +10,16 @@ import { SharedspacesModule } from './sharedspaces/sharedspaces.module';
 import { JoinRequestsModule } from './joinRequests/joinRequests.module';
 import { RolesModule } from './roles/roles.module';
 import { EventsModule } from './events/events.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import path from 'path';
 
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
       useFactory: () => ormconfig,
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: path.join(__dirname, '..', ''),
     }),
     CacheManagerModule,
     AuthModule,
