@@ -20,6 +20,7 @@ import { CreateSharedspaceChatDTO } from "./dto/create.sharedspace.chat.dto";
 import { EventsGateway } from "src/events/events.gateway";
 import { Images } from "src/entities/Images";
 import fs from 'fs';
+import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
 
 @Injectable()
 export class SharedspacesService {
@@ -475,6 +476,52 @@ export class SharedspacesService {
 
     return true;
   }
+
+  async updateSharedspaceChat(
+    targetSpace: Sharedspaces,
+    dto: UpdateSharedspaceChatDTO,
+    user: Users,
+  ) {
+    const { ChatId, content } = dto;
+
+    try {
+      const targetChat = await this.chatsRepository.findOneBy({ id: ChatId });
+
+      if (targetChat.SenderId !== user.id || targetChat.SharedspaceId !== targetSpace.id) {
+        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+      }
+
+      await this.chatsRepository.update({ id: ChatId }, { content });
+
+      return await this.chatsRepository.findOne({
+        select: {
+          id: true,
+          content: true,
+          SenderId: true,
+          SharedspaceId: true,
+          createdAt: true,
+          updatedAt: true,
+          Sender: {
+            email: true,
+            profileImage: true,
+          },
+          Images: {
+            id: true,
+            path: true,
+          },
+        },
+        relations: {
+          Sender: true,
+          Images: true,
+        },
+        where: {
+          id: ChatId,
+        },
+      });
+    } catch (err) {
+      handleError(err);
+    }
+  };
 
   async deleteSharedspaceChat(
     targetSpace: Sharedspaces,

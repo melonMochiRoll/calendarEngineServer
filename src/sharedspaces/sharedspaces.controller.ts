@@ -19,6 +19,7 @@ import { Sharedspaces } from "src/entities/Sharedspaces";
 import { CreateSharedspaceChatDTO } from "./dto/create.sharedspace.chat.dto";
 import { FilesInterceptor } from "@nestjs/platform-express";
 import { multerImageOptions } from "src/common/config/multer.image.options";
+import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
 
 @Controller('api/sharedspaces')
 export class SharedspacesController {
@@ -137,6 +138,16 @@ export class SharedspacesController {
     @User() user: Users,
   ) {
     return this.sharedspacesService.createSharedspaceChat(targetSpace, dto, files, user);
+  }
+
+  @UseGuards(IsAuthenicatedGuard)
+  @Patch(':url/chats')
+  updateSharedspaceChat(
+    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
+    @Body() dto: UpdateSharedspaceChatDTO,
+    @User() user: Users,
+  ) {
+    return this.sharedspacesService.updateSharedspaceChat(targetSpace, dto, user);
   }
 
   @UseGuards(IsAuthenicatedGuard)
