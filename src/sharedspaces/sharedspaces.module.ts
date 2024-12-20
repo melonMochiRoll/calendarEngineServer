@@ -9,6 +9,7 @@ import { PublicSpaceGuard } from 'src/common/guard/public.space.guard';
 import { Roles } from 'src/entities/Roles';
 import { Chats } from 'src/entities/Chats';
 import { EventsModule } from 'src/events/events.module';
+import { Images } from 'src/entities/Images';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { EventsModule } from 'src/events/events.module';
       SharedspaceMembers,
       Roles,
       Chats,
+      Images,
     ]),
     EventsModule,
   ],
