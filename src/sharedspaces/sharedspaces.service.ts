@@ -34,6 +34,8 @@ export class SharedspacesService {
     private rolesRepository: Repository<Roles>,
     @InjectRepository(Chats)
     private chatsRepository: Repository<Chats>,
+    @InjectRepository(Images)
+    private imagesRepository: Repository<Images>,
     private readonly eventsGateway: EventsGateway,
   ) {}
 
@@ -567,6 +569,50 @@ export class SharedspacesService {
       handleError(err);
     } finally {
       await qr.release();
+    }
+  }
+
+  async deleteSharedspaceChatImage(
+    targetSpace: Sharedspaces,
+    ChatId: number,
+    ImageId: number,
+    user: Users,
+  ) {
+    try {
+      const targetChat = await this.chatsRepository.findOne({
+        select: {
+          id: true,
+          SenderId: true,
+          SharedspaceId: true,
+          Images: {
+            id: true,
+            path: true,
+          },
+        },
+        relations: {
+          Images: true,
+        },
+        where: {
+          id: ChatId,
+          Images: {
+            id: ImageId,
+          },
+        },
+      });
+
+      if (targetChat.SenderId !== user.id || targetChat.SharedspaceId !== targetSpace.id) {
+        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+      }
+
+      await this.imagesRepository.delete({
+        id: ImageId,
+        ChatId,
+      })
+      .then(() => {
+        fs.unlinkSync(targetChat.Images[0].path);
+      });
+    } catch (err) {
+      handleError(err);
     }
   }
 }
