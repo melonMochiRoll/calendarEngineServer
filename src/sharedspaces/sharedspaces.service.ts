@@ -446,6 +446,7 @@ export class SharedspacesService {
           SenderId: true,
           SharedspaceId: true,
           createdAt: true,
+          updatedAt: true,
           Sender: {
             email: true,
             profileImage: true,
