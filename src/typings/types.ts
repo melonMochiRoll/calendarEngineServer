@@ -78,3 +78,10 @@ export const ProviderList = {
   NAVER: 'naver',
   GOOGLE: 'google',
 } as const;
+
+export const ChatsCommandList = {
+  CHAT_CREATED: 'chat_created',
+  CHAT_UPDATED: 'chat_updated',
+  CHAT_DELETED: 'chat_deleted',
+  CHAT_IMAGE_DELETED: 'chat_image_deleted',
+} as const;
