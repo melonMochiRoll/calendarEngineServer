@@ -7,7 +7,7 @@ import { nanoid } from "nanoid";
 import { UpdateSharedspaceNameDTO } from "./dto/update.sharedspace.name.dto";
 import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
-import { SharedspaceMembersRoles, SubscribedspacesFilter, TSubscribedspacesFilter } from "src/typings/types";
+import { ChatsCommandList, SharedspaceMembersRoles, SubscribedspacesFilter, TSubscribedspacesFilter } from "src/typings/types";
 import { Users } from "src/entities/Users";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, INTERNAL_SERVER_MESSAGE, NOT_FOUND_RESOURCE, NOT_FOUND_SPACE_MESSAGE } from "src/common/constant/error.message";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
@@ -469,7 +469,7 @@ export class SharedspacesService {
 
       this.eventsGateway.server
         .to(`/sharedspace-${targetSpace.url}`)
-        .emit('publicChats', chatWithUser);
+        .emit(`publicChats:${ChatsCommandList.CHAT_CREATED}`, chatWithUser);
     } catch (err) {
       await qr.rollbackTransaction();
       await qr.release();
@@ -496,7 +496,7 @@ export class SharedspacesService {
 
       await this.chatsRepository.update({ id: ChatId }, { content });
 
-      return await this.chatsRepository.findOne({
+      const chatWithUser = await this.chatsRepository.findOne({
         select: {
           id: true,
           content: true,
@@ -521,6 +521,10 @@ export class SharedspacesService {
           id: ChatId,
         },
       });
+
+      this.eventsGateway.server
+        .to(`/sharedspace-${targetSpace.url}`)
+        .emit(`publicChats:${ChatsCommandList.CHAT_UPDATED}`, chatWithUser);
     } catch (err) {
       handleError(err);
     }
@@ -528,7 +532,7 @@ export class SharedspacesService {
 
   async deleteSharedspaceChat(
     targetSpace: Sharedspaces,
-    chatId: number,
+    ChatId: number,
     user: Users,
   ) {
     const qr = this.dataSource.createQueryRunner();
@@ -547,7 +551,7 @@ export class SharedspacesService {
           Images: true,
         },
         where: {
-          id: chatId,
+          id: ChatId,
         },
       });
 
@@ -560,15 +564,19 @@ export class SharedspacesService {
         fs.unlinkSync(image.path);
       });
 
-      await qr.manager.delete(Chats, { id: chatId });
+      await qr.manager.delete(Chats, { id: ChatId });
 
       await qr.commitTransaction();
+      await qr.release();
+
+      this.eventsGateway.server
+        .to(`/sharedspace-${targetSpace.url}`)
+        .emit(`publicChats:${ChatsCommandList.CHAT_DELETED}`, ChatId);
     } catch (err) {
       await qr.rollbackTransaction();
+      await qr.release();
 
       handleError(err);
-    } finally {
-      await qr.release();
     }
   }
 
@@ -611,6 +619,10 @@ export class SharedspacesService {
       .then(() => {
         fs.unlinkSync(targetChat.Images[0].path);
       });
+
+      this.eventsGateway.server
+        .to(`/sharedspace-${targetSpace.url}`)
+        .emit(`publicChats:${ChatsCommandList.CHAT_IMAGE_DELETED}`, ChatId, ImageId);
     } catch (err) {
       handleError(err);
     }
