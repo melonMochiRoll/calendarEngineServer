@@ -4,7 +4,9 @@ import { IsAuthenicatedGuard, IsNotAuthenicatedGuard } from "src/auth/authGuard/
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
 import { CreateUserDTO } from "./dto/create.user.dto";
+import { SkipThrottle } from "@nestjs/throttler";
 
+@SkipThrottle()
 @Controller('api/users')
 export class UsersController {
   constructor(
@@ -16,6 +18,7 @@ export class UsersController {
     return user || false;
   }
 
+  @SkipThrottle({ default: false })
   @UseGuards(IsAuthenicatedGuard)
   @Get('search')
   searchUsers(@Query('query') query: string) {
