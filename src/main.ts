@@ -7,6 +7,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { useContainer } from 'class-validator';
 import { HttpExceptionFilter } from './common/exception/http-exception.filter';
 import { RedirectingExceptionFilter } from './common/exception/redirecting-exception.filter';
+import helmet from 'helmet';
 
 declare const module: any;
 
@@ -17,6 +18,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: console,
   });
+
+  app.use(helmet());
 
   useContainer(app.select(AppModule), { fallbackOnErrors: true }); // Enable dependency injection for custom validation
 
