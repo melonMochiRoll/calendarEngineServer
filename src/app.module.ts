@@ -12,6 +12,7 @@ import { RolesModule } from './roles/roles.module';
 import { EventsModule } from './events/events.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import path from 'path';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -21,6 +22,12 @@ import path from 'path';
     ServeStaticModule.forRoot({
       rootPath: path.join(__dirname, '..', ''),
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 10000,
+        limit: 20,
+      },
+    ]),
     CacheManagerModule,
     AuthModule,
     UsersModule,
