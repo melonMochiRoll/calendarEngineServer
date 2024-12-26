@@ -8,6 +8,7 @@ import { useContainer } from 'class-validator';
 import { HttpExceptionFilter } from './common/exception/http-exception.filter';
 import { RedirectingExceptionFilter } from './common/exception/redirecting-exception.filter';
 import helmet from 'helmet';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 declare const module: any;
 
@@ -15,11 +16,13 @@ const isDevelopment = process.env.NODE_ENV === "development";
 const allowlist = isDevelopment ? ['http://localhost:9000'] : [''];
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: console,
   });
 
   app.use(helmet());
+
+  app.set('trust proxy', true);
 
   useContainer(app.select(AppModule), { fallbackOnErrors: true }); // Enable dependency injection for custom validation
 
