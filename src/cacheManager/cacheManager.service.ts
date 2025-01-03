@@ -36,10 +36,10 @@ export class CacheManagerService {
     userId: number,
     key: string,
     value: any,
+    ttl?: number | 5000
   ) {
     try {
       const cacheKey = this.generateCacheKey(userId, key);
-      const ttl = key === 'userData' ? 900 : 5;
 
       await this.cacheManager.set(cacheKey, value, ttl);
     } catch (err) {
