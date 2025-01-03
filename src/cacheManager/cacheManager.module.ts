@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { CacheModule } from '@nestjs/cache-manager';
 import { CacheManagerService } from './cacheManager.service';
+import { OAuth2CSRFGuard } from 'src/auth/authGuard/oauth2.csrf.guard';
 
 @Module({
   imports: [
@@ -10,7 +11,10 @@ import { CacheManagerService } from './cacheManager.service';
       ttl: 5000,
     })
   ],
-  providers: [ CacheManagerService ],
+  providers: [
+    CacheManagerService,
+    OAuth2CSRFGuard,
+  ],
   exports: [ CacheManagerService ],
 })
 
