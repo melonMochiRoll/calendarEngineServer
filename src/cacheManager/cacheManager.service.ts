@@ -1,6 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { Cache } from 'cache-manager';
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import handleError from "src/common/function/handleError";
 
 @Injectable()
 export class CacheManagerService {
@@ -14,7 +15,7 @@ export class CacheManagerService {
     key: string,
   ) {
     return `${userId}-${key}`;
-  };
+  }
 
   async getCache(
     userId: number,
@@ -29,7 +30,7 @@ export class CacheManagerService {
       console.error(err);
       return null;
     }
-  };
+  }
 
   async setCache(
     userId: number,
@@ -44,7 +45,7 @@ export class CacheManagerService {
     } catch (err) {
       console.error(err);
     }
-  };
+  }
 
   async delCache(
     userId: number,
@@ -60,7 +61,7 @@ export class CacheManagerService {
     } catch (err) {
       console.error(err);
     }
-  };
+  }
 
   async clearUserCache(userId: number) {
     try {
@@ -84,5 +85,31 @@ export class CacheManagerService {
     } catch (err) {
       console.error(err);
     }
-  };
+  }
+
+  async getGuestCache(
+    key: string,
+  ) {
+    try {
+      const cached = await this.cacheManager.get(`guest-${key}`) || null;
+
+      return cached;
+    } catch (err) {
+      handleError(err);
+    }
+  }
+
+  async setGuestCache(
+    key: string,
+    value: any,
+    ttl?: number | 5000,
+  ) {
+    try {
+      const cacheKey = `guest-${key}`;
+
+      await this.cacheManager.set(cacheKey, value, ttl);
+    } catch (err) {
+      handleError(err);
+    }
+  }
 }
