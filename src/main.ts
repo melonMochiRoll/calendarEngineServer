@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import session from 'express-session';
+import session, { SessionOptions } from 'express-session';
 import 'dotenv/config';
 import passport from 'passport';
 import { ValidationPipe } from '@nestjs/common';
@@ -13,14 +13,20 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 declare const module: any;
 
 const isDevelopment = process.env.NODE_ENV === "development";
-const allowlist = isDevelopment ? ['http://localhost:9000'] : [''];
+const allowlist = isDevelopment ? ['http://localhost:3000', 'http://localhost:9000'] : [''];
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: console,
   });
 
-  app.use(helmet());
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        'img-src': ["'self'"],
+      },
+    },
+  }));
 
   app.set('trust proxy', true);
 
@@ -47,13 +53,14 @@ async function bootstrap() {
     new RedirectingExceptionFilter(),
   );
 
-  const sessionOption = {
+  const sessionOption: SessionOptions = {
     secret: process.env.COOKIE_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
       secure: false,
+      sameSite: 'strict',
     },
     proxy: !isDevelopment,
   };
