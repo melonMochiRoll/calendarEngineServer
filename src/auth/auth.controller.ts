@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Redirect, Req, Res, Session, UseGuards } from "@nestjs/common";
+import { Controller, Get, Post, Redirect, Req, Res, UseGuards } from "@nestjs/common";
 import { IsAuthenicatedGuard, LocalAuthGuard } from "./authGuard/local.auth.guard";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
@@ -23,8 +23,8 @@ export class AuthController {
   }
 
   @Get('login/oauth2/google')
-  loginOAuth2Google(@Session() session: Record<string, any>) {
-    return this.authService.getGoogleAuthorizationUrl(session);
+  loginOAuth2Google() {
+    return this.authService.getGoogleAuthorizationUrl();
   }
 
   @Redirect(`${process.env.CLIENT_ORIGIN}`)
@@ -36,8 +36,8 @@ export class AuthController {
 
   
   @Get('login/oauth2/naver')
-  loginOAuth2Naver(@Session() session: Record<string, any>) {
-    return this.authService.getNaverAuthorizationUrl(session);
+  loginOAuth2Naver() {
+    return this.authService.getNaverAuthorizationUrl();
   }
 
   @Redirect(`${process.env.CLIENT_ORIGIN}`)
