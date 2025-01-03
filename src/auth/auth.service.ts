@@ -5,22 +5,24 @@ import { Users } from "src/entities/Users";
 import { Repository } from "typeorm";
 import handleError from "src/common/function/handleError";
 import { nanoid } from "nanoid";
+import { CacheManagerService } from "src/cacheManager/cacheManager.service";
 
 @Injectable()
 export class AuthService {
   constructor(
+    private cacheManagerService: CacheManagerService,
     @InjectRepository(Users)
     private usersRepository: Repository<Users>,
   ) {}
 
-  getGoogleAuthorizationUrl(session: Record<string, any>) {
+  async getGoogleAuthorizationUrl() {
     const state = nanoid(Number(process.env.SALT_OR_ROUNDS));
     const scopes = [
       'https://www.googleapis.com/auth/userinfo.email',
       'https://www.googleapis.com/auth/userinfo.profile',
     ];
 
-    session['state'] = state;
+    await this.cacheManagerService.setGuestCache(state, true);
 
     const request_url = 'https://accounts.google.com/o/oauth2/v2/auth';
     const params = new URLSearchParams({
@@ -35,9 +37,10 @@ export class AuthService {
     return `${request_url}?${params}`;
   }
 
-  getNaverAuthorizationUrl(session: Record<string, any>) {
+  async getNaverAuthorizationUrl() {
     const state = nanoid(Number(process.env.SALT_OR_ROUNDS));
-    session['state'] = state;
+
+    await this.cacheManagerService.setGuestCache(state, true);
 
     const request_url = 'https://nid.naver.com/oauth2.0/authorize';
     const params = new URLSearchParams({
