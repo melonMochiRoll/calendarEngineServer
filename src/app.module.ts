@@ -13,6 +13,7 @@ import { EventsModule } from './events/events.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import path from 'path';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { AwsModule } from './aws/aws.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
     JoinRequestsModule,
     RolesModule,
     EventsModule,
+    AwsModule,
   ],
   controllers: [],
   providers: [],
