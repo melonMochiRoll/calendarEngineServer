@@ -1,4 +1,4 @@
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, PutObjectCommand, S3Client, waitUntilObjectNotExists } from "@aws-sdk/client-s3";
 import { Injectable } from "@nestjs/common";
 import handleError from "src/common/function/handleError";
 
@@ -29,6 +29,35 @@ export class AwsService {
 
     try {
       await this.s3Client.send(command);
+    } catch (err) {
+      handleError(err);
+    }
+
+    return true;
+  }
+
+  async deleteImageFromS3(
+    key: string,
+  ) {
+    const command = new DeleteObjectCommand({
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
+      Key: key,
+    });
+
+    try {
+      await this.s3Client.send(command);
+
+      await waitUntilObjectNotExists(
+        { 
+          client: this.s3Client,
+          maxWaitTime: 6,
+          minDelay: 5,
+        },
+        {
+          Bucket: process.env.AWS_S3_BUCKET_NAME,
+          Key: key,
+        },
+      );
     } catch (err) {
       handleError(err);
     }
