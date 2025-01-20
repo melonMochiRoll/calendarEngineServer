@@ -10,6 +10,7 @@ import { Roles } from 'src/entities/Roles';
 import { Chats } from 'src/entities/Chats';
 import { EventsModule } from 'src/events/events.module';
 import { Images } from 'src/entities/Images';
+import { AwsModule } from 'src/aws/aws.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { Images } from 'src/entities/Images';
       Images,
     ]),
     EventsModule,
+    AwsModule,
   ],
   controllers: [ SharedspacesController ],
   providers: [
