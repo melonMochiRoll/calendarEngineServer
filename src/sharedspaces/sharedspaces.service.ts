@@ -21,6 +21,7 @@ import { EventsGateway } from "src/events/events.gateway";
 import { Images } from "src/entities/Images";
 import fs from 'fs';
 import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
+import { AwsService } from "src/aws/aws.service";
 
 @Injectable()
 export class SharedspacesService {
@@ -37,6 +38,7 @@ export class SharedspacesService {
     @InjectRepository(Images)
     private imagesRepository: Repository<Images>,
     private readonly eventsGateway: EventsGateway,
+    private awsService: AwsService,
   ) {}
 
   async getSharedspace(url: string) {
@@ -424,6 +426,8 @@ export class SharedspacesService {
     await qr.connect();
     await qr.startTransaction();
 
+    const s3Keys = files.map((file) => `space-public/${targetSpace.id}_${Date.now()}_${file.originalname}`);
+
     try {
       const chat = await qr.manager.save(Chats, {
         content,
@@ -432,8 +436,11 @@ export class SharedspacesService {
       });
 
       for (let i=0; i<files.length; i++) {
+        const key = s3Keys[i];
+
+        await this.awsService.uploadImageToS3(files[i], key);
         await qr.manager.save(Images, {
-          path: files[i].path,
+          path: key,
           ChatId: chat.id,
         });
       }
@@ -471,8 +478,14 @@ export class SharedspacesService {
         .to(`/sharedspace-${targetSpace.url}`)
         .emit(`publicChats:${ChatsCommandList.CHAT_CREATED}`, chatWithUser);
     } catch (err) {
-      await qr.rollbackTransaction();
-      await qr.release();
+      if (!qr.isReleased) {
+        await qr.rollbackTransaction();
+        await qr.release();
+      }
+
+      for (let i=0; i<s3Keys.length; i++) {
+        await this.awsService.deleteImageFromS3(s3Keys[i]);
+      }
 
       handleError(err);
     }
