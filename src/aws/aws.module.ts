@@ -3,7 +3,7 @@ import { AwsService } from './aws.service';
 
 @Module({
   providers: [ AwsService ],
-  exports: [],
+  exports: [ AwsService ],
 })
 
 export class AwsModule {}
