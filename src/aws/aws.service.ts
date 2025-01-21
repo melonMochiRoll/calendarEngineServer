@@ -25,6 +25,7 @@ export class AwsService {
       Bucket: process.env.AWS_S3_BUCKET_NAME,
       Key: key,
       Body: file.buffer,
+      CacheControl: 'public, max-age=31536000, immutable',
     });
 
     try {
