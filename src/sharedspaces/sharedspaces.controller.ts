@@ -128,7 +128,7 @@ export class SharedspacesController {
     return this.sharedspacesService.getSharedspaceChats(targetSpace, offset, limit);
   }
 
-  @UseInterceptors(FilesInterceptor('images', 3))
+  @UseInterceptors(FilesInterceptor('images', 6))
   @UseGuards(PublicSpaceGuard)
   @Post(':url/chats')
   createSharedspaceChat(
