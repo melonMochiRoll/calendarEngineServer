@@ -572,10 +572,14 @@ export class SharedspacesService {
         throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
       }
 
-      targetChat.Images.map(async (image: Images) => {
-        await qr.manager.delete(Images, { id: image.id });
-        fs.unlinkSync(image.path);
-      });
+      for (let i=0; i<targetChat.Images.length; i++) {
+        const image = targetChat.Images[i];
+
+        await qr.manager.delete(Images, { id: image.id })
+          .then(async () => {
+            await this.awsService.deleteImageFromS3(image.path);
+          });
+      }
 
       await qr.manager.delete(Chats, { id: ChatId });
 
@@ -586,8 +590,10 @@ export class SharedspacesService {
         .to(`/sharedspace-${targetSpace.url}`)
         .emit(`publicChats:${ChatsCommandList.CHAT_DELETED}`, ChatId);
     } catch (err) {
-      await qr.rollbackTransaction();
-      await qr.release();
+      if (!qr.isReleased) {
+        await qr.rollbackTransaction();
+        await qr.release();
+      }
 
       handleError(err);
     }
@@ -625,13 +631,10 @@ export class SharedspacesService {
         throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
       }
 
-      await this.imagesRepository.delete({
-        id: ImageId,
-        ChatId,
-      })
-      .then(() => {
-        fs.unlinkSync(targetChat.Images[0].path);
-      });
+      await this.imagesRepository.delete({ id: ImageId })
+        .then(async () => {
+          await this.awsService.deleteImageFromS3(targetChat.Images[0].path);
+        });
 
       this.eventsGateway.server
         .to(`/sharedspace-${targetSpace.url}`)
