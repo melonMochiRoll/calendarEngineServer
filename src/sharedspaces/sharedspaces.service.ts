@@ -438,11 +438,10 @@ export class SharedspacesService {
       for (let i=0; i<files.length; i++) {
         const key = s3Keys[i];
 
-        await this.awsService.uploadImageToS3(files[i], key);
-        await qr.manager.save(Images, {
-          path: key,
-          ChatId: chat.id,
-        });
+        await qr.manager.save(Images, { path: key, ChatId: chat.id })
+          .then(async () => {
+            await this.awsService.uploadImageToS3(files[i], key);
+          });
       }
 
       await qr.commitTransaction();
