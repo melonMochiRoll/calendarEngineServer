@@ -13,7 +13,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 declare const module: any;
 
 const isDevelopment = process.env.NODE_ENV === "development";
-const allowlist = isDevelopment ? ['http://localhost:3000', 'http://localhost:9000'] : [''];
+const allowlist = isDevelopment ? ['*'] : [''];
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -23,14 +23,18 @@ async function bootstrap() {
   app.use(helmet({
     contentSecurityPolicy: {
       directives: {
-        'img-src': ["'self'"],
+        // 'default-src': ["'self'", 'http://calendar-engine.space', 'https://calendar-engine.space', 'ws://calendar-engine.space']
+        'img-src': ["'self'", process.env.AWS_S3_BUCKET_URL, 'https://lh3.googleusercontent.com', 'https://phinf.pstatic.net', ],
       },
+    },
+    crossOriginResourcePolicy: {
+      policy: "same-site", // 'same-origin'
     },
   }));
 
   app.set('trust proxy', true);
 
-  useContainer(app.select(AppModule), { fallbackOnErrors: true }); // Enable dependency injection for custom validation
+  useContainer(app.select(AppModule), { fallbackOnErrors: true }); // Enable dependency injection
 
   const devCorsOption = {
     origin: allowlist,
