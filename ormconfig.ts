@@ -11,11 +11,11 @@ import { Images } from 'src/entities/Images';
 
 const ormconfig: TypeOrmModuleOptions = {
   type: "mysql",
-  host: "localhost",
-  port: 3307,
-  username: process.env.ORM_USERNAME,
-  password: process.env.ORM_PASSWORD,
-  database: process.env.ORM_DATABASE,
+  host: process.env.AWS_RDS_ORIGIN,
+  port: +process.env.AWS_RDS_PORT,
+  username: process.env.AWS_RDS_USERNAME,
+  password: process.env.AWS_RDS_PASSWORD,
+  database: process.env.AWS_RDS_DATABASE,
   entities: [
     Users,
     Todos,
