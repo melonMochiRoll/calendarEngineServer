@@ -21,6 +21,8 @@ export class AuthService {
       'https://www.googleapis.com/auth/userinfo.email',
       'https://www.googleapis.com/auth/userinfo.profile',
     ];
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const origin = isDevelopment ? process.env.DEVELOPMENT_SERVER_ORIGIN : process.env.SERVER_ORIGIN;
 
     await this.cacheManagerService.setGuestCache(state, true);
 
@@ -29,7 +31,7 @@ export class AuthService {
       client_id: process.env.GOOGLE_CLIENT_ID,
       response_type: 'code',
       state,
-      redirect_uri: `${process.env.SERVER_ORIGIN}/api/auth/login/oauth2/google/callback`,
+      redirect_uri: `${origin}/api/auth/login/oauth2/google/callback`,
       scope: scopes.join(' '),
       prompt: 'select_account',
     }).toString();
@@ -39,6 +41,8 @@ export class AuthService {
 
   async getNaverAuthorizationUrl() {
     const state = nanoid(Number(process.env.SALT_OR_ROUNDS));
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const origin = isDevelopment ? process.env.DEVELOPMENT_SERVER_ORIGIN : process.env.SERVER_ORIGIN;
 
     await this.cacheManagerService.setGuestCache(state, true);
 
@@ -47,7 +51,7 @@ export class AuthService {
       client_id: process.env.NAVER_CLIENT_ID,
       response_type: 'code',
       state,
-      redirect_uri: `${process.env.SERVER_ORIGIN}/api/auth/login/oauth2/naver/callback`,
+      redirect_uri: `${origin}/api/auth/login/oauth2/naver/callback`,
     }).toString();
 
     return `${request_url}?${params}`
