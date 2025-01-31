@@ -2,9 +2,6 @@ import { ConnectedSocket, OnGatewayConnection, OnGatewayDisconnect, WebSocketGat
 import { Server, Socket } from "socket.io";
 
 @WebSocketGateway({
-  cors: {
-    origin: process.env.CLIENT_ORIGIN,
-  },
   namespace: /\/sharedspace-.+/,
 })
 export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
