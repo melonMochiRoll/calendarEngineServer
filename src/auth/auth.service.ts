@@ -22,7 +22,7 @@ export class AuthService {
       'https://www.googleapis.com/auth/userinfo.profile',
     ];
     const isDevelopment = process.env.NODE_ENV === 'development';
-    const origin = isDevelopment ? process.env.DEVELOPMENT_SERVER_ORIGIN : process.env.SERVER_ORIGIN;
+    const origin = isDevelopment ? process.env.DEVELOPMENT_SERVER_ORIGIN : process.env.PRODUCTION_SERVER_ORIGIN;
 
     await this.cacheManagerService.setGuestCache(state, true);
 
@@ -42,7 +42,7 @@ export class AuthService {
   async getNaverAuthorizationUrl() {
     const state = nanoid(Number(process.env.SALT_OR_ROUNDS));
     const isDevelopment = process.env.NODE_ENV === 'development';
-    const origin = isDevelopment ? process.env.DEVELOPMENT_SERVER_ORIGIN : process.env.SERVER_ORIGIN;
+    const origin = isDevelopment ? process.env.DEVELOPMENT_SERVER_ORIGIN : process.env.PRODUCTION_SERVER_ORIGIN;
 
     await this.cacheManagerService.setGuestCache(state, true);
 
