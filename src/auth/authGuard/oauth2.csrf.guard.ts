@@ -15,7 +15,7 @@ export class OAuth2CSRFGuard implements CanActivate {
     const state = await this.cacheManagerService.getGuestCache(request.query?.state);
 
     if (!state) {
-      throw new RedirectingException(`${process.env.CLIENT_ORIGIN}/login?error=${INTERNAL_SERVER_MESSAGE}`);
+      throw new RedirectingException(`${process.env.PRODUCTION_SERVER_ORIGIN}/login?error=${INTERNAL_SERVER_MESSAGE}`);
     }
 
     return true;
