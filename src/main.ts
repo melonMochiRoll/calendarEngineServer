@@ -13,7 +13,6 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 declare const module: any;
 
 const isDevelopment = process.env.NODE_ENV === "development";
-const allowlist = isDevelopment ? ['*'] : [''];
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -36,13 +35,15 @@ async function bootstrap() {
 
   useContainer(app.select(AppModule), { fallbackOnErrors: true }); // Enable dependency injection
 
-  const devCorsOption = {
-    origin: allowlist,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-    optionsSuccessStatus: 204,
-    credentials: true,
-  };
-  app.enableCors(devCorsOption);
+  if (isDevelopment) {
+    const devCorsOption = {
+      origin: process.env.DEVELOPMENT_SERVER_ORIGIN,
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+      optionsSuccessStatus: 204,
+      credentials: true,
+    };
+    app.enableCors(devCorsOption);
+  }
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -63,7 +64,7 @@ async function bootstrap() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: false,
+      secure: !isDevelopment,
       sameSite: 'strict',
     },
     proxy: !isDevelopment,
