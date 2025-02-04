@@ -19,9 +19,9 @@ import { Chats } from "src/entities/Chats";
 import { CreateSharedspaceChatDTO } from "./dto/create.sharedspace.chat.dto";
 import { EventsGateway } from "src/events/events.gateway";
 import { Images } from "src/entities/Images";
-import fs from 'fs';
 import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
 import { AwsService } from "src/aws/aws.service";
+import path from "path";
 
 @Injectable()
 export class SharedspacesService {
@@ -426,7 +426,7 @@ export class SharedspacesService {
     await qr.connect();
     await qr.startTransaction();
 
-    const s3Keys = files.map(() => `${process.env.AWS_S3_BUCKET_URL}/space-public/${Date.now()}`);
+    const s3Keys = files.map((file) => `space-public/${Date.now()}${path.extname(file.originalname)}`);
 
     try {
       const chat = await qr.manager.save(Chats, {
