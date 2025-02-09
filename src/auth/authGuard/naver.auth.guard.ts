@@ -21,7 +21,7 @@ export class NaverAuthGuard extends AuthGuard('naver') {
 
     if (err || !user) {
       console.error(err);
-      throw new RedirectingException(`${process.env.CLIENT_ORIGIN}/login?error=${INTERNAL_SERVER_MESSAGE}`);
+      throw new RedirectingException(`${process.env.SERVER_ORIGIN}/login?error=${INTERNAL_SERVER_MESSAGE}`);
     }
 
     return user;
