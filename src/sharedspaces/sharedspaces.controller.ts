@@ -18,7 +18,6 @@ import { TransformSpacePipe } from "src/common/pipe/transform.space.pipe";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import { CreateSharedspaceChatDTO } from "./dto/create.sharedspace.chat.dto";
 import { FilesInterceptor } from "@nestjs/platform-express";
-import { multerImageOptions } from "src/common/config/multer.image.options";
 import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
 
 @Controller('api/sharedspaces')
