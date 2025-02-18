@@ -11,7 +11,9 @@
     "dev": "nest build --webpack --webpackPath webpack-hmr.config.js --watch",
     "test": "jest --detectOpenHandles -c jest.config.ts",
     "reset": "git reset --soft HEAD~",
-    "typeorm:d": "node -r ts-node/register ./node_modules/typeorm/cli.js -d ormconfig.ts"
+    "typeorm:d": "node -r ts-node/register ./node_modules/typeorm/cli.js -d ormconfig.ts",
+    "migration:excute": "npm run typeorm:d migration:run",
+    "migration:generate": "npm run typeorm:d migration:generate"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.729.0",
