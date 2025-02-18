@@ -1,23 +1,29 @@
-import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import 'dotenv/config';
-import { DataSource } from 'typeorm';
-import { Sharedspaces } from 'src/entities/Sharedspaces';
-import { SharedspaceMembers } from 'src/entities/SharedspaceMembers';
-import { Todos } from 'src/entities/Todos';
-import { Users } from 'src/entities/Users';
-import { JoinRequests } from 'src/entities/JoinRequests';
-import { Roles } from 'src/entities/Roles';
-import { Chats } from 'src/entities/Chats';
-import { Images } from 'src/entities/Images';
+import { DataSource, DataSourceOptions } from 'typeorm';
+import { Users } from './src/entities/Users';
+import { Todos } from './src/entities/Todos';
+import { Sharedspaces } from './src/entities/Sharedspaces';
+import { Roles } from './src/entities/Roles';
+import { JoinRequests } from './src/entities/JoinRequests';
+import { SharedspaceMembers } from './src/entities/SharedspaceMembers';
+import { Chats } from './src/entities/Chats';
+import { Images } from './src/entities/Images';
 
-export const ormconfig = new DataSource({
+const dbconfig: DataSourceOptions = {
   type: "mysql",
   host: process.env.DB_ORIGIN,
   port: +process.env.DB_PORT,
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
-  /** entities: [
+  synchronize: false,
+  charset: 'utf8mb4',
+  logging: false,
+};
+
+export const ormconfig = {
+  ...dbconfig,
+  entities: [
     Users,
     Todos,
     Sharedspaces,
@@ -26,11 +32,10 @@ export const ormconfig = new DataSource({
     SharedspaceMembers,
     Chats,
     Images,
-  ], */
+  ],
+};
+
+export default new DataSource({
+  ...dbconfig,
   entities: ['src/entities/*.ts'],
-  migrations: ['migrations/*.ts'],
-  synchronize: false,
-  // autoLoadEntities: true,
-  charset: 'utf8mb4',
-  logging: false,
 });
