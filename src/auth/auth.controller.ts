@@ -27,7 +27,7 @@ export class AuthController {
     return this.authService.getGoogleAuthorizationUrl();
   }
 
-  @Redirect(`${process.env.PRODUCTION_SERVER_ORIGIN}`)
+  @Redirect(`${process.env.SERVER_ORIGIN}`)
   @UseGuards(OAuth2CSRFGuard, GoogleAuthGuard)
   @Get('login/oauth2/google/callback')
   loginOAuth2GoogleCallback(@User() user: Users) {
@@ -40,7 +40,7 @@ export class AuthController {
     return this.authService.getNaverAuthorizationUrl();
   }
 
-  @Redirect(`${process.env.PRODUCTION_SERVER_ORIGIN}`)
+  @Redirect(`${process.env.SERVER_ORIGIN}`)
   @UseGuards(OAuth2CSRFGuard, NaverAuthGuard)
   @Get('login/oauth2/naver/callback')
   loginOAuth2NaverCallback(@User() user: Users) {
