@@ -37,7 +37,7 @@ async function bootstrap() {
 
   if (isDevelopment) {
     const devCorsOption = {
-      origin: process.env.SERVER_ORIGIN,
+      origin: process.env.DEV_FRONT_SERVER_ORIGIN,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
       optionsSuccessStatus: 204,
       credentials: true,
