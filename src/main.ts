@@ -22,18 +22,18 @@ async function bootstrap() {
   app.use(helmet({
     contentSecurityPolicy: {
       directives: {
-        // 'default-src': ["'self'", 'http://calendar-engine.space', 'https://calendar-engine.space', 'ws://calendar-engine.space']
+        'default-src': ["'self'", 'https://calendar-engine.space', 'ws://calendar-engine.space'],
         'img-src': ["'self'", process.env.AWS_S3_BUCKET_URL, 'https://lh3.googleusercontent.com', 'https://phinf.pstatic.net', ],
       },
     },
     crossOriginResourcePolicy: {
-      policy: "same-site", // 'same-origin'
+      policy: isDevelopment ? "same-site" : "same-origin",
     },
   }));
 
   app.set('trust proxy', true);
 
-  useContainer(app.select(AppModule), { fallbackOnErrors: true }); // Enable dependency injection
+  useContainer(app.select(AppModule), { fallbackOnErrors: true });
 
   if (isDevelopment) {
     const devCorsOption = {
