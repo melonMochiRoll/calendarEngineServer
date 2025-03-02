@@ -9,6 +9,7 @@ import { HttpExceptionFilter } from './common/exception/http-exception.filter';
 import { RedirectingExceptionFilter } from './common/exception/redirecting-exception.filter';
 import helmet from 'helmet';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 
 declare const module: any;
 
@@ -36,7 +37,7 @@ async function bootstrap() {
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
 
   if (isDevelopment) {
-    const devCorsOption = {
+    const devCorsOption: CorsOptions = {
       origin: process.env.DEV_FRONT_SERVER_ORIGIN,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
       optionsSuccessStatus: 204,
