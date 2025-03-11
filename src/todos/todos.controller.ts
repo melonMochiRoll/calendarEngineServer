@@ -4,7 +4,6 @@ import { CreateTodoDTO } from './dto/create.todo.dto';
 import { UpdateTodoDto } from './dto/update.todo.dto';
 import { AboveMemberRoles } from 'src/common/decorator/above.member.decorator';
 import { AuthRoleGuards } from 'src/common/decorator/auth.role.decorator';
-import { HeaderProperty } from 'src/common/decorator/headerProperty.decorator';
 import { PublicSpaceGuard } from 'src/common/guard/public.space.guard';
 import { DateValidationPipe } from 'src/common/pipe/date.validation.pipe';
 import { TransformSpacePipe } from 'src/common/pipe/transform.space.pipe';
@@ -18,11 +17,23 @@ export class TodosController {
 
   @UseGuards(PublicSpaceGuard)
   @Get(':url/todos')
-  getTodosBySpace(
+  getTodosByDate(
     @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
     @Query('date', DateValidationPipe) date: string,
   ) {
-    return this.todosService.getTodosBySpace(
+    return this.todosService.getTodosByDate(
+      targetSpace,
+      date,
+    );
+  }
+
+  @UseGuards(PublicSpaceGuard)
+  @Get(':url/todos/count')
+  getTodosCount(
+    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
+    @Query('date', DateValidationPipe) date: string,
+  ) {
+    return this.todosService.getTodosCount(
       targetSpace,
       date,
     );
