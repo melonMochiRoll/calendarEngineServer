@@ -1,7 +1,7 @@
-import { BadRequestException, HttpException, Injectable, InternalServerErrorException } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import dayjs from "dayjs";
 import { InjectRepository } from "@nestjs/typeorm";
-import { And, LessThanOrEqual, Like, MoreThanOrEqual, Repository } from "typeorm";
+import { And, Brackets, DataSource, LessThanOrEqual, Like, MoreThanOrEqual, Repository } from "typeorm";
 import { Todos } from "src/entities/Todos";
 import { CreateTodoDTO } from "./dto/create.todo.dto";
 import { UpdateTodoDto } from "./dto/update.todo.dto";
@@ -49,6 +49,54 @@ export class TodosService {
           ),
         },
       });
+    } catch (err) {
+      handleError(err);
+    }
+  }
+
+  async getTodosByDate(
+    targetSpace: Sharedspaces,
+    date: string,
+  ) {
+    try {
+      return await this.todosRepository
+        .createQueryBuilder('todos')
+        .leftJoinAndSelect('todos.Author', 'Author')
+        .leftJoinAndSelect('todos.Editor', 'Editor')
+        .where('todos.SharedspaceId = :SharedspaceId', { SharedspaceId: targetSpace.id })
+        .andWhere('todos.date = :date', { date })
+        .orderBy('todos.startTime')
+        .addOrderBy('todos.endTime')
+        .getMany();
+    } catch (err) {
+      handleError(err);
+    }
+  }
+
+  async getTodosCount(
+    targetSpace: Sharedspaces,
+    date: string,
+  ) {
+    const [ year, month ] = date.split('-');
+    const startDate = dayjs(`${year}-${month}-01`).toDate();
+    const endDate = dayjs(`${year}-${month}-31`).toDate();
+
+    try {
+      const result = await this.todosRepository
+        .createQueryBuilder('todos')
+        .select("DATE_FORMAT(todos.date, '%Y-%m-%d') AS date")
+        .addSelect('COUNT(*) AS count')
+        .where('todos.SharedspaceId = :SharedspaceId', { SharedspaceId: targetSpace.id })
+        .andWhere('todos.date >= :startDate', { startDate })
+        .andWhere('todos.date <= :endDate', { endDate })
+        .groupBy('todos.date')
+        .getRawMany();
+
+      return result
+        .reduce((acc: object, item: { date: string, count: string }) => {
+          acc[item.date] = +item.count;
+          return acc;
+        }, {});
     } catch (err) {
       handleError(err);
     }
