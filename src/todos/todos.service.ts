@@ -140,59 +140,6 @@ export class TodosService {
     }
   }
 
-  async getTodosBySpace(
-    targetSpace: Sharedspaces,
-    date: string,
-  ) {
-    try {
-      const todos = await this.getTodos(targetSpace.id, date);
-
-      const result = todos
-        .sort((a: Todos, b: Todos) => {
-          if (a.date > b.date) {
-            return 1;
-          }
-
-          if (a.date < b.date) {
-            return -1;
-          }
-
-          if (a.startTime > b.startTime) {
-            return 1;
-          }
-
-          if (a.startTime < b.startTime) {
-            return -1;
-          }
-
-          if (a.endTime > b.endTime) {
-            return 1;
-          }
-
-          if (a.endTime < b.endTime) {
-            return -1;
-          }
-
-          return 0;
-        })  
-        .reduce((acc: object, todo: Todos) => {
-          const dateStr = String(todo.date);
-
-          if (acc[dateStr]) {
-            acc[dateStr].push(todo);
-            return acc;
-          }
-
-          acc[dateStr] = [ todo ];
-          return acc;
-        }, {});
-
-      return result;
-    } catch (err) {
-      handleError(err);
-    }
-  }
-
   async createTodo(
     targetSpace: Sharedspaces,
     dto: CreateTodoDTO,
