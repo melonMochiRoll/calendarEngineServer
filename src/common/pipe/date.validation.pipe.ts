@@ -10,7 +10,7 @@ export class DateValidationPipe implements PipeTransform<string> {
   }
 
   transform(value: string): string {
-    if (!dayjs(value, 'YYYY-MM', true).isValid()) {
+    if (!dayjs(value, 'YYYY-MM-DD', true).isValid() && !dayjs(value, 'YYYY-MM', true).isValid()) {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
