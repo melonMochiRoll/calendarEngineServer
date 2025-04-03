@@ -1,7 +1,7 @@
 
 export const BAD_REQUEST_MESSAGE = '요청이 잘못되었습니다. 입력한 내용이 올바른 형식인지 확인해 주세요.'; // status: 400
 
-export const UNAUTHORIZED_MESSAGE = '인증이 필요합니다.'; // status: 401
+export const UNAUTHORIZED_MESSAGE = '인증에 실패했습니다.'; // status: 401
 
 export const ACCESS_DENIED_MESSAGE = '접근 권한이 없습니다.'; // status: 403
 
