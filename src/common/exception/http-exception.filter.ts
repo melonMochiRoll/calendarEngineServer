@@ -22,14 +22,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const status = exception.getStatus();
     const exceptionResponse = exception.getResponse();
 
-    const rest = this.isExceptionResponse(exceptionResponse) ?
-      exceptionResponse :
-      { message: INTERNAL_SERVER_MESSAGE, error: 'Uncatched Error', statusCode: status };
+    const message = this.isExceptionResponse(exceptionResponse) ?
+      exceptionResponse.message :
+      INTERNAL_SERVER_MESSAGE;
 
     response
       .status(status)
       .json({
-        ...rest,
+        message,
         timestamp: dayjs.utc().tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss'),
         path: request.url
       });
