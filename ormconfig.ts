@@ -19,7 +19,7 @@ const dbconfig: DataSourceOptions = {
   synchronize: false,
   charset: 'utf8mb4',
   logging: false,
-  timezone: 'Asia/Seoul',
+  timezone: 'UTC',
 };
 
 export const ormconfig = {
