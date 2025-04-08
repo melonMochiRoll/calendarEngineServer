@@ -39,4 +39,6 @@ export const ormconfig = {
 export default new DataSource({
   ...dbconfig,
   entities: ['src/entities/*.ts'],
+  migrations: [__dirname + `/migrations/pending/*.{js,ts}`],
+  migrationsTableName: 'migrations',
 });
