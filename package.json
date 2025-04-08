@@ -12,6 +12,7 @@
     "reset": "git reset --soft HEAD~",
     "typeorm:d": "node -r ts-node/register ./node_modules/typeorm/cli.js -d ormconfig.ts",
     "migration:excute": "npm run typeorm:d migration:run",
+    "migration:rollback": "npm run typeorm:d migration:revert",
     "migration:generate": "npm run typeorm:d migration:generate",
     "pre-build": "rm -r dist/*",
     "build": "nest build",
