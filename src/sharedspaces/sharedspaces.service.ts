@@ -426,7 +426,7 @@ export class SharedspacesService {
     await qr.connect();
     await qr.startTransaction();
 
-    const s3Keys = files.map((file) => `space-public/${Date.now()}${path.extname(file.originalname)}`);
+    const s3Keys = files.map((file) => `${process.env.AWS_S3_FOLDER_NAME}/${Date.now()}${path.extname(file.originalname)}`);
 
     try {
       const chat = await qr.manager.save(Chats, {
