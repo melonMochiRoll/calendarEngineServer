@@ -7,7 +7,7 @@ import { JoinRequests } from "src/entities/JoinRequests";
 import handleError from "src/common/function/handleError";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
-import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE } from "src/common/constant/error.message";
+import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, CONFLICT_REQUEST_MESSAGE } from "src/common/constant/error.message";
 import { Roles } from "src/entities/Roles";
 import { ResolveJoinRequestDTO } from "./dto/resolve.joinRequest.dto";
 import { SharedspaceMembersRoles } from "src/typings/types";
@@ -103,14 +103,14 @@ export class JoinRequestsService {
     try {
       const isMember = await this.sharedspaceMembersRepository.findOneBy({ UserId: user.id, SharedspaceId: targetSpace.id });
 
-      if (isMember?.Role.name === dto.RoleName) {
-        throw new ConflictException(CONFLICT_MESSAGE);
+      if (isMember?.Role?.name === dto.RoleName) {
+        throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
       const isRequested = await this.joinRequestsRepository.findOneBy({ RequestorId: user.id, SharedspaceId: targetSpace.id });
 
       if (isRequested) {
-        throw new ConflictException(CONFLICT_MESSAGE);
+        throw new ConflictException(CONFLICT_REQUEST_MESSAGE);
       }
 
       await this.joinRequestsRepository.save({
