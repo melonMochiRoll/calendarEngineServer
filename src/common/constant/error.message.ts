@@ -15,4 +15,6 @@ export const CONFLICT_MESSAGE = '요청한 데이터와 서버의 데이터 상�
 
 export const CONFLICT_ACCOUNT_MESSAGE = '이미 가입된 이메일입니다.'; // status: 409;
 
+export const CONFLICT_REQUEST_MESSAGE = '이미 요청을 보냈습니다.'; // status: 409;
+
 export const INTERNAL_SERVER_MESSAGE = '서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'; // status: 500
