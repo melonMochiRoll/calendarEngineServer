@@ -34,7 +34,6 @@ export class AuthController {
     return user;
   }
 
-  
   @Get('login/oauth2/naver')
   loginOAuth2Naver() {
     return this.authService.getNaverAuthorizationUrl();
