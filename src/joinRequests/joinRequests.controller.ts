@@ -21,10 +21,10 @@ export class JoinRequestsController {
   @AuthRoleGuards()
   @OwnerOnlyRoles()
   @Get(':url/joinrequest')
-  getJoinRequest(
+  getJoinRequests(
     @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
   ) {
-    return this.joinRequestsService.getJoinRequest(targetSpace);
+    return this.joinRequestsService.getJoinRequests(targetSpace);
   }
   
   @AuthRoleGuards()

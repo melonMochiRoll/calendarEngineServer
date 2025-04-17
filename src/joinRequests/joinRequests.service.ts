@@ -24,7 +24,7 @@ export class JoinRequestsService {
     private rolesRepository: Repository<Roles>,
   ) {}
 
-  async getJoinRequest(
+  async getJoinRequests(
     targetSpace: Sharedspaces,
   ) {
     try {
