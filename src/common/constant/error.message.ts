@@ -3,6 +3,8 @@ export const BAD_REQUEST_MESSAGE = '요청이 잘못되었습니다. 입력한 �
 
 export const UNAUTHORIZED_MESSAGE = '인증에 실패했습니다.'; // status: 401
 
+export const INCORRECT_CREDENTIALS_MESSAGE = '이메일 혹은 비밀번호를 확인해주세요';
+
 export const ACCESS_DENIED_MESSAGE = '접근 권한이 없습니다.'; // status: 403
 
 export const MISMATCH_STATE_MESSAGE = 'state 값이 다릅니다.'; // state: 403
