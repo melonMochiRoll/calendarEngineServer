@@ -59,9 +59,33 @@ export class AuthService {
   ) {
     try {
       const user = await this.usersRepository.findOne({
-        where: { email },
-        select: ['id', 'email', 'password'],
-      });
+        select: {
+          id: true,
+          email: true,
+          password: true,
+          profileImage: true,
+          Sharedspacemembers: {
+            SharedspaceId: true,
+            Sharedspace: {
+              url: true,
+              private: true,
+            },
+            Role: {
+              name: true,
+            },
+          },
+        },
+        relations: {
+          Sharedspacemembers: {
+            Sharedspace: true,
+            Role: true,
+          },
+        },
+        where: {
+          email,
+        },
+      })
+
       const compare = await bcrypt.compare(password, user?.password || '');
   
       if (!user || !compare) {
