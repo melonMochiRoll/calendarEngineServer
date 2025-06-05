@@ -1,7 +1,7 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException, BadRequestException, NotFoundException } from '@nestjs/common';
-import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, NOT_FOUND_SPACE_MESSAGE } from '../constant/error.message';
+import { Injectable, CanActivate, ExecutionContext, ForbiddenException, BadRequestException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, NOT_FOUND_SPACE_MESSAGE, UNAUTHORIZED_MESSAGE } from '../constant/error.message';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Sharedspaces } from 'src/entities/Sharedspaces';
 import { SharedspaceMembersRoles, TUserData } from 'src/typings/types';
 
@@ -32,7 +32,7 @@ export class PublicSpaceGuard implements CanActivate {
     const user: TUserData = context.switchToHttp().getRequest().user;
 
     if (!user) {
-      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+      throw new UnauthorizedException(UNAUTHORIZED_MESSAGE);
     }
 
     const isMember = user.Sharedspacemembers
