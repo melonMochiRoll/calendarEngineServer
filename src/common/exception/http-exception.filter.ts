@@ -29,9 +29,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
     response
       .status(status)
       .json({
+        code: `${status}-${request.url}`,
         message,
         timestamp: dayjs.utc().tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss'),
-        path: request.url
+        path: request.url,
       });
   }
 
