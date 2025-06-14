@@ -26,13 +26,67 @@ export class NaverStrategy extends PassportStrategy(Strategy, 'naver') {
 
   async validate(req: Request, accessToken: string, refreshToken: string, profile: TNaverProfile) {
     try {
-      const exUser = await this.usersRepository.findOneBy({ email: profile.emails[0].value });
+      const exUser = await this.usersRepository.findOne({
+        select: {
+          id: true,
+          email: true,
+          provider: true,
+          profileImage: true,
+          Sharedspacemembers: {
+            SharedspaceId: true,
+            Sharedspace: {
+              url: true,
+              private: true,
+            },
+            Role: {
+              name: true,
+            },
+          },
+        },
+        relations: {
+          Sharedspacemembers: {
+            Sharedspace: true,
+            Role: true,
+          },
+        },
+        where: {
+          email: profile.emails[0].value,
+        },
+      });
 
       if (!exUser) {
-        const newUser = await this.usersRepository.save({
+        await this.usersRepository.save({
           email: profile.emails[0].value,
           profileImage: profile._json.profile_image,
           provider: ProviderList.NAVER,
+        });
+
+        const newUser = await this.usersRepository.findOne({
+          select: {
+            id: true,
+            email: true,
+            provider: true,
+            profileImage: true,
+            Sharedspacemembers: {
+              SharedspaceId: true,
+              Sharedspace: {
+                url: true,
+                private: true,
+              },
+              Role: {
+                name: true,
+              },
+            },
+          },
+          relations: {
+            Sharedspacemembers: {
+              Sharedspace: true,
+              Role: true,
+            },
+          },
+          where: {
+            email: profile.emails[0].value,
+          },
         });
 
         return newUser;

@@ -25,13 +25,67 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google'){
 
   async validate(req: Request, accessToken: string, refreshToken: string, profile: TGoogleProfile) {
     try {
-      const exUser = await this.usersRepository.findOneBy({ email: profile.emails[0].value });
+      const exUser = await this.usersRepository.findOne({
+        select: {
+          id: true,
+          email: true,
+          provider: true,
+          profileImage: true,
+          Sharedspacemembers: {
+            SharedspaceId: true,
+            Sharedspace: {
+              url: true,
+              private: true,
+            },
+            Role: {
+              name: true,
+            },
+          },
+        },
+        relations: {
+          Sharedspacemembers: {
+            Sharedspace: true,
+            Role: true,
+          },
+        },
+        where: {
+          email: profile.emails[0].value,
+        },
+      });
 
       if (!exUser) {
-        const newUser = await this.usersRepository.save({
+        await this.usersRepository.save({
           email: profile.emails[0].value,
           profileImage: profile._json.picture,
           provider: ProviderList.GOOGLE,
+        });
+
+        const newUser = await this.usersRepository.findOne({
+          select: {
+            id: true,
+            email: true,
+            provider: true,
+            profileImage: true,
+            Sharedspacemembers: {
+              SharedspaceId: true,
+              Sharedspace: {
+                url: true,
+                private: true,
+              },
+              Role: {
+                name: true,
+              },
+            },
+          },
+          relations: {
+            Sharedspacemembers: {
+              Sharedspace: true,
+              Role: true,
+            },
+          },
+          where: {
+            email: profile.emails[0].value,
+          },
         });
 
         return newUser;
@@ -44,8 +98,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google'){
       return exUser;
     } catch (err) {
       handleError(err);
-    } finally {
-      req.session['state'] = null;
     }
   }
 }
