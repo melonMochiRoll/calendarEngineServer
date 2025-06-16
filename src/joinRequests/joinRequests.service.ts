@@ -101,9 +101,25 @@ export class JoinRequestsService {
     user: Users,
   ) {
     try {
-      const isMember = await this.sharedspaceMembersRepository.findOneBy({ UserId: user.id, SharedspaceId: targetSpace.id });
+      const isMember = await this.sharedspaceMembersRepository.findOne({
+        select: {
+          UserId: true,
+          SharedspaceId: true,
+          RoleId: true,
+          Role: {
+            id: true,
+            name: true,
+          },
+        },
+        relations: {
+          Role: true,
+        },
+        where: { UserId: user.id, SharedspaceId: targetSpace.id },
+      });
 
-      if (isMember?.Role?.name === dto.RoleName) {
+      const hasPermission = isMember.Role.name === SharedspaceMembersRoles.MEMBER || isMember.Role.name === SharedspaceMembersRoles.OWNER;
+
+      if (hasPermission) {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
