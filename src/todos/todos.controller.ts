@@ -73,6 +73,7 @@ export class TodosController {
     return this.todosService.deleteTodo(targetSpace, todoId);
   }
 
+  @UseGuards(PublicSpaceGuard)
   @Get(':url/todos/search')
   searchTodos(
     @Param('url') url: string,
