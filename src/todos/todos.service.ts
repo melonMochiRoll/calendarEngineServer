@@ -149,7 +149,7 @@ export class TodosService {
         ...dto,
         SharedspaceId: targetSpace.id,
       });
-    } catch (err: any) {
+    } catch (err) {
       handleError(err);
     }
 
@@ -170,7 +170,7 @@ export class TodosService {
       }
 
       await this.todosRepository.update({ id: todoId }, rest);
-    } catch (err: any) {
+    } catch (err) {
       handleError(err);
     }
 
