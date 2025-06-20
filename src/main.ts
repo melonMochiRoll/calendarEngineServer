@@ -10,6 +10,7 @@ import { RedirectingExceptionFilter } from './common/exception/redirecting-excep
 import helmet from 'helmet';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
+import cookieParser from 'cookie-parser';
 
 declare const module: any;
 
@@ -73,6 +74,7 @@ async function bootstrap() {
   app.use(session(sessionOption));
   app.use(passport.initialize());
   app.use(passport.session());
+  app.use(cookieParser());
 
   const port = Number(process.env.PORT);
   await app.listen(port);
