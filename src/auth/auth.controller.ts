@@ -3,17 +3,16 @@ import { IsAuthenicatedGuard, LocalAuthGuard } from "./authGuard/local.auth.guar
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
 import { Request, Response } from "express";
-import { CacheManagerService } from "src/cacheManager/cacheManager.service";
 import { NaverAuthGuard } from "./authGuard/naver.auth.guard";
 import { GoogleAuthGuard } from "./authGuard/google.auth.guard";
 import { AuthService } from "./auth.service";
 import { OAuth2CSRFGuard } from "./authGuard/oauth2.csrf.guard";
+import { JwtLoginAuthGuard } from "./authGuard/jwt.local.auth.guard";
 
 @Controller('api/auth')
 export class AuthController {
   constructor(
     private authService: AuthService,
-    private cacheManagerService: CacheManagerService,
   ) {}
 
   @UseGuards(LocalAuthGuard)
@@ -46,20 +45,14 @@ export class AuthController {
     return user;
   }
 
-  @UseGuards(IsAuthenicatedGuard)
   @Post('logout')
-  async logout(
-    @Req() req: Request,
-    @Res() res: Response,
-    @User() user: Users,
-  ) {
+  async logout(@Res() res: Response) {
     try {
-      await this.cacheManagerService.clearUserCache(user.id);
-
-      req.logOut((err) => {
-        if (err) console.error(err);
+      res.clearCookie('accessToken', {
+        httpOnly: true,
+        sameSite: 'strict',
+        secure: process.env.NODE_ENV === 'production',
       });
-      res.clearCookie('connect.sid', { httpOnly: true });
       res.status(200).send('logout');
     } catch (err) {
       res.status(500).send('error');
