@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Redirect, Req, Res, UseGuards } from "@nestjs/common";
-import { IsAuthenicatedGuard, LocalAuthGuard } from "./authGuard/local.auth.guard";
+import { Controller, Get, Post, Redirect, Res, UseGuards } from "@nestjs/common";
+import { LocalAuthGuard } from "./authGuard/local.auth.guard";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
-import { Request, Response } from "express";
+import { Response } from "express";
 import { NaverAuthGuard } from "./authGuard/naver.auth.guard";
 import { GoogleAuthGuard } from "./authGuard/google.auth.guard";
 import { AuthService } from "./auth.service";
@@ -18,6 +18,12 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   login(@User() user: Users) {
+    return user;
+  }
+
+  @UseGuards(JwtLoginAuthGuard)
+  @Post('login/jwt')
+  jwtLogin(@User() user: Users) {
     return user;
   }
 
