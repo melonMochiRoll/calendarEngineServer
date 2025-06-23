@@ -1,7 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { PassportSerializer } from "@nestjs/passport";
 import { Users } from "src/entities/Users";
-import { CacheManagerService } from "src/cacheManager/cacheManager.service";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 
@@ -10,7 +9,6 @@ export class SessionSerializer extends PassportSerializer {
   constructor(
     @InjectRepository(Users)
     private usersRepository: Repository<Users>,
-    private cacheManagerService: CacheManagerService,
   ) {
     super();
   }
@@ -20,7 +18,6 @@ export class SessionSerializer extends PassportSerializer {
   }
 
   async deserializeUser(UserId: number, done: CallableFunction) {
-
     const result = await this.usersRepository.findOne({
       select: {
         id: true,
@@ -46,7 +43,7 @@ export class SessionSerializer extends PassportSerializer {
       where: {
         id: UserId,
       },
-    })
+    });
 
     if (!result) {
       return done(null, null);
