@@ -16,7 +16,7 @@ export class JwtLocalStrategy extends PassportStrategy(Strategy, 'jwt-local') {
     email: string,
     password: string,
   ) {
-    const user = await this.authService.jwtValidateUser(email, password);
+    const user = await this.authService.validateUser(email, password);
 
     if (!user) {
       throw new UnauthorizedException(INCORRECT_CREDENTIALS_MESSAGE);
