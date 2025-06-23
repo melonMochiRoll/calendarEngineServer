@@ -10,10 +10,16 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Users } from 'src/entities/Users';
 import { NaverStrategy } from './strategy/naver.strategy';
 import { GoogleStrategy } from './strategy/google.strategy';
+import { JwtModule } from '@nestjs/jwt';
+import { JwtLocalStrategy } from './strategy/jwt.local.strategy';
+import { JwtStrategy } from './strategy/jwt.strategy';
 
 @Module({
   imports: [
-    PassportModule.register({ session: true }),
+    PassportModule.register({ session: false }),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET,
+    }),
     TypeOrmModule.forFeature([Users]),
     UsersModule,
     CacheManagerModule,
@@ -22,6 +28,8 @@ import { GoogleStrategy } from './strategy/google.strategy';
   providers: [
     AuthService,
     LocalStrategy,
+    JwtLocalStrategy,
+    JwtStrategy,
     GoogleStrategy,
     NaverStrategy,
     SessionSerializer,
