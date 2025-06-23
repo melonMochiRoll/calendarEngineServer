@@ -84,7 +84,7 @@ export class AuthService {
         where: {
           email,
         },
-      })
+      });
 
       const compare = await bcrypt.compare(password, user?.password || '');
   
@@ -92,7 +92,7 @@ export class AuthService {
         return null;
       }
   
-      const { password: userPassword, ...rest } = user;
+      const { password: _, ...rest } = user;
       return rest;
     } catch (err) {
       handleError(err);
