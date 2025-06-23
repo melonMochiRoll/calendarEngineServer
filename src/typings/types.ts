@@ -73,6 +73,12 @@ export type TNaverProfile = {
   }
 };
 
+export type JwtPayload = {
+  id: number,
+  email: string,
+  exp: string,
+};
+
 export const ProviderList = {
   LOCAL: 'local',
   NAVER: 'naver',
