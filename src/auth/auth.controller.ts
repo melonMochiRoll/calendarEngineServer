@@ -8,6 +8,7 @@ import { GoogleAuthGuard } from "./authGuard/google.auth.guard";
 import { AuthService } from "./auth.service";
 import { OAuth2CSRFGuard } from "./authGuard/oauth2.csrf.guard";
 import { JwtLoginAuthGuard } from "./authGuard/jwt.local.auth.guard";
+import { IsNotJwtAuthenicatedGuard } from "./authGuard/jwt.auth.guard";
 
 @Controller('api/auth')
 export class AuthController {
@@ -27,6 +28,7 @@ export class AuthController {
     return user;
   }
 
+  @UseGuards(IsNotJwtAuthenicatedGuard)
   @Get('login/oauth2/google')
   loginOAuth2Google() {
     return this.authService.getGoogleAuthorizationUrl();
@@ -39,6 +41,7 @@ export class AuthController {
     return user;
   }
 
+  @UseGuards(IsNotJwtAuthenicatedGuard)
   @Get('login/oauth2/naver')
   loginOAuth2Naver() {
     return this.authService.getNaverAuthorizationUrl();
