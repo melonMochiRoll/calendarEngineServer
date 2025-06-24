@@ -7,7 +7,6 @@ import { OwnerOnlyRoles } from "src/common/decorator/owner.only.decorator";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
 import { AuthRoleGuards } from "src/common/decorator/auth.role.decorator";
-import { IsAuthenicatedGuard } from "src/auth/authGuard/local.auth.guard";
 import { TSubscribedspacesFilter } from "src/typings/types";
 import { SubscribedFilterValidationPipe } from "src/common/pipe/subscribedFilter.validation.pipe";
 import { PublicSpaceGuard } from "src/common/guard/public.space.guard";
@@ -19,6 +18,7 @@ import { Sharedspaces } from "src/entities/Sharedspaces";
 import { CreateSharedspaceChatDTO } from "./dto/create.sharedspace.chat.dto";
 import { FilesInterceptor } from "@nestjs/platform-express";
 import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
+import { JwtAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 
 @Controller('api/sharedspaces')
 export class SharedspacesController {
@@ -26,7 +26,7 @@ export class SharedspacesController {
     private sharedspacesService: SharedspacesService,
   ) {}
 
-  @UseGuards(PublicSpaceGuard)
+  @UseGuards(JwtAuthGuard, PublicSpaceGuard)
   @Get(':url/view')
   getSharedspace(
     @Param('url') url: string,
@@ -34,7 +34,7 @@ export class SharedspacesController {
     return this.sharedspacesService.getSharedspace(url);
   }
 
-  @UseGuards(IsAuthenicatedGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('subscribed')
   getSubscribedspaces(
     @Query('filter', SubscribedFilterValidationPipe) filter: TSubscribedspacesFilter,
@@ -43,7 +43,7 @@ export class SharedspacesController {
     return this.sharedspacesService.getSubscribedspaces(filter, user);
   }
 
-  @UseGuards(IsAuthenicatedGuard)
+  @UseGuards(JwtAuthGuard)
   @Post()
   createSharedspace(@Body() dto: CreateSharedspaceDTO) {
     return this.sharedspacesService.createSharedspace(dto);
@@ -117,7 +117,7 @@ export class SharedspacesController {
     return this.sharedspacesService.deleteSharedspaceMembers(targetSpace, UserId);
   }
 
-  @UseGuards(PublicSpaceGuard)
+  @UseGuards(JwtAuthGuard, PublicSpaceGuard)
   @Get(':url/chats')
   getSharedspaceChats(
     @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
@@ -132,7 +132,7 @@ export class SharedspacesController {
       fileSize: Number(process.env.MAX_CHAT_IMAGE_SIZE) * 1024 * 1024,
     },
   }))
-  @UseGuards(PublicSpaceGuard)
+  @UseGuards(JwtAuthGuard, PublicSpaceGuard)
   @Post(':url/chats')
   createSharedspaceChat(
     @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
@@ -143,7 +143,7 @@ export class SharedspacesController {
     return this.sharedspacesService.createSharedspaceChat(targetSpace, dto, files, user);
   }
 
-  @UseGuards(IsAuthenicatedGuard)
+  @UseGuards(JwtAuthGuard)
   @Patch(':url/chats')
   updateSharedspaceChat(
     @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
@@ -153,7 +153,7 @@ export class SharedspacesController {
     return this.sharedspacesService.updateSharedspaceChat(targetSpace, dto, user);
   }
 
-  @UseGuards(IsAuthenicatedGuard)
+  @UseGuards(JwtAuthGuard)
   @HttpCode(204)
   @Delete(':url/chats/:id')
   deleteSharedspaceChat(
@@ -164,7 +164,7 @@ export class SharedspacesController {
     return this.sharedspacesService.deleteSharedspaceChat(targetSpace, chatId, user);
   }
 
-  @UseGuards(IsAuthenicatedGuard)
+  @UseGuards(JwtAuthGuard)
   @HttpCode(204)
   @Delete(':url/chats/:ChatId/images/:ImageId')
   deleteSharedspaceChatImage(

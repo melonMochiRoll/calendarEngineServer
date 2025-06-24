@@ -1,5 +1,4 @@
 import { Body, Controller, Delete, Get, Param, Post, UseGuards } from "@nestjs/common";
-import { IsAuthenicatedGuard } from "src/auth/authGuard/local.auth.guard";
 import { JoinRequestsService } from "./joinRequests.service";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
@@ -11,6 +10,7 @@ import { JoinRequests } from "src/entities/JoinRequests";
 import { OwnerOnlyRoles } from "src/common/decorator/owner.only.decorator";
 import { AuthRoleGuards } from "src/common/decorator/auth.role.decorator";
 import { ResolveJoinRequestDTO } from "./dto/resolve.joinRequest.dto";
+import { JwtAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 
 @Controller('api/sharedspaces')
 export class JoinRequestsController {
@@ -38,7 +38,7 @@ export class JoinRequestsController {
     return this.joinRequestsService.resolveJoinRequest(targetSpace, targetJoinRequest, dto);
   }
 
-  @UseGuards(IsAuthenicatedGuard)
+  @UseGuards(JwtAuthGuard)
   @Post(':url/joinrequest')
   createJoinRequest(
     @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
