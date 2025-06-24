@@ -73,10 +73,10 @@ export type TNaverProfile = {
   }
 };
 
-export type JwtPayload = {
-  id: number,
+export type TAccessTokenPayload = {
+  UserId: number,
   email: string,
-  exp: string,
+  exp: number,
 };
 
 export const ProviderList = {

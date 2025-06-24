@@ -4,7 +4,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { ExtractJwt, Strategy } from "passport-jwt";
 import { BAD_REQUEST_MESSAGE } from "src/common/constant/error.message";
 import { Users } from "src/entities/Users";
-import { JwtPayload } from "src/typings/types";
+import { TAccessTokenPayload } from "src/typings/types";
 import { Repository } from "typeorm";
 
 @Injectable()
@@ -24,7 +24,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  async validate(payload: JwtPayload) {
+  async validate(payload: TAccessTokenPayload) {
     const userData = await this.usersRepository.findOne({
       select: {
         id: true,
@@ -48,7 +48,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         },
       },
       where: {
-        id: payload.id,
+        id: payload.UserId,
       },
     });
 
