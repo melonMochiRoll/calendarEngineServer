@@ -79,6 +79,12 @@ export type TAccessTokenPayload = {
   exp: number,
 };
 
+export type TRefreshTokenPayload = {
+  jti: string,
+  UserId: number,
+  exp: number,
+};
+
 export const ProviderList = {
   LOCAL: 'local',
   NAVER: 'naver',
