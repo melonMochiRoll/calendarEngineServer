@@ -10,6 +10,7 @@ import { Response } from "express";
 import { RefreshTokens } from "src/entities/RefreshTokens";
 import dayjs from "dayjs";
 import { JwtService } from "@nestjs/jwt";
+import { TRefreshTokenPayload } from "src/typings/types";
 
 @Injectable()
 export class AuthService {
@@ -163,18 +164,22 @@ export class AuthService {
   }
 
   async logout(response: Response, user: Users) {
-    await this.refreshTokensRepository.delete({ UserId: user.id })
-      .then(() => {
-        response.clearCookie('accessToken', {
-          httpOnly: true,
-          sameSite: 'strict',
-          secure: process.env.NODE_ENV === 'production',
+    try {
+      await this.refreshTokensRepository.delete({ UserId: user.id })
+        .then(() => {
+          response.clearCookie('accessToken', {
+            httpOnly: true,
+            sameSite: 'strict',
+            secure: process.env.NODE_ENV === 'production',
+          });
+          response.clearCookie('refreshToken', {
+            httpOnly: true,
+            sameSite: 'strict',
+            secure: process.env.NODE_ENV === 'production',
+          });
         });
-        response.clearCookie('refreshToken', {
-          httpOnly: true,
-          sameSite: 'strict',
-          secure: process.env.NODE_ENV === 'production',
-        });
-      });
+    } catch (err) {
+      handleError(err);
+    }
   }
 }
