@@ -1,8 +1,7 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { InjectRepository } from "@nestjs/typeorm";
 import { ExtractJwt, Strategy } from "passport-jwt";
-import { BAD_REQUEST_MESSAGE } from "src/common/constant/error.message";
 import { Users } from "src/entities/Users";
 import { TAccessTokenPayload } from "src/typings/types";
 import { Repository } from "typeorm";
@@ -51,10 +50,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         id: payload.UserId,
       },
     });
-
-    if (!userData) {
-      throw new BadRequestException(BAD_REQUEST_MESSAGE);
-    }
 
     return userData;
   }
