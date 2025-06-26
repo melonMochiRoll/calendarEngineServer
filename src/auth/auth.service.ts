@@ -6,6 +6,8 @@ import { Repository } from "typeorm";
 import handleError from "src/common/function/handleError";
 import { nanoid } from "nanoid";
 import { CacheManagerService } from "src/cacheManager/cacheManager.service";
+import { Response } from "express";
+import { RefreshTokens } from "src/entities/RefreshTokens";
 
 @Injectable()
 export class AuthService {
@@ -13,6 +15,8 @@ export class AuthService {
     private cacheManagerService: CacheManagerService,
     @InjectRepository(Users)
     private usersRepository: Repository<Users>,
+    @InjectRepository(RefreshTokens)
+    private refreshTokensRepository: Repository<RefreshTokens>,
   ) {}
 
   async getGoogleAuthorizationUrl() {
@@ -97,5 +101,23 @@ export class AuthService {
     } catch (err) {
       handleError(err);
     }
+  }
+
+  async logout(response: Response, user: Users) {
+    await this.refreshTokensRepository.delete({ UserId: user.id })
+      .then(() => {
+        response.clearCookie('accessToken', {
+          httpOnly: true,
+          sameSite: 'strict',
+          secure: process.env.NODE_ENV === 'production',
+        });
+        response.clearCookie('refreshToken', {
+          httpOnly: true,
+          sameSite: 'strict',
+          secure: process.env.NODE_ENV === 'production',
+        });
+      });
+
+    response.send('ok');
   }
 }

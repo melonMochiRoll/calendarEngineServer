@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Redirect, Res, UseGuards } from "@nestjs/common";
+import { Controller, Get, InternalServerErrorException, Post, Redirect, Res, UseGuards } from "@nestjs/common";
 import { LocalAuthGuard } from "./authGuard/local.auth.guard";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
@@ -8,7 +8,7 @@ import { GoogleAuthGuard } from "./authGuard/google.auth.guard";
 import { AuthService } from "./auth.service";
 import { OAuth2CSRFGuard } from "./authGuard/oauth2.csrf.guard";
 import { JwtLoginAuthGuard } from "./authGuard/jwt.local.auth.guard";
-import { IsNotJwtAuthenicatedGuard } from "./authGuard/jwt.auth.guard";
+import { IsNotJwtAuthenicatedGuard, JwtAuthGuard } from "./authGuard/jwt.auth.guard";
 
 @Controller('api/auth')
 export class AuthController {
@@ -54,17 +54,9 @@ export class AuthController {
     return user;
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('logout')
-  async logout(@Res() res: Response) {
-    try {
-      res.clearCookie('accessToken', {
-        httpOnly: true,
-        sameSite: 'strict',
-        secure: process.env.NODE_ENV === 'production',
-      });
-      res.status(200).send('logout');
-    } catch (err) {
-      res.status(500).send('error');
-    }
+  logout(@Res() res: Response, @User() user: Users) {
+    return this.authService.logout(res, user);
   };
 }
