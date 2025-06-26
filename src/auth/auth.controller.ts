@@ -1,4 +1,4 @@
-import { Controller, Get, InternalServerErrorException, Post, Redirect, Res, UseGuards } from "@nestjs/common";
+import { Controller, Get, Post, Redirect, Res, UseGuards } from "@nestjs/common";
 import { LocalAuthGuard } from "./authGuard/local.auth.guard";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
@@ -24,8 +24,13 @@ export class AuthController {
 
   @UseGuards(JwtLoginAuthGuard)
   @Post('login/jwt')
-  jwtLogin(@User() user: Users) {
-    return user;
+  async jwtLogin(
+    @Res() res: Response,
+    @User() user: Users,
+  ) {
+    await this.authService.jwtLogin(res, user);
+
+    res.status(201).send(user);
   }
 
   @UseGuards(IsNotJwtAuthenicatedGuard)

@@ -2,22 +2,81 @@ import { Injectable } from "@nestjs/common";
 import bcrypt from 'bcrypt';
 import { InjectRepository } from "@nestjs/typeorm";
 import { Users } from "src/entities/Users";
-import { Repository } from "typeorm";
+import { DataSource, Repository } from "typeorm";
 import handleError from "src/common/function/handleError";
 import { nanoid } from "nanoid";
 import { CacheManagerService } from "src/cacheManager/cacheManager.service";
 import { Response } from "express";
 import { RefreshTokens } from "src/entities/RefreshTokens";
+import dayjs from "dayjs";
+import { JwtService } from "@nestjs/jwt";
 
 @Injectable()
 export class AuthService {
   constructor(
+    private dataSource: DataSource,
+    private jwtService: JwtService,
     private cacheManagerService: CacheManagerService,
     @InjectRepository(Users)
     private usersRepository: Repository<Users>,
     @InjectRepository(RefreshTokens)
     private refreshTokensRepository: Repository<RefreshTokens>,
   ) {}
+
+  async jwtLogin(response: Response, user: Users) {
+    const qr = this.dataSource.createQueryRunner();
+
+    const accessTokenExpires = dayjs().add(15, 'minute');
+    const refreshTokenExpires = dayjs().add(7, 'day');
+    const jti = nanoid(20);
+
+    const accessToken = this.jwtService.sign({
+      email: user.email,
+      UserId: user.id,
+      exp: accessTokenExpires.unix(),
+    });
+
+    const refreshToken = this.jwtService.sign({
+      jti,
+      UserId: user.id,
+      exp: refreshTokenExpires.unix(),
+    });
+
+    await qr.connect();
+    await qr.startTransaction();
+
+    try {
+      await qr.manager.delete(RefreshTokens, { UserId: user.id });
+
+      await qr.manager.save(RefreshTokens, {
+        jti,
+        token: refreshToken,
+        UserId: user.id,
+        expiresAt: refreshTokenExpires.toDate(),
+      });
+
+      response.cookie('accessToken', accessToken, {
+        httpOnly: true,
+        sameSite: 'strict',
+        secure: process.env.NODE_ENV === 'production',
+        expires: accessTokenExpires.toDate(),
+      });
+      response.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        sameSite: 'strict',
+        secure: process.env.NODE_ENV === 'production',
+        expires: refreshTokenExpires.toDate(),
+      });
+
+      await qr.commitTransaction();
+    } catch (err) {
+      await qr.rollbackTransaction();
+
+      handleError(err);
+    } finally {
+      await qr.release();
+    }
+  }
 
   async getGoogleAuthorizationUrl() {
     const scope = [
