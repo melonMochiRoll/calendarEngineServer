@@ -176,7 +176,5 @@ export class AuthService {
           secure: process.env.NODE_ENV === 'production',
         });
       });
-
-    response.send('ok');
   }
 }
