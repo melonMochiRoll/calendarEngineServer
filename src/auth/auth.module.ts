@@ -13,6 +13,7 @@ import { GoogleStrategy } from './strategy/google.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtLocalStrategy } from './strategy/jwt.local.strategy';
 import { JwtStrategy } from './strategy/jwt.strategy';
+import { RefreshTokens } from 'src/entities/RefreshTokens';
 
 @Module({
   imports: [
@@ -20,7 +21,10 @@ import { JwtStrategy } from './strategy/jwt.strategy';
     JwtModule.register({
       secret: process.env.JWT_SECRET,
     }),
-    TypeOrmModule.forFeature([Users]),
+    TypeOrmModule.forFeature([
+      Users,
+      RefreshTokens,
+    ]),
     UsersModule,
     CacheManagerModule,
   ],
