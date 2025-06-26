@@ -24,7 +24,7 @@ export class AuthService {
     private refreshTokensRepository: Repository<RefreshTokens>,
   ) {}
 
-  async jwtLogin(response: Response, user: Users) {
+  async jwtLogin(response: Response, email: string, UserId: number) {
     const qr = this.dataSource.createQueryRunner();
 
     const accessTokenExpires = dayjs().add(15, 'minute');
@@ -32,14 +32,15 @@ export class AuthService {
     const jti = nanoid(20);
 
     const accessToken = this.jwtService.sign({
-      email: user.email,
-      UserId: user.id,
+      email,
+      UserId,
       exp: accessTokenExpires.unix(),
     });
 
     const refreshToken = this.jwtService.sign({
       jti,
-      UserId: user.id,
+      email,
+      UserId,
       exp: refreshTokenExpires.unix(),
     });
 
@@ -47,12 +48,12 @@ export class AuthService {
     await qr.startTransaction();
 
     try {
-      await qr.manager.delete(RefreshTokens, { UserId: user.id });
+      await qr.manager.delete(RefreshTokens, { UserId });
 
       await qr.manager.save(RefreshTokens, {
         jti,
         token: refreshToken,
-        UserId: user.id,
+        UserId,
         expiresAt: refreshTokenExpires.toDate(),
       });
 

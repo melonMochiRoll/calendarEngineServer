@@ -28,7 +28,7 @@ export class AuthController {
     @Res() res: Response,
     @User() user: Users,
   ) {
-    await this.authService.jwtLogin(res, user);
+    await this.authService.jwtLogin(res, user.email, user.id);
 
     res.status(201).send(user);
   }
@@ -46,7 +46,7 @@ export class AuthController {
     @Res() res: Response,
     @User() user: Users,
   ) {
-    await this.authService.jwtLogin(res, user);
+    await this.authService.jwtLogin(res, user.email, user.id);
 
     res.status(201).send(user);
   }
@@ -64,7 +64,7 @@ export class AuthController {
     @Res() res: Response,
     @User() user: Users,
   ) {
-    await this.authService.jwtLogin(res, user);
+    await this.authService.jwtLogin(res, user.email, user.id);
 
     res.status(201).send(user);
   }
@@ -75,5 +75,5 @@ export class AuthController {
     await this.authService.logout(res, user);
 
     res.send('ok');
-  };
+  }
 }
