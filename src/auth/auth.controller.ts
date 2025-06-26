@@ -42,8 +42,13 @@ export class AuthController {
   @Redirect(`${process.env.SERVER_ORIGIN}`)
   @UseGuards(OAuth2CSRFGuard, GoogleAuthGuard)
   @Get('login/oauth2/google/callback')
-  loginOAuth2GoogleCallback(@User() user: Users) {
-    return user;
+  async loginOAuth2GoogleCallback(
+    @Res() res: Response,
+    @User() user: Users,
+  ) {
+    await this.authService.jwtLogin(res, user);
+
+    res.status(201).send(user);
   }
 
   @UseGuards(IsNotJwtAuthenicatedGuard)
@@ -55,8 +60,13 @@ export class AuthController {
   @Redirect(`${process.env.SERVER_ORIGIN}`)
   @UseGuards(OAuth2CSRFGuard, NaverAuthGuard)
   @Get('login/oauth2/naver/callback')
-  loginOAuth2NaverCallback(@User() user: Users) {
-    return user;
+  async loginOAuth2NaverCallback(
+    @Res() res: Response,
+    @User() user: Users,
+  ) {
+    await this.authService.jwtLogin(res, user);
+
+    res.status(201).send(user);
   }
 
   @UseGuards(JwtAuthGuard)
