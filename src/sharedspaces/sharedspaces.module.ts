@@ -11,6 +11,7 @@ import { Chats } from 'src/entities/Chats';
 import { EventsModule } from 'src/events/events.module';
 import { Images } from 'src/entities/Images';
 import { AwsModule } from 'src/aws/aws.module';
+import { RefreshTokens } from 'src/entities/RefreshTokens';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AwsModule } from 'src/aws/aws.module';
       Roles,
       Chats,
       Images,
+      RefreshTokens,
     ]),
     EventsModule,
     AwsModule,
