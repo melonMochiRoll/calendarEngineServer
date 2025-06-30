@@ -14,11 +14,13 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtLocalStrategy } from './strategy/jwt.local.strategy';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { RefreshTokens } from 'src/entities/RefreshTokens';
+import { JwtRefreshStrategy } from './strategy/jwt.refresh.strategy';
 
 @Module({
   imports: [
     PassportModule.register({ session: false }),
     JwtModule.register({
+      global: true,
       secret: process.env.JWT_SECRET,
     }),
     TypeOrmModule.forFeature([
@@ -34,6 +36,7 @@ import { RefreshTokens } from 'src/entities/RefreshTokens';
     LocalStrategy,
     JwtLocalStrategy,
     JwtStrategy,
+    JwtRefreshStrategy,
     GoogleStrategy,
     NaverStrategy,
     SessionSerializer,
