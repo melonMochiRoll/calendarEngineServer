@@ -10,7 +10,6 @@ import { Response } from "express";
 import { RefreshTokens } from "src/entities/RefreshTokens";
 import dayjs from "dayjs";
 import { JwtService } from "@nestjs/jwt";
-import { TRefreshTokenPayload } from "src/typings/types";
 
 @Injectable()
 export class AuthService {
@@ -73,6 +72,17 @@ export class AuthService {
       await qr.commitTransaction();
     } catch (err) {
       await qr.rollbackTransaction();
+
+      response.clearCookie('accessToken', {
+        httpOnly: true,
+        sameSite: 'strict',
+        secure: process.env.NODE_ENV === 'production',
+      });
+      response.clearCookie('refreshToken', {
+        httpOnly: true,
+        sameSite: 'strict',
+        secure: process.env.NODE_ENV === 'production',
+      });
 
       handleError(err);
     } finally {
