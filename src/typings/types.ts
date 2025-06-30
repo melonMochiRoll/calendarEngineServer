@@ -81,6 +81,7 @@ export type TAccessTokenPayload = {
 
 export type TRefreshTokenPayload = {
   jti: string,
+  email: string,
   UserId: number,
   exp: number,
 };
