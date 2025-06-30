@@ -4,6 +4,7 @@ import { Sharedspaces } from "./Sharedspaces";
 import { SharedspaceMembers } from "./SharedspaceMembers";
 import { JoinRequests } from "./JoinRequests";
 import { Chats } from "./Chats";
+import { RefreshTokens } from "./RefreshTokens";
 
 @Unique('users_email_idx', ['email'])
 @Entity({ name: 'users' })
@@ -49,6 +50,9 @@ export class Users {
 
   @OneToMany(() => Chats, chats => chats.Sender)
   Chats: Chats[];
+
+  @OneToMany(() => RefreshTokens, refreshTokens => refreshTokens.User)
+  RefreshTokens: RefreshTokens[];
 
   @ManyToMany(() => Sharedspaces, sharedspaces => sharedspaces.Members)
   @JoinTable({
