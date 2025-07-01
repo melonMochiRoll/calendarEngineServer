@@ -21,18 +21,16 @@ export class JwtAuthGuard implements CanActivate {
     const response = context.switchToHttp().getResponse();
 
     try {
-      return await new (AuthGuard('jwt'))().canActivate(context) as boolean;
+      await new (AuthGuard('jwt'))().canActivate(context) as boolean;
     } catch (err) {
-      const refresh = await new (AuthGuard('jwt-refresh'))().canActivate(context) as boolean;
+      await new (AuthGuard('jwt-refresh'))().canActivate(context) as boolean;
 
-      if (refresh) {
-        const users: Users = context.switchToHttp().getRequest()?.user;
+      const users: Users = context.switchToHttp().getRequest()?.user;
 
-        await this.authService.jwtLogin(response, users.email, users.id);
-      }
-
-      return refresh;
+      await this.authService.jwtLogin(response, users.email, users.id);
     }
+
+    return true;
   }
 }
 
