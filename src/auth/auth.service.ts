@@ -10,7 +10,7 @@ import { Response } from "express";
 import { RefreshTokens } from "src/entities/RefreshTokens";
 import dayjs from "dayjs";
 import { JwtService } from "@nestjs/jwt";
-import { CSRF_TOKEN_COOKIE_NAME } from "src/common/constant/auth.constants";
+import { ACCESS_TOKEN_COOKIE_NAME, CSRF_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } from "src/common/constant/auth.constants";
 
 @Injectable()
 export class AuthService {
@@ -29,7 +29,7 @@ export class AuthService {
 
     const accessTokenExpires = dayjs().add(15, 'minute');
     const refreshTokenExpires = dayjs().add(7, 'day');
-    const jti = nanoid(20);
+    const jti = nanoid(+process.env.REFRESH_TOKEN_JTI_SIZE);
 
     const accessToken = this.jwtService.sign({
       email,
@@ -44,6 +44,12 @@ export class AuthService {
       exp: refreshTokenExpires.unix(),
     });
 
+    const cookieOption = {
+      httpOnly: true,
+      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production',
+    } as const;
+
     await qr.connect();
     await qr.startTransaction();
 
@@ -57,16 +63,12 @@ export class AuthService {
         expiresAt: refreshTokenExpires.toDate(),
       });
 
-      response.cookie('accessToken', accessToken, {
-        httpOnly: true,
-        sameSite: 'strict',
-        secure: process.env.NODE_ENV === 'production',
+      response.cookie(ACCESS_TOKEN_COOKIE_NAME, accessToken, {
+        ...cookieOption,
         expires: accessTokenExpires.toDate(),
       });
-      response.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        sameSite: 'strict',
-        secure: process.env.NODE_ENV === 'production',
+      response.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
+        ...cookieOption,
         expires: refreshTokenExpires.toDate(),
       });
 
@@ -74,16 +76,8 @@ export class AuthService {
     } catch (err) {
       await qr.rollbackTransaction();
 
-      response.clearCookie('accessToken', {
-        httpOnly: true,
-        sameSite: 'strict',
-        secure: process.env.NODE_ENV === 'production',
-      });
-      response.clearCookie('refreshToken', {
-        httpOnly: true,
-        sameSite: 'strict',
-        secure: process.env.NODE_ENV === 'production',
-      });
+      response.clearCookie(ACCESS_TOKEN_COOKIE_NAME, { ...cookieOption });
+      response.clearCookie(REFRESH_TOKEN_COOKIE_NAME, { ...cookieOption });
 
       handleError(err);
     } finally {
@@ -97,7 +91,7 @@ export class AuthService {
       'https://www.googleapis.com/auth/userinfo.profile',
     ].join(' ');
 
-    const state = nanoid(Number(process.env.SALT_OR_ROUNDS));
+    const state = nanoid(+process.env.SALT_OR_ROUNDS);
     await this.cacheManagerService.setGuestCache(state, true);
 
     const request_url = 'https://accounts.google.com/o/oauth2/v2/auth';
@@ -114,7 +108,7 @@ export class AuthService {
   }
 
   async getNaverAuthorizationUrl() {
-    const state = nanoid(Number(process.env.SALT_OR_ROUNDS));
+    const state = nanoid(+process.env.SALT_OR_ROUNDS);
 
     await this.cacheManagerService.setGuestCache(state, true);
 
@@ -179,16 +173,15 @@ export class AuthService {
     try {
       await this.refreshTokensRepository.delete({ UserId: user.id })
         .then(() => {
-          response.clearCookie('accessToken', {
+          const cookieOption = {
             httpOnly: true,
             sameSite: 'strict',
             secure: process.env.NODE_ENV === 'production',
-          });
-          response.clearCookie('refreshToken', {
-            httpOnly: true,
-            sameSite: 'strict',
-            secure: process.env.NODE_ENV === 'production',
-          });
+          } as const;
+
+          response.clearCookie(ACCESS_TOKEN_COOKIE_NAME, { ...cookieOption });
+          response.clearCookie(REFRESH_TOKEN_COOKIE_NAME, { ...cookieOption });
+          response.clearCookie(CSRF_TOKEN_COOKIE_NAME, { ...cookieOption });
         });
     } catch (err) {
       handleError(err);
