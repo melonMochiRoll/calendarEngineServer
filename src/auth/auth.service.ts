@@ -10,6 +10,7 @@ import { Response } from "express";
 import { RefreshTokens } from "src/entities/RefreshTokens";
 import dayjs from "dayjs";
 import { JwtService } from "@nestjs/jwt";
+import { CSRF_TOKEN_COOKIE_NAME } from "src/common/constant/auth.constants";
 
 @Injectable()
 export class AuthService {
@@ -192,5 +193,13 @@ export class AuthService {
     } catch (err) {
       handleError(err);
     }
+  }
+
+  getCsrfToken(response: Response) {
+    response.cookie(CSRF_TOKEN_COOKIE_NAME, nanoid(+process.env.CSRF_TOKEN_SIZE), {
+      httpOnly: true,
+      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production',
+    });
   }
 }

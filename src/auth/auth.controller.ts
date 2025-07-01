@@ -76,4 +76,12 @@ export class AuthController {
 
     res.send('ok');
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('csrf-token')
+  getCsrfToken(@Res() res: Response) {
+    this.authService.getCsrfToken(res);
+
+    res.send('ok');
+  }
 }
