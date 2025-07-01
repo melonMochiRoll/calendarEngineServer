@@ -7,7 +7,7 @@ import { ExtractJwt, Strategy } from "passport-jwt";
 import { RefreshTokens } from "src/entities/RefreshTokens";
 import { TRefreshTokenPayload } from "src/typings/types";
 import { Repository } from "typeorm";
-import { REFRESH_TOKEN_EXPIRED } from "src/common/constant/error.message";
+import { TOKEN_EXPIRED } from "src/common/constant/error.message";
 import { Users } from "src/entities/Users";
 
 @Injectable()
@@ -39,7 +39,7 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
     });
 
     if (!refreshTokenData || dayjs().isSameOrAfter(dayjs(refreshTokenData.revokedAt))) {
-      throw new ForbiddenException(REFRESH_TOKEN_EXPIRED);
+      throw new ForbiddenException(TOKEN_EXPIRED);
     }
 
     const userData = await this.usersRepository.findOne({
