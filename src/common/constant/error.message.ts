@@ -9,7 +9,7 @@ export const ACCESS_DENIED_MESSAGE = '접근 권한이 없습니다.'; // status
 
 export const MISMATCH_STATE_MESSAGE = 'state 값이 다릅니다.'; // status: 403
 
-export const REFRESH_TOKEN_EXPIRED = '토큰이 만료되었거나 유효하지 않습니다. 다시 로그인해주세요.'; // status: 403
+export const TOKEN_EXPIRED = '토큰이 만료되었거나 유효하지 않습니다. 다시 로그인해주세요.'; // status: 403
 
 export const NOT_FOUND_SPACE_MESSAGE = '존재하지 않는 스페이스입니다.'; // status: 404
 
