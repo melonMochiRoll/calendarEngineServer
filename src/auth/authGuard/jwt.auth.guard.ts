@@ -4,6 +4,7 @@ import { ACCESS_DENIED_MESSAGE } from "src/common/constant/error.message";
 import { AuthService } from "../auth.service";
 import { ModuleRef } from "@nestjs/core";
 import { Users } from "src/entities/Users";
+import { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } from "src/common/constant/auth.constants";
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -37,9 +38,12 @@ export class JwtAuthGuard implements CanActivate {
 @Injectable()
 export class IsNotJwtAuthenicatedGuard extends AuthGuard('jwt') {
   async canActivate(context: ExecutionContext) {
-    const result = await super.canActivate(context);
+    const request = context.switchToHttp().getRequest();
 
-    if (result) {
+    const accessToken = request.cookies[ACCESS_TOKEN_COOKIE_NAME];
+    const refreshToken = request.cookies[REFRESH_TOKEN_COOKIE_NAME];
+
+    if (accessToken && refreshToken) {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
     
