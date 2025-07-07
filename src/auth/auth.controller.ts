@@ -9,6 +9,7 @@ import { AuthService } from "./auth.service";
 import { OAuth2CSRFGuard } from "./authGuard/oauth2.csrf.guard";
 import { JwtLoginAuthGuard } from "./authGuard/jwt.local.auth.guard";
 import { IsNotJwtAuthenicatedGuard, JwtAuthGuard } from "./authGuard/jwt.auth.guard";
+import { getOrigin } from "src/common/function/getOrigin";
 
 @Controller('api/auth')
 export class AuthController {
@@ -22,7 +23,7 @@ export class AuthController {
     return user;
   }
 
-  @UseGuards(JwtLoginAuthGuard)
+  @UseGuards(IsNotJwtAuthenicatedGuard, JwtLoginAuthGuard)
   @Post('login/jwt')
   async jwtLogin(
     @Res() res: Response,
@@ -35,11 +36,11 @@ export class AuthController {
 
   @UseGuards(IsNotJwtAuthenicatedGuard)
   @Get('login/oauth2/google')
-  loginOAuth2Google() {
-    return this.authService.getGoogleAuthorizationUrl();
+  loginOAuth2Google(@Res() res: Response) {
+    this.authService.getGoogleAuthorizationUrl(res);
   }
 
-  @Redirect(`${process.env.SERVER_ORIGIN}`)
+  @Redirect(getOrigin())
   @UseGuards(OAuth2CSRFGuard, GoogleAuthGuard)
   @Get('login/oauth2/google/callback')
   async loginOAuth2GoogleCallback(
@@ -53,11 +54,11 @@ export class AuthController {
 
   @UseGuards(IsNotJwtAuthenicatedGuard)
   @Get('login/oauth2/naver')
-  loginOAuth2Naver() {
-    return this.authService.getNaverAuthorizationUrl();
+  loginOAuth2Naver(@Res() res: Response) {
+    this.authService.getNaverAuthorizationUrl(res);
   }
 
-  @Redirect(`${process.env.SERVER_ORIGIN}`)
+  @Redirect(getOrigin())
   @UseGuards(OAuth2CSRFGuard, NaverAuthGuard)
   @Get('login/oauth2/naver/callback')
   async loginOAuth2NaverCallback(
