@@ -6,7 +6,6 @@ import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { OwnerOnlyRoles } from "src/common/decorator/owner.only.decorator";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
-import { AuthRoleGuards } from "src/common/decorator/auth.role.decorator";
 import { TSubscribedspacesFilter } from "src/typings/types";
 import { SubscribedFilterValidationPipe } from "src/common/pipe/subscribedFilter.validation.pipe";
 import { PublicSpaceGuard } from "src/common/guard/public.space.guard";
@@ -19,6 +18,8 @@ import { CreateSharedspaceChatDTO } from "./dto/create.sharedspace.chat.dto";
 import { FilesInterceptor } from "@nestjs/platform-express";
 import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
 import { JwtAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
+import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
+import { RolesGuard } from "src/common/guard/roles.guard";
 
 @Controller('api/sharedspaces')
 export class SharedspacesController {
@@ -43,13 +44,13 @@ export class SharedspacesController {
     return this.sharedspacesService.getSubscribedspaces(filter, user);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post()
   createSharedspace(@Body() dto: CreateSharedspaceDTO) {
     return this.sharedspacesService.createSharedspace(dto);
   }
 
-  @AuthRoleGuards()
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard, RolesGuard)
   @OwnerOnlyRoles()
   @Patch(':url/name')
   updateSharedspaceName(
@@ -59,7 +60,7 @@ export class SharedspacesController {
     return this.sharedspacesService.updateSharedspaceName(targetSpace, dto);
   }
 
-  @AuthRoleGuards()
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard, RolesGuard)
   @OwnerOnlyRoles()
   @Patch(':url/owner')
   updateSharedspaceOwner(
@@ -69,7 +70,7 @@ export class SharedspacesController {
     return this.sharedspacesService.updateSharedspaceOwner(targetSpace, dto);
   }
 
-  @AuthRoleGuards()
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard, RolesGuard)
   @OwnerOnlyRoles()
   @Patch(':url/private')
   updateSharedspacePrivate(
@@ -79,7 +80,7 @@ export class SharedspacesController {
     return this.sharedspacesService.updateSharedspacePrivate(targetSpace, dto);
   }
   
-  @AuthRoleGuards()
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard, RolesGuard)
   @OwnerOnlyRoles()
   @HttpCode(204)
   @Delete(':url')
@@ -87,7 +88,7 @@ export class SharedspacesController {
     return this.sharedspacesService.deleteSharedspace(targetSpace);
   }
 
-  @AuthRoleGuards()
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard, RolesGuard)
   @OwnerOnlyRoles()
   @Post(':url/members')
   createSharedspaceMembers(
@@ -97,7 +98,7 @@ export class SharedspacesController {
     return this.sharedspacesService.createSharedspaceMembers(targetSpace, dto);
   }
 
-  @AuthRoleGuards()
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard, RolesGuard)
   @OwnerOnlyRoles()
   @Patch(':url/members')
   updateSharedspaceMembers(
@@ -107,7 +108,7 @@ export class SharedspacesController {
     return this.sharedspacesService.updateSharedspaceMembers(targetSpace, dto);
   }
 
-  @AuthRoleGuards()
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard, RolesGuard)
   @OwnerOnlyRoles()
   @Delete(':url/members/:id')
   deleteSharedspaceMembers(
@@ -143,7 +144,7 @@ export class SharedspacesController {
     return this.sharedspacesService.createSharedspaceChat(targetSpace, dto, files, user);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Patch(':url/chats')
   updateSharedspaceChat(
     @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
@@ -153,7 +154,7 @@ export class SharedspacesController {
     return this.sharedspacesService.updateSharedspaceChat(targetSpace, dto, user);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @HttpCode(204)
   @Delete(':url/chats/:id')
   deleteSharedspaceChat(
@@ -164,7 +165,7 @@ export class SharedspacesController {
     return this.sharedspacesService.deleteSharedspaceChat(targetSpace, chatId, user);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @HttpCode(204)
   @Delete(':url/chats/:ChatId/images/:ImageId')
   deleteSharedspaceChatImage(

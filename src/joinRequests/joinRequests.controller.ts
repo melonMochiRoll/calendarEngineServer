@@ -8,9 +8,10 @@ import { Sharedspaces } from "src/entities/Sharedspaces";
 import { TransformJoinRequestsPipe } from "src/common/pipe/transform.joinrequest.pipe";
 import { JoinRequests } from "src/entities/JoinRequests";
 import { OwnerOnlyRoles } from "src/common/decorator/owner.only.decorator";
-import { AuthRoleGuards } from "src/common/decorator/auth.role.decorator";
 import { ResolveJoinRequestDTO } from "./dto/resolve.joinRequest.dto";
 import { JwtAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
+import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
+import { RolesGuard } from "src/common/guard/roles.guard";
 
 @Controller('api/sharedspaces')
 export class JoinRequestsController {
@@ -18,7 +19,7 @@ export class JoinRequestsController {
     private joinRequestsService: JoinRequestsService,
   ) {}
 
-  @AuthRoleGuards()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @OwnerOnlyRoles()
   @Get(':url/joinrequest')
   getJoinRequests(
@@ -27,7 +28,7 @@ export class JoinRequestsController {
     return this.joinRequestsService.getJoinRequests(targetSpace);
   }
   
-  @AuthRoleGuards()
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard, RolesGuard)
   @OwnerOnlyRoles()
   @Post(':url/joinrequest/:id/resolve')
   resolveJoinRequest(
@@ -38,7 +39,7 @@ export class JoinRequestsController {
     return this.joinRequestsService.resolveJoinRequest(targetSpace, targetJoinRequest, dto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post(':url/joinrequest')
   createJoinRequest(
     @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
@@ -48,7 +49,7 @@ export class JoinRequestsController {
     return this.joinRequestsService.createJoinRequest(targetSpace, dto, user);
   }
 
-  @AuthRoleGuards()
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard, RolesGuard)
   @OwnerOnlyRoles()
   @Delete(':url/joinrequest/:id')
   deleteJoinRequest(

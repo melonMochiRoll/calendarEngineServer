@@ -3,12 +3,13 @@ import { TodosService } from './todos.service';
 import { CreateTodoDTO } from './dto/create.todo.dto';
 import { UpdateTodoDto } from './dto/update.todo.dto';
 import { AboveMemberRoles } from 'src/common/decorator/above.member.decorator';
-import { AuthRoleGuards } from 'src/common/decorator/auth.role.decorator';
 import { PublicSpaceGuard } from 'src/common/guard/public.space.guard';
 import { DateValidationPipe } from 'src/common/pipe/date.validation.pipe';
 import { TransformSpacePipe } from 'src/common/pipe/transform.space.pipe';
 import { Sharedspaces } from 'src/entities/Sharedspaces';
 import { JwtAuthGuard } from 'src/auth/authGuard/jwt.auth.guard';
+import { CSRFAuthGuard } from 'src/auth/authGuard/csrf.auth.guard';
+import { RolesGuard } from 'src/common/guard/roles.guard';
 
 @Controller('api/sharedspaces')
 export class TodosController {
@@ -40,7 +41,7 @@ export class TodosController {
     );
   }
 
-  @AuthRoleGuards()
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard, RolesGuard)
   @AboveMemberRoles()
   @Post(':url/todos')
   createTodo(
@@ -50,7 +51,7 @@ export class TodosController {
     return this.todosService.createTodo(targetSpace, dto);
   }
 
-  @AuthRoleGuards()
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard, RolesGuard)
   @AboveMemberRoles()
   @Put(':url/todos')
   updateTodo(
@@ -63,7 +64,7 @@ export class TodosController {
     );
   }
 
-  @AuthRoleGuards()
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard, RolesGuard)
   @AboveMemberRoles()
   @HttpCode(204)
   @Delete(':url/todos/:id')
