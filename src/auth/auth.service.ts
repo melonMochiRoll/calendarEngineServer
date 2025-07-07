@@ -189,10 +189,14 @@ export class AuthService {
   }
 
   getCsrfToken(response: Response) {
-    response.cookie(CSRF_TOKEN_COOKIE_NAME, nanoid(+process.env.CSRF_TOKEN_SIZE), {
-      httpOnly: true,
-      sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production',
-    });
+    const csrfToken = nanoid(+process.env.CSRF_TOKEN_SIZE);
+
+    response
+      .cookie(CSRF_TOKEN_COOKIE_NAME, csrfToken, {
+        httpOnly: true,
+        sameSite: 'strict',
+        secure: process.env.NODE_ENV === 'production',
+      })
+      .json({ csrfToken });
   }
 }
