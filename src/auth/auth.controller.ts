@@ -81,7 +81,5 @@ export class AuthController {
   @Get('csrf-token')
   getCsrfToken(@Res() res: Response) {
     this.authService.getCsrfToken(res);
-
-    res.send('ok');
   }
 }
