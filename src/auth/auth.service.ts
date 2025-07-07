@@ -5,19 +5,17 @@ import { Users } from "src/entities/Users";
 import { DataSource, Repository } from "typeorm";
 import handleError from "src/common/function/handleError";
 import { nanoid } from "nanoid";
-import { CacheManagerService } from "src/cacheManager/cacheManager.service";
 import { Response } from "express";
 import { RefreshTokens } from "src/entities/RefreshTokens";
 import dayjs from "dayjs";
 import { JwtService } from "@nestjs/jwt";
-import { ACCESS_TOKEN_COOKIE_NAME, CSRF_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } from "src/common/constant/auth.constants";
+import { ACCESS_TOKEN_COOKIE_NAME, CSRF_TOKEN_COOKIE_NAME, OAUTH2_CSRF_STATE_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } from "src/common/constant/auth.constants";
 
 @Injectable()
 export class AuthService {
   constructor(
     private dataSource: DataSource,
     private jwtService: JwtService,
-    private cacheManagerService: CacheManagerService,
     @InjectRepository(Users)
     private usersRepository: Repository<Users>,
     @InjectRepository(RefreshTokens)
@@ -85,14 +83,13 @@ export class AuthService {
     }
   }
 
-  async getGoogleAuthorizationUrl() {
+  async getGoogleAuthorizationUrl(response: Response) {
     const scope = [
       'https://www.googleapis.com/auth/userinfo.email',
       'https://www.googleapis.com/auth/userinfo.profile',
     ].join(' ');
 
     const state = nanoid(+process.env.SALT_OR_ROUNDS);
-    await this.cacheManagerService.setGuestCache(state, true);
 
     const request_url = 'https://accounts.google.com/o/oauth2/v2/auth';
     const params = new URLSearchParams({
@@ -104,13 +101,17 @@ export class AuthService {
       prompt: 'select_account',
     }).toString();
 
-    return `${request_url}?${params}`;
+    response
+      .cookie(OAUTH2_CSRF_STATE_COOKIE_NAME, state, {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+      })
+      .json(`${request_url}?${params}`);
   }
 
-  async getNaverAuthorizationUrl() {
+  async getNaverAuthorizationUrl(response: Response) {
     const state = nanoid(+process.env.SALT_OR_ROUNDS);
-
-    await this.cacheManagerService.setGuestCache(state, true);
 
     const request_url = 'https://nid.naver.com/oauth2.0/authorize';
     const params = new URLSearchParams({
@@ -120,7 +121,13 @@ export class AuthService {
       redirect_uri: `${process.env.SERVER_ORIGIN}/api/auth/login/oauth2/naver/callback`,
     }).toString();
 
-    return `${request_url}?${params}`;
+    response
+      .cookie(OAUTH2_CSRF_STATE_COOKIE_NAME, state, {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+      })
+      .json(`${request_url}?${params}`);
   }
 
   async validateUser(
