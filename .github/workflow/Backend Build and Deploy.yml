@@ -1,0 +1,80 @@
+name: Backend Build and Deploy
+run-name: 🚀 Deploying
+
+# on:
+#   push:
+#     branches: [ "release" ]
+
+jobs:
+  build_and_deploy:
+    name: Build And Deploy
+    runs-on: ubuntu-latest
+    environment: production
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+    - name: ✅ Check out repository code
+      uses: actions/checkout@v4
+    
+    - name: 🧾 Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        
+    - name: ✨ Install dependencies
+      run: npm ci
+    
+    - name: 🔨 Build Project
+      run: npm run build -- --mode production
+    
+    - name: 💻 Get Github Actions IP
+      id: ip
+      uses: haythem/public-ip@v1.2
+
+    - name: 🔧 Set Dist Filename
+      id: dist
+      run: |
+        filename="calendar-engine-back-$(date +%Y%m%d)"
+        echo "dist_filename=$filename" >> $GITHUB_OUTPUT
+
+    - name: 🔧 Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ vars.AWS_REGION }}
+
+    - name: 🔑 Add Github Actions IP to Security group
+      run: |
+        aws ec2 authorize-security-group-ingress --group-id ${{ secrets.AWS_SG_ID }} --protocol tcp --port ${{ secrets.EC2_SSH_PORT }} --cidr ${{ steps.ip.outputs.ipv4 }}/32
+
+    - name: 📦 Compress Build Files
+      run: tar cvf ${{ steps.dist.outputs.dist_filename }}.tar -C ./dist .
+
+    - name: 🚛 Upload to S3
+      run: aws s3 cp --region ${{ vars.AWS_REGION }} ./${{ steps.dist.outputs.dist_filename }}.tar s3://${{ secrets.S3_BUCKET_NAME }}/${{ steps.dist.outputs.dist_filename }}.tar
+
+    - name: ⬇️ Download from S3
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.EC2_HOST }} # 
+        username: ${{ secrets.EC2_USERNAME }}
+        key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+        port: ${{ secrets.EC2_SSH_PORT }}
+        script_stop: true
+        script: |
+          aws s3 cp --region ${{ vars.AWS_REGION }} s3://${{ secrets.S3_BUCKET_NAME }}/${{ steps.dist.outputs.dist_filename }}.tar /home/ec2-user/
+          rm -rf ./server/dist/*
+          tar xvf ${{ steps.dist.outputs.dist_filename }}.tar -C ./server/dist .
+          rm -r ${{ steps.dist.outputs.dist_filename }}.tar
+          sudo service nginx restart
+          pm2 restart main
+        
+    - name: 🔑 Remove Github Actions IP From Security Group
+      if: always()
+      run: |
+        aws ec2 revoke-security-group-ingress --group-id ${{ secrets.AWS_SG_ID }} --protocol tcp --port ${{ secrets.EC2_SSH_PORT }} --cidr ${{ steps.ip.outputs.ipv4 }}/32
