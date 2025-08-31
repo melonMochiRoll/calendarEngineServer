@@ -56,7 +56,6 @@ export class AuthService {
 
       await qr.manager.save(RefreshTokens, {
         jti,
-        token: refreshToken,
         UserId,
         expiresAt: refreshTokenExpires.toDate(),
       });
