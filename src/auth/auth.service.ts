@@ -140,22 +140,6 @@ export class AuthService {
           email: true,
           password: true,
           profileImage: true,
-          Sharedspacemembers: {
-            SharedspaceId: true,
-            Sharedspace: {
-              url: true,
-              private: true,
-            },
-            Role: {
-              name: true,
-            },
-          },
-        },
-        relations: {
-          Sharedspacemembers: {
-            Sharedspace: true,
-            Role: true,
-          },
         },
         where: {
           email,
@@ -165,11 +149,11 @@ export class AuthService {
       const compare = await bcrypt.compare(password, user?.password || '');
   
       if (!user || !compare) {
-        return null;
+        return false;
       }
   
-      const { password: _, ...rest } = user;
-      return rest;
+      const { password: _, ...withoutPassword } = user;
+      return withoutPassword;
     } catch (err) {
       handleError(err);
     }
