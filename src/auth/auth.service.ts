@@ -22,7 +22,7 @@ export class AuthService {
     private refreshTokensRepository: Repository<RefreshTokens>,
   ) {}
 
-  async jwtLogin(response: Response, email: string, UserId: number) {
+  async jwtLogin(response: Response, UserId: number) {
     const qr = this.dataSource.createQueryRunner();
 
     const accessTokenExpires = dayjs().add(15, 'minute');
@@ -30,14 +30,12 @@ export class AuthService {
     const jti = nanoid(+process.env.REFRESH_TOKEN_JTI_SIZE);
 
     const accessToken = this.jwtService.sign({
-      email,
       UserId,
       exp: accessTokenExpires.unix(),
     });
 
     const refreshToken = this.jwtService.sign({
       jti,
-      email,
       UserId,
       exp: refreshTokenExpires.unix(),
     });
