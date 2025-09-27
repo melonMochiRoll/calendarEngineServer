@@ -15,22 +15,6 @@ export class UsersService {
     private usersRepository: Repository<Users>
   ) {}
 
-  async getOneById(id: number) {
-    try {
-      return await this.usersRepository.findOneBy({ deletedAt: IsNull(), id });
-    } catch (err) {
-      handleError(err);
-    }
-  }
-
-  async getOneByEmail(email: string) {
-    try {
-      return await this.usersRepository.findOneBy({ deletedAt: IsNull(), email });
-    } catch (err) {
-      handleError(err);
-    }
-  }
-
   async isUser(email: string) {
     try {
       return await this.usersRepository.findOneByOrFail({ deletedAt: IsNull(), email })
