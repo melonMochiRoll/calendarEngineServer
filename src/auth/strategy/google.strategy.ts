@@ -31,71 +31,39 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google'){
           email: true,
           provider: true,
           profileImage: true,
-          Sharedspacemembers: {
-            SharedspaceId: true,
-            Sharedspace: {
-              url: true,
-              private: true,
-            },
-            Role: {
-              name: true,
-            },
-          },
-        },
-        relations: {
-          Sharedspacemembers: {
-            Sharedspace: true,
-            Role: true,
-          },
         },
         where: {
           email: profile.emails[0].value,
         },
       });
 
-      if (!exUser) {
-        await this.usersRepository.save({
+      if (exUser) {
+        if (exUser.provider !== ProviderList.GOOGLE) {
+          throw new ConflictException(CONFLICT_ACCOUNT_MESSAGE);
+        }
+
+        return exUser;
+      }
+
+      await this.usersRepository.save({
+        email: profile.emails[0].value,
+        profileImage: profile._json.picture,
+        provider: ProviderList.GOOGLE,
+      });
+
+      const newUser = await this.usersRepository.findOne({
+        select: {
+          id: true,
+          email: true,
+          provider: true,
+          profileImage: true,
+        },
+        where: {
           email: profile.emails[0].value,
-          profileImage: profile._json.picture,
-          provider: ProviderList.GOOGLE,
-        });
+        },
+      });
 
-        const newUser = await this.usersRepository.findOne({
-          select: {
-            id: true,
-            email: true,
-            provider: true,
-            profileImage: true,
-            Sharedspacemembers: {
-              SharedspaceId: true,
-              Sharedspace: {
-                url: true,
-                private: true,
-              },
-              Role: {
-                name: true,
-              },
-            },
-          },
-          relations: {
-            Sharedspacemembers: {
-              Sharedspace: true,
-              Role: true,
-            },
-          },
-          where: {
-            email: profile.emails[0].value,
-          },
-        });
-
-        return newUser;
-      }
-
-      if (exUser.provider !== ProviderList.GOOGLE) {
-        throw new ConflictException(CONFLICT_ACCOUNT_MESSAGE);
-      }
-
-      return exUser;
+      return newUser;
     } catch (err) {
       handleError(err);
     }
