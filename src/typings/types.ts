@@ -75,13 +75,11 @@ export type TNaverProfile = {
 
 export type TAccessTokenPayload = {
   UserId: number,
-  email: string,
   exp: number,
 };
 
 export type TRefreshTokenPayload = {
   jti: string,
-  email: string,
   UserId: number,
   exp: number,
 };
