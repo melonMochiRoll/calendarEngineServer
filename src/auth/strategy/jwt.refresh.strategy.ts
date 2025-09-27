@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from "@nestjs/common";
+import { ForbiddenException, Injectable, UnauthorizedException } from "@nestjs/common";
 import dayjs from "dayjs";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import { PassportStrategy } from "@nestjs/passport";
@@ -43,33 +43,22 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
       throw new ForbiddenException(TOKEN_EXPIRED);
     }
 
-    const userData = await this.usersRepository.findOne({
+    const user = await this.usersRepository.findOne({
       select: {
         id: true,
         email: true,
+        provider: true,
         profileImage: true,
-        Sharedspacemembers: {
-          SharedspaceId: true,
-          Sharedspace: {
-            url: true,
-            private: true,
-          },
-          Role: {
-            name: true,
-          },
-        },
-      },
-      relations: {
-        Sharedspacemembers: {
-          Sharedspace: true,
-          Role: true,
-        },
       },
       where: {
         id: payload.UserId,
       },
     });
 
-    return userData;
+    if (!user) {
+      throw new UnauthorizedException(TOKEN_EXPIRED);
+    }
+
+    return user;
   }
 }
