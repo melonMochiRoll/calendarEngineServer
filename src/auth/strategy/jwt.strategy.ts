@@ -1,8 +1,9 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { InjectRepository } from "@nestjs/typeorm";
 import { ExtractJwt, Strategy } from "passport-jwt";
 import { ACCESS_TOKEN_COOKIE_NAME } from "src/common/constant/auth.constants";
+import { TOKEN_EXPIRED } from "src/common/constant/error.message";
 import { Users } from "src/entities/Users";
 import { TAccessTokenPayload } from "src/typings/types";
 import { Repository } from "typeorm";
@@ -25,33 +26,22 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: TAccessTokenPayload) {
-    const userData = await this.usersRepository.findOne({
+    const user = await this.usersRepository.findOne({
       select: {
         id: true,
         email: true,
+        provider: true,
         profileImage: true,
-        Sharedspacemembers: {
-          SharedspaceId: true,
-          Sharedspace: {
-            url: true,
-            private: true,
-          },
-          Role: {
-            name: true,
-          },
-        },
-      },
-      relations: {
-        Sharedspacemembers: {
-          Sharedspace: true,
-          Role: true,
-        },
       },
       where: {
         id: payload.UserId,
       },
     });
 
-    return userData;
+    if (!user) {
+      throw new UnauthorizedException(TOKEN_EXPIRED);
+    }
+
+    return user;
   }
 }
