@@ -14,6 +14,8 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import path from 'path';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AwsModule } from './aws/aws.module';
+import { AppService } from './app.service';
+import { Roles } from 'src/entities/Roles';
 
 @Module({
   imports: [
@@ -29,6 +31,9 @@ import { AwsModule } from './aws/aws.module';
         limit: 20,
       },
     ]),
+    TypeOrmModule.forFeature([
+      Roles,
+    ]),
     CacheManagerModule,
     AuthModule,
     UsersModule,
@@ -40,7 +45,9 @@ import { AwsModule } from './aws/aws.module';
     AwsModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    AppService,
+  ],
 })
 
 export class AppModule {
