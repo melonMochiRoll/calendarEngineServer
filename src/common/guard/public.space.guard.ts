@@ -3,13 +3,16 @@ import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, NOT_FOUND_SPACE_MESSAGE, UN
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Sharedspaces } from 'src/entities/Sharedspaces';
-import { SharedspaceMembersRoles, TUserData } from 'src/typings/types';
+import { TUserData } from 'src/typings/types';
+import { SharedspaceMembers } from 'src/entities/SharedspaceMembers';
 
 @Injectable()
 export class PublicSpaceGuard implements CanActivate {
   constructor(
     @InjectRepository(Sharedspaces)
     private sharedspacesRepository: Repository<Sharedspaces>,
+    @InjectRepository(SharedspaceMembers)
+    private sharedspaceMembersRepository: Repository<SharedspaceMembers>,
   ) {}
   
   async canActivate(context: ExecutionContext) {
@@ -19,13 +22,13 @@ export class PublicSpaceGuard implements CanActivate {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
-    const targetSpace = await this.sharedspacesRepository.findOneBy({ url });
+    const space = await this.sharedspacesRepository.findOneBy({ url });
 
-    if (!targetSpace) {
+    if (!space) {
       throw new NotFoundException(NOT_FOUND_SPACE_MESSAGE);
     }
 
-    if (!targetSpace.private) {
+    if (!space.private) {
       return true;
     }
 
@@ -35,11 +38,18 @@ export class PublicSpaceGuard implements CanActivate {
       throw new UnauthorizedException(UNAUTHORIZED_MESSAGE);
     }
 
-    const isMember = user.Sharedspacemembers
-      .filter((Sharedspacemember) => Sharedspacemember.Sharedspace.url === url)
-      .some((space) => Object.values(SharedspaceMembersRoles).includes(space.Role.name as any));
+    const userRole = await this.sharedspaceMembersRepository.findOne({
+      select: {
+        SharedspaceId: true,
+        RoleId: true,
+      },
+      where: {
+        UserId: user.id,
+        SharedspaceId: space.id,
+      },
+    });
 
-    if (!isMember) {
+    if (!userRole) {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
