@@ -1,15 +1,15 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { CreateSharedspaceDTO } from "./dto/create.sharedspace.dto";
 import { InjectRepository } from "@nestjs/typeorm";
-import { DataSource, Equal, IsNull, Or, Repository } from "typeorm";
+import { DataSource, In, Repository } from "typeorm";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import { nanoid } from "nanoid";
 import { UpdateSharedspaceNameDTO } from "./dto/update.sharedspace.name.dto";
 import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
-import { ChatsCommandList, SharedspaceMembersRoles, SubscribedspacesFilter, TSubscribedspacesFilter } from "src/typings/types";
+import { ChatsCommandList, SharedspaceMembersRoles, SubscribedspacesSorts } from "src/typings/types";
 import { Users } from "src/entities/Users";
-import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, INTERNAL_SERVER_MESSAGE, NOT_FOUND_RESOURCE, NOT_FOUND_SPACE_MESSAGE } from "src/common/constant/error.message";
+import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, INTERNAL_SERVER_MESSAGE, NOT_FOUND_RESOURCE } from "src/common/constant/error.message";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
 import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dto";
 import handleError from "src/common/function/handleError";
@@ -22,11 +22,18 @@ import { Images } from "src/entities/Images";
 import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
 import { AwsService } from "src/aws/aws.service";
 import path from "path";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { Cache } from 'cache-manager';
+import { RolesService } from "src/roles/roles.service";
 
 @Injectable()
 export class SharedspacesService {
   constructor(
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
     private dataSource: DataSource,
+    @InjectRepository(Users)
+    private usersRepository: Repository<Users>,
     @InjectRepository(Sharedspaces)
     private sharedspacesRepository: Repository<Sharedspaces>,
     @InjectRepository(SharedspaceMembers)
@@ -39,6 +46,7 @@ export class SharedspacesService {
     private imagesRepository: Repository<Images>,
     private readonly eventsGateway: EventsGateway,
     private awsService: AwsService,
+    private rolesService: RolesService,
   ) {}
 
   async getSharedspace(url: string) {
@@ -87,57 +95,82 @@ export class SharedspacesService {
   }
 
   async getSubscribedspaces(
-    filter: TSubscribedspacesFilter,
-    user: Users,
+    sort: string,
+    UserId: number,
+    page: number,
+    limit = 7,
   ) {
     const whereCondition = {
-      UserId: user.id,
+      UserId,
     };
 
-    if (filter === SubscribedspacesFilter.OWNED) {
-      Object.assign(whereCondition, { Role: { name: SharedspaceMembersRoles.OWNER } });
+    if (sort === SubscribedspacesSorts.OWNED) {
+      const roleIdMap = await this.rolesService.getRoleMap();
+
+      const RoleId = roleIdMap[SharedspaceMembersRoles.OWNER];
+      Object.assign(whereCondition, { RoleId });
     }
 
-    if (filter === SubscribedspacesFilter.UNOWNED) {
-      const result =
-        Object
-          .values(SharedspaceMembersRoles)
-          .filter(RoleName => RoleName !== SharedspaceMembersRoles.OWNER)
-          .map(RoleName => Equal(RoleName));
+    if (sort === SubscribedspacesSorts.UNOWNED) {
+      const roleIdMap = await this.rolesService.getRoleMap();
 
-      Object.assign(whereCondition, { Role: { name: Or(...result) } });
+      const roleIdsWithoutOwner = Object
+        .entries(roleIdMap)
+        .filter((role: [string, number]) => role[0] !== SharedspaceMembersRoles.OWNER)
+        .map((role: [string, number]) => role[1]);
+      
+      Object.assign(whereCondition, { RoleId: In(roleIdsWithoutOwner) });
     }
 
     try {
-      return await this.sharedspaceMembersRepository.find({
+      const user_roles = await this.sharedspaceMembersRepository.find({
         select: {
-          UserId: true,
           SharedspaceId: true,
-          RoleId: true,
-          createdAt: true,
-          Sharedspace: {
-            name: true,
-            url: true,
-            private: true,
-            Owner: {
-              email: true,
-            },
-          },
-          Role: {
-            name: true,
-          },
-        },
-        relations: {
-          Sharedspace: {
-            Owner: true,
-          },
-          Role: true,
         },
         where: whereCondition,
         order: {
           createdAt: 'DESC',
         },
+        skip: (page - 1) * limit,
+        take: limit,
       });
+
+      const subscribedspaces = await this.sharedspacesRepository.find({
+        where: {
+          id: In(user_roles.map((role) => role.SharedspaceId)),
+        },
+      });
+
+      const owners = await this.usersRepository.find({
+        select: {
+          id: true,
+          email: true,
+        },
+        where: {
+          id: In(subscribedspaces.map((space) => space.OwnerId)),
+        },
+      });
+
+      const owners_map = owners.reduce((obj, owner) => {
+        obj[owner.id] = owner.email;
+        return obj;
+      }, {});
+
+      const spaces = subscribedspaces.map((space) => {
+        return {
+          ...space,
+          owner: owners_map[space.OwnerId],
+          permission: {
+            isOwner: UserId === space.OwnerId,
+          },
+        };
+      });
+
+      const totalCount = await this.sharedspaceMembersRepository.count({
+        where: whereCondition,
+      });
+
+      return { spaces, totalCount };
     } catch (err) {
       handleError(err);
     }
