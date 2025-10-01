@@ -12,6 +12,8 @@ import { EventsModule } from 'src/events/events.module';
 import { Images } from 'src/entities/Images';
 import { AwsModule } from 'src/aws/aws.module';
 import { RefreshTokens } from 'src/entities/RefreshTokens';
+import { Users } from 'src/entities/Users';
+import { RolesModule } from 'src/roles/roles.module';
 
 @Module({
   imports: [
@@ -22,9 +24,11 @@ import { RefreshTokens } from 'src/entities/RefreshTokens';
       Chats,
       Images,
       RefreshTokens,
+      Users,
     ]),
     EventsModule,
     AwsModule,
+    RolesModule,
   ],
   controllers: [ SharedspacesController ],
   providers: [
