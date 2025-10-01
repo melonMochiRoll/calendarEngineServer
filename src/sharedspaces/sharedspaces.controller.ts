@@ -6,8 +6,6 @@ import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { OwnerOnlyRoles } from "src/common/decorator/owner.only.decorator";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
-import { TSubscribedspacesFilter } from "src/typings/types";
-import { SubscribedFilterValidationPipe } from "src/common/pipe/subscribedFilter.validation.pipe";
 import { PublicSpaceGuard } from "src/common/guard/public.space.guard";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
 import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dto";
@@ -38,10 +36,11 @@ export class SharedspacesController {
   @UseGuards(JwtAuthGuard)
   @Get('subscribed')
   getSubscribedspaces(
-    @Query('filter', SubscribedFilterValidationPipe) filter: TSubscribedspacesFilter,
+    @Query('sort') sort: string,
+    @Query('page', ParseIntPipe) page: number,
     @User() user: Users,
   ) {
-    return this.sharedspacesService.getSubscribedspaces(filter, user);
+    return this.sharedspacesService.getSubscribedspaces(sort, user.id, page);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
