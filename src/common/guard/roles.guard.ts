@@ -3,21 +3,30 @@ import { Reflector } from '@nestjs/core';
 import { Roles } from '../decorator/roles.decorator';
 import { SharedspaceMembers } from 'src/entities/SharedspaceMembers';
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE } from '../constant/error.message';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { SharedspacesService } from 'src/sharedspaces/sharedspaces.service';
+import { RolesService } from 'src/roles/roles.service';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
+    private sharedspacesService: SharedspacesService,
+    private rolesService: RolesService,
+    @InjectRepository(SharedspaceMembers)
+    private sharedspaceMembersRepository: Repository<SharedspaceMembers>,
   ) {}
   
   async canActivate(context: ExecutionContext) {
     const roles = this.reflector.get(Roles, context.getHandler());
     
-    if (!roles) {
+    if (!roles || !roles.length) {
       return true;
     }
 
-    const userSpaces = context.switchToHttp().getRequest().user['Sharedspacemembers'];
+    const request = context.switchToHttp().getRequest();
+    const user = request.user;
 
     const url: string | null = context.switchToHttp().getRequest().params.url;
 
@@ -25,24 +34,26 @@ export class RolesGuard implements CanActivate {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
-    const userRoles = userSpaces
-      .filter((item: SharedspaceMembers) => item.Sharedspace.url === url)
-      .map((item: SharedspaceMembers) => item?.Role.name || '');
+    const space = await this.sharedspacesService.findOne(user.id, url);
 
-    if (!this.matchRoles(roles, userRoles)) {
-      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+    if (!space) {
+      throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
-    return true;
-  }
+    const userRole = await this.sharedspaceMembersRepository.findOne({
+      select: {
+        SharedspaceId: true,
+        RoleId: true,
+      },
+      where: {
+        UserId: user?.id,
+        SharedspaceId: space?.id,
+      },
+    });
 
-  private matchRoles = (roles: string[], userRoles: string[]) => {
-    return roles.reduce((acc: boolean, role: string) => {
-      if (!acc && userRoles.includes(role)) {
-        return true;
-      } else {
-        return acc;
-      }
-    }, false);
+    const roleIdMap = await this.rolesService.getRoleMap();
+    const roleIds = roles.map((role) => roleIdMap[role]);
+
+    return roleIds.includes(userRole.RoleId);
   }
 }
