@@ -1,8 +1,8 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, BadRequestException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Roles } from '../decorator/roles.decorator';
 import { SharedspaceMembers } from 'src/entities/SharedspaceMembers';
-import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE } from '../constant/error.message';
+import { BAD_REQUEST_MESSAGE } from '../constant/error.message';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SharedspacesService } from 'src/sharedspaces/sharedspaces.service';
@@ -34,7 +34,7 @@ export class RolesGuard implements CanActivate {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
-    const space = await this.sharedspacesService.findOne(user.id, url);
+    const space = await this.sharedspacesService.getSharedspaceByUrl(user.id, url);
 
     if (!space) {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
