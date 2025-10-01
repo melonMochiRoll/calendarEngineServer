@@ -22,13 +22,11 @@ export const SharedspaceMembersRoles = {
 
 export type TSharedspaceMembersRole = typeof SharedspaceMembersRoles[keyof typeof SharedspaceMembersRoles];
 
-export const SubscribedspacesFilter = {
+export const SubscribedspacesSorts = {
   ALL: 'all',
   OWNED: 'owned',
   UNOWNED: 'unowned',
 } as const;
-
-export type TSubscribedspacesFilter = typeof SubscribedspacesFilter[keyof typeof SubscribedspacesFilter];
 
 export interface IErrorResponse {
   message: string,
