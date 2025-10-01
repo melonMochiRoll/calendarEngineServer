@@ -49,6 +49,32 @@ export class SharedspacesService {
     private rolesService: RolesService,
   ) {}
 
+  async getSharedspaceByUrl(UserId: number, url: string) {
+    const cacheKey = `${UserId}-${url}`;
+
+    const cashedSpace = await this.cacheManager.get<Sharedspaces>(cacheKey);
+
+    if (cashedSpace) {
+      return cashedSpace;
+    }
+
+    try {
+      const space = await this.sharedspacesRepository.findOne({
+        where: {
+          url,
+        },
+      });
+
+      if (space) {
+        await this.cacheManager.set(cacheKey, space, 60000 * 5);
+      }
+
+      return space;
+    } catch (err) {
+      handleError(err);
+    }
+  }
+
   async getSharedspace(url: string) {
     try {
       return await this.sharedspacesRepository.findOne({
