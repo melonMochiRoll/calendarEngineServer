@@ -49,8 +49,8 @@ export class SharedspacesService {
     private rolesService: RolesService,
   ) {}
 
-  async getSharedspaceByUrl(UserId: number, url: string) {
-    const cacheKey = `${UserId}-${url}`;
+  async getSharedspaceByUrl(url: string) {
+    const cacheKey = `sharedspace-${url}`;
 
     const cashedSpace = await this.cacheManager.get<Sharedspaces>(cacheKey);
 
@@ -66,7 +66,8 @@ export class SharedspacesService {
       });
 
       if (space) {
-        await this.cacheManager.set(cacheKey, space, 60000 * 5);
+        const minute = 60000;
+        await this.cacheManager.set(cacheKey, space, 15 * minute);
       }
 
       return space;
