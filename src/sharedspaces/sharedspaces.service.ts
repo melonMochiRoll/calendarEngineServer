@@ -76,46 +76,32 @@ export class SharedspacesService {
     }
   }
 
-  async getSharedspace(url: string) {
+  async getSharedspace(
+    url: string,
+    UserId?: number,
+  ) {
     try {
-      return await this.sharedspacesRepository.findOne({
-        select: {
-          id: true,
-          name: true,
-          url: true,
-          private: true,
-          Owner: {
-            id: true,
-            email: true,
-          },
-          Sharedspacemembers: {
-            UserId: true,
-            createdAt: true,
-            Role: {
-              name: true,
-            },
-            User: {
-              email: true,
-              profileImage: true,
-            }
-          },
+      const space = await this.getSharedspaceByUrl(url);
+
+      if (!space) {
+        throw new BadRequestException(BAD_REQUEST_MESSAGE);
+      }
+
+      const roleIdMap = await this.rolesService.getRoleMap();
+      const userRole = await this.rolesService.getUserRole(UserId, space.id);
+
+      const isOwner = space.OwnerId === UserId;
+      const isMember = isOwner || roleIdMap['member'] === userRole?.RoleId;
+      const isViewer = isOwner || isMember || roleIdMap['viewer'] === userRole?.RoleId
+
+      return {
+        ...space,
+        permission: {
+          isOwner,
+          isMember,
+          isViewer,
         },
-        relations: {
-          Owner: true,
-          Sharedspacemembers: {
-            User: true,
-            Role: true,
-          },
-        },
-        where: {
-          url,
-        },
-        order: {
-          Sharedspacemembers: {
-            createdAt: 'ASC',
-          },
-        }
-      });
+      };
     } catch (err) {
       handleError(err);
     }
