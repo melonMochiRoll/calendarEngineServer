@@ -8,6 +8,7 @@ import { CONFLICT_MESSAGE } from "src/common/constant/error.message";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { ROLE_ID_MAP_KEY } from "src/common/constant/auth.constants";
+import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 
 @Injectable()
 export class RolesService {
@@ -16,6 +17,8 @@ export class RolesService {
     private cacheManager: Cache,
     @InjectRepository(Roles)
     private rolesRepository: Repository<Roles>,
+    @InjectRepository(SharedspaceMembers)
+    private sharedspaceMembersRepository: Repository<SharedspaceMembers>,
   ) {}
 
   async getRoleMap() {
@@ -43,6 +46,39 @@ export class RolesService {
       }
 
       return role_map;
+    } catch (err) {
+      handleError(err);
+    }
+  }
+
+  async getUserRole(
+    UserId: number,
+    SharedspaceId: number,
+  ) {
+    const cacheKey = `user:role:${UserId}:${SharedspaceId}`;
+    const cachedUserRole = await this.cacheManager.get<Pick<SharedspaceMembers, 'RoleId'>>(cacheKey);
+
+    if (cachedUserRole) {
+      return cachedUserRole;
+    }
+
+    try {
+      const userRole = await this.sharedspaceMembersRepository.findOne({
+        select: {
+          RoleId: true,
+        },
+        where: {
+          UserId,
+          SharedspaceId,
+        },
+      });
+
+      if (userRole) {
+        const minute = 60000;
+        await this.cacheManager.set(cacheKey, userRole, 5 * minute);
+      }
+
+      return userRole;
     } catch (err) {
       handleError(err);
     }
