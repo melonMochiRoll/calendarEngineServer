@@ -49,8 +49,8 @@ export class SharedspacesService {
     private rolesService: RolesService,
   ) {}
 
-  async getSharedspaceByUrl(url: string) {
-    const cacheKey = `sharedspace-${url}`;
+  async getSharedspaceByUrl(url: string, columns?: string[]) {
+    const cacheKey = `sharedspace:${url}:${columns.join(',')}`;
 
     const cashedSpace = await this.cacheManager.get<Sharedspaces>(cacheKey);
 
@@ -59,7 +59,10 @@ export class SharedspacesService {
     }
 
     try {
+      const selectClause = Object.fromEntries(columns.map(column => [column, true]));
+
       const space = await this.sharedspacesRepository.findOne({
+        select: selectClause,
         where: {
           url,
         },
@@ -67,7 +70,7 @@ export class SharedspacesService {
 
       if (space) {
         const minute = 60000;
-        await this.cacheManager.set(cacheKey, space, 15 * minute);
+        await this.cacheManager.set(cacheKey, space, 10 * minute);
       }
 
       return space;
@@ -81,7 +84,7 @@ export class SharedspacesService {
     UserId?: number,
   ) {
     try {
-      const space = await this.getSharedspaceByUrl(url);
+      const space = await this.getSharedspaceByUrl(url, ['id', 'name', 'url', 'private']);
 
       if (!space) {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
@@ -149,6 +152,12 @@ export class SharedspacesService {
       });
 
       const subscribedspaces = await this.sharedspacesRepository.find({
+        select: {
+          name: true,
+          url: true,
+          private: true,
+          OwnerId: true,
+        },
         where: {
           id: In(user_roles.map((role) => role.SharedspaceId)),
         },
@@ -170,8 +179,9 @@ export class SharedspacesService {
       }, {});
 
       const spaces = subscribedspaces.map((space) => {
+        const { OwnerId, ...rest } = space;
         return {
-          ...space,
+          ...rest,
           owner: owners_map[space.OwnerId],
           permission: {
             isOwner: UserId === space.OwnerId,
