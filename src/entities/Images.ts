@@ -1,6 +1,7 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Chats } from "./Chats";
 
+@Index('images_createdAt_idx', ['createdAt'])
 @Entity({ name: 'images' })
 export class Images {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
@@ -11,6 +12,12 @@ export class Images {
 
   @Column({ type: 'int', name: 'ChatId' })
   ChatId: number;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt: Date | null;
 
   @ManyToOne(() => Chats, chats => chats.Images, {
     onUpdate: 'CASCADE',

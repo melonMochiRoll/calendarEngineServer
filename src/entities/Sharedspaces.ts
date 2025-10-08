@@ -5,8 +5,7 @@ import { SharedspaceMembers } from "./SharedspaceMembers";
 import { JoinRequests } from "./JoinRequests";
 import { Chats } from "./Chats";
 
-@Index('sharedspaces_OwnerId_idx', ['OwnerId'])
-@Unique('sharedspaces_url_idx', ['url'])
+@Index('sharedspaces_createdAt_idx', ['createdAt'])
 @Entity({ name: 'sharedspaces' })
 export class Sharedspaces {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
@@ -15,7 +14,7 @@ export class Sharedspaces {
   @Column({ type: 'varchar', name: 'name', length: 30, default: '새 스페이스' })
   name: string;
 
-  @Column({ type: 'varchar', name: 'url', length: 5 })
+  @Column({ type: 'varchar', name: 'url', length: 5, unique: true })
   url: string;
 
   @Column({ type: 'boolean', default: 1 })

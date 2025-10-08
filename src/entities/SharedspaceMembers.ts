@@ -1,8 +1,9 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { Users } from "./Users";
 import { Sharedspaces } from "./Sharedspaces";
 import { Roles } from "./Roles";
 
+@Index('sharedspacemembers_createdAt_idx', ['createdAt'])
 @Entity({ name: 'sharedspacemembers' })
 export class SharedspaceMembers {
 

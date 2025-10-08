@@ -2,9 +2,8 @@ import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, 
 import { Users } from "./Users";
 import { Sharedspaces } from "./Sharedspaces";
 
-@Index('todos_AuthorId_idx', ['AuthorId'])
+@Index('todos_createdAt_idx', ['createdAt'])
 @Index('todos_date_idx', ['date'])
-@Index('todos_SharedspaceId_idx', ['SharedspaceId'])
 @Entity({ name: 'todos' })
 export class Todos {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id' })

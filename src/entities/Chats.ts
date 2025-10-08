@@ -1,8 +1,9 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Users } from "./Users";
 import { Sharedspaces } from "./Sharedspaces";
 import { Images } from "./Images";
 
+@Index('chats_createdAt_idx', ['createdAt'])
 @Entity({ name: 'chats' })
 export class Chats {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
