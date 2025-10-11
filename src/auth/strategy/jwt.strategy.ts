@@ -1,47 +1,67 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
 import { PassportStrategy } from "@nestjs/passport";
 import { InjectRepository } from "@nestjs/typeorm";
-import { ExtractJwt, Strategy } from "passport-jwt";
-import { ACCESS_TOKEN_COOKIE_NAME } from "src/common/constant/auth.constants";
+import { Request } from "express";
+import { Strategy } from "passport-custom";
+import { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } from "src/common/constant/auth.constants";
 import { TOKEN_EXPIRED } from "src/common/constant/error.message";
-import { Users } from "src/entities/Users";
-import { TAccessTokenPayload } from "src/typings/types";
+import { RefreshTokens } from "src/entities/RefreshTokens";
+import { TAccessTokenPayload, TRefreshTokenPayload } from "src/typings/types";
+import { UsersService } from "src/users/users.service";
 import { Repository } from "typeorm";
+import dayjs from "dayjs";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+import { AuthService } from "../auth.service";
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(
-    @InjectRepository(Users)
-    private usersRepository: Repository<Users>,
+    private jwtService: JwtService,
+    private usersService: UsersService,
+    private authService: AuthService,
+    @InjectRepository(RefreshTokens)
+    private refreshTokensRepository: Repository<RefreshTokens>,
   ) {
-    super({
-      jwtFromRequest: ExtractJwt.fromExtractors([
-        (request) => {
-          return request?.cookies[ACCESS_TOKEN_COOKIE_NAME] ? request?.cookies[ACCESS_TOKEN_COOKIE_NAME] : null;
-        }
-      ]),
-      ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET,
-    });
+    super();
+    dayjs.extend(isSameOrAfter);
   }
 
-  async validate(payload: TAccessTokenPayload) {
-    const user = await this.usersRepository.findOne({
-      select: {
-        id: true,
-        email: true,
-        provider: true,
-        profileImage: true,
-      },
-      where: {
-        id: payload.UserId,
-      },
-    });
+  async validate(request: Request) {
+    const accessToken = request?.cookies[ACCESS_TOKEN_COOKIE_NAME];
 
-    if (!user) {
-      throw new UnauthorizedException(TOKEN_EXPIRED);
+    try {
+      const accessTokenPayload = await this.jwtService.verifyAsync<TAccessTokenPayload>(accessToken, {
+        secret: process.env.JWT_SECRET,
+        ignoreExpiration: false,
+      });
+
+      const user = await this.usersService.getUserById(accessTokenPayload.UserId);
+
+      return user;
+    } catch (err) {
+      const refreshToken = request?.cookies[REFRESH_TOKEN_COOKIE_NAME];
+
+      const refreshTokenPayload = await this.jwtService.verifyAsync<TRefreshTokenPayload>(refreshToken, {
+        secret: process.env.JWT_SECRET,
+        ignoreExpiration: false,
+      });
+
+      const refreshTokenData = await this.refreshTokensRepository.findOne({
+        where: {
+          jti: refreshTokenPayload.jti,
+          UserId: refreshTokenPayload.UserId,
+        },
+      });
+
+      if (!refreshTokenData || dayjs().isSameOrAfter(dayjs(refreshTokenData.revokedAt))) {
+        throw new UnauthorizedException(TOKEN_EXPIRED);
+      }
+
+      const user = await this.usersService.getUserById(refreshTokenPayload.UserId);
+      await this.authService.jwtLogin(request.res, user.id);
+
+      return user;
     }
-
-    return user;
   }
 }
