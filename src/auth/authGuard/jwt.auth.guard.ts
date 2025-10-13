@@ -37,15 +37,13 @@ export class PublicAuthGuard extends AuthGuard('jwt') {
 @Injectable()
 export class IsNotJwtAuthenicatedGuard extends AuthGuard('jwt') {
   async canActivate(context: ExecutionContext) {
-    const request = context.switchToHttp().getRequest();
+    return await super.canActivate(context) as boolean;
+  }
 
-    const accessToken = request.cookies[ACCESS_TOKEN_COOKIE_NAME];
-    const refreshToken = request.cookies[REFRESH_TOKEN_COOKIE_NAME];
-
-    if (accessToken && refreshToken) {
+  handleRequest<TUser = Users>(err: any, user: TUser | null) {
+    if (user) {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
-    
-    return true;
+    return null;
   }
 }
