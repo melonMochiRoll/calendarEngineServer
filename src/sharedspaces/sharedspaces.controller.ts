@@ -15,7 +15,7 @@ import { Sharedspaces } from "src/entities/Sharedspaces";
 import { CreateSharedspaceChatDTO } from "./dto/create.sharedspace.chat.dto";
 import { FilesInterceptor } from "@nestjs/platform-express";
 import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
-import { JwtAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
+import { JwtAuthGuard, PublicAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
 import { RolesGuard } from "src/common/guard/roles.guard";
 
@@ -25,12 +25,13 @@ export class SharedspacesController {
     private sharedspacesService: SharedspacesService,
   ) {}
 
-  @UseGuards(JwtAuthGuard, PublicSpaceGuard)
+  @UseGuards(PublicAuthGuard)
   @Get(':url/view')
   getSharedspace(
     @Param('url') url: string,
+    @User() user: Users,
   ) {
-    return this.sharedspacesService.getSharedspace(url);
+    return this.sharedspacesService.getSharedspace(url, user?.id);
   }
 
   @UseGuards(JwtAuthGuard)
