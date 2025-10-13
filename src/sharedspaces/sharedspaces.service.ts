@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { CreateSharedspaceDTO } from "./dto/create.sharedspace.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, In, Repository } from "typeorm";
@@ -9,7 +9,7 @@ import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { ChatsCommandList, SharedspaceMembersRoles, SubscribedspacesSorts } from "src/typings/types";
 import { Users } from "src/entities/Users";
-import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, INTERNAL_SERVER_MESSAGE, NOT_FOUND_RESOURCE } from "src/common/constant/error.message";
+import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, INTERNAL_SERVER_MESSAGE, NOT_FOUND_RESOURCE, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
 import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dto";
 import handleError from "src/common/function/handleError";
@@ -50,16 +50,17 @@ export class SharedspacesService {
   ) {}
 
   async getSharedspaceByUrl(url: string, columns?: string[]) {
-    const cacheKey = `sharedspace:${url}:${columns.join(',')}`;
+    const columnsKey = columns ? `${columns?.join(',')}` : '*';
+    const cacheKey = `sharedspace:${url}:${columnsKey}`;
 
-    const cashedSpace = await this.cacheManager.get<Sharedspaces>(cacheKey);
+    const cachedSpace = await this.cacheManager.get<Sharedspaces>(cacheKey);
 
-    if (cashedSpace) {
-      return cashedSpace;
+    if (cachedSpace) {
+      return cachedSpace;
     }
 
     try {
-      const selectClause = Object.fromEntries(columns.map(column => [column, true]));
+      const selectClause = columns ? Object.fromEntries(columns.map(column => [column, true])) : {};
 
       const space = await this.sharedspacesRepository.findOne({
         select: selectClause,
@@ -84,18 +85,48 @@ export class SharedspacesService {
     UserId?: number,
   ) {
     try {
-      const space = await this.getSharedspaceByUrl(url, ['id', 'name', 'url', 'private']);
+      const space = await this.getSharedspaceByUrl(url, ['id', 'name', 'url', 'private', 'OwnerId']);
 
       if (!space) {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
+      if (!UserId) {
+        if (space.private) {
+          throw new UnauthorizedException(UNAUTHORIZED_MESSAGE);
+        }
+        
+        return {
+          ...space,
+          permission: {
+            isOwner: false,
+            isMember: false,
+            isViewer: true,
+          },
+        };
+      }
+
       const roleIdMap = await this.rolesService.getRoleMap();
       const userRole = await this.rolesService.getUserRole(UserId, space.id);
 
+      if (!userRole) {
+        if (space.private) {
+          throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+        }
+        
+        return {
+          ...space,
+          permission: {
+            isOwner: false,
+            isMember: false,
+            isViewer: true,
+          },
+        };
+      }
+
       const isOwner = space.OwnerId === UserId;
       const isMember = isOwner || roleIdMap['member'] === userRole?.RoleId;
-      const isViewer = isOwner || isMember || roleIdMap['viewer'] === userRole?.RoleId
+      const isViewer = isOwner || isMember || roleIdMap['viewer'] === userRole?.RoleId;
 
       return {
         ...space,
