@@ -9,6 +9,7 @@ import { RefreshTokens } from 'src/entities/RefreshTokens';
 import { SharedspaceMembers } from 'src/entities/SharedspaceMembers';
 import { SharedspacesModule } from 'src/sharedspaces/sharedspaces.module';
 import { RolesModule } from 'src/roles/roles.module';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { RolesModule } from 'src/roles/roles.module';
     ]),
     SharedspacesModule,
     RolesModule,
+    UsersModule,
   ],
   controllers: [ TodosController ],
   providers: [

@@ -14,6 +14,7 @@ import { AwsModule } from 'src/aws/aws.module';
 import { RefreshTokens } from 'src/entities/RefreshTokens';
 import { Users } from 'src/entities/Users';
 import { RolesModule } from 'src/roles/roles.module';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { RolesModule } from 'src/roles/roles.module';
     EventsModule,
     AwsModule,
     RolesModule,
+    UsersModule,
   ],
   controllers: [ SharedspacesController ],
   providers: [

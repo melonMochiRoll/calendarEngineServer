@@ -9,6 +9,7 @@ import { Roles } from 'src/entities/Roles';
 import { RefreshTokens } from 'src/entities/RefreshTokens';
 import { SharedspacesModule } from 'src/sharedspaces/sharedspaces.module';
 import { RolesModule } from 'src/roles/roles.module';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { RolesModule } from 'src/roles/roles.module';
     ]),
     SharedspacesModule,
     RolesModule,
+    UsersModule,
   ],
   controllers: [ JoinRequestsController ],
   providers: [ JoinRequestsService ],
