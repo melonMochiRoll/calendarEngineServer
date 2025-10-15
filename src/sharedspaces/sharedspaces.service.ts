@@ -49,7 +49,10 @@ export class SharedspacesService {
     private rolesService: RolesService,
   ) {}
 
-  async getSharedspaceByUrl<T extends 'full' | 'standard' = 'standard'>(url: string, columnGroup?: T): Promise<SharedspaceReturnMap<T>> {
+  async getSharedspaceByUrl<T extends 'full' | 'standard' = 'standard'>(
+    url: string,
+    columnGroup?: T,
+  ): Promise<SharedspaceReturnMap<T>> {
     const cacheKey = `sharedspace:${url}:${columnGroup}`;
 
     const cachedSpace = await this.cacheManager.get<SharedspaceReturnMap<T>>(cacheKey);
