@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Users } from "src/entities/Users";
 import { IsNull, Like, Repository } from "typeorm";
@@ -6,14 +6,58 @@ import 'dotenv/config';
 import bcrypt from 'bcrypt';
 import { CreateUserDTO } from "./dto/create.user.dto";
 import handleError from "src/common/function/handleError";
-import { ProviderList } from "src/typings/types";
+import { ProviderList, UserReturnMap } from "src/typings/types";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class UsersService {
   constructor(
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
     @InjectRepository(Users)
     private usersRepository: Repository<Users>
   ) {}
+
+  async getUserById<T extends 'full' | 'standard' = 'standard'>(
+    id: number,
+    columnGroup?: T,
+  ): Promise<UserReturnMap<T>> {
+    const cacheKey = `user:${id}:${columnGroup}`;
+
+    const cachedUser = await this.cacheManager.get<UserReturnMap<T>>(cacheKey);
+
+    if (cachedUser) {
+      return cachedUser;
+    }
+
+    const selectClause = columnGroup === 'full' ?
+      {} :
+      {
+        id: true,
+        email: true,
+        provider: true,
+        profileImage: true,
+      };
+
+    try {
+      const user = await this.usersRepository.findOne({
+        select: selectClause,
+        where: {
+          id,
+        },
+      }) as UserReturnMap<T>;
+
+      if (user) {
+        const minute = 60000;
+        await this.cacheManager.set(cacheKey, user, 10 * minute);
+      }
+
+      return user;
+    } catch (err) {
+      handleError(err);
+    }
+  }
 
   async isUser(email: string) {
     try {
