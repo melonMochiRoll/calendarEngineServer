@@ -98,3 +98,7 @@ export const ChatsCommandList = {
 export type SharedspaceReturnMap<T> = T extends 'full' ? Sharedspaces :
   T extends 'standard' ? Pick<Sharedspaces, 'id' | 'name' | 'url' | 'private' | 'createdAt' | 'OwnerId'> :
   never;
+
+export type UserReturnMap<T> = T extends 'full' ? Users :
+  T extends 'standard' ? Pick<Users, 'id' | 'email' | 'provider' | 'profileImage'> :
+  never;
