@@ -7,7 +7,7 @@ import { nanoid } from "nanoid";
 import { UpdateSharedspaceNameDTO } from "./dto/update.sharedspace.name.dto";
 import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
-import { ChatsCommandList, SharedspaceMembersRoles, SubscribedspacesSorts } from "src/typings/types";
+import { ChatsCommandList, SharedspaceMembersRoles, SharedspaceReturnMap, SubscribedspacesSorts } from "src/typings/types";
 import { Users } from "src/entities/Users";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, INTERNAL_SERVER_MESSAGE, NOT_FOUND_RESOURCE, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
@@ -49,25 +49,33 @@ export class SharedspacesService {
     private rolesService: RolesService,
   ) {}
 
-  async getSharedspaceByUrl(url: string, columns?: string[]) {
-    const columnsKey = columns ? `${columns?.join(',')}` : '*';
-    const cacheKey = `sharedspace:${url}:${columnsKey}`;
+  async getSharedspaceByUrl<T extends 'full' | 'standard' = 'standard'>(url: string, columnGroup?: T): Promise<SharedspaceReturnMap<T>> {
+    const cacheKey = `sharedspace:${url}:${columnGroup}`;
 
-    const cachedSpace = await this.cacheManager.get<Sharedspaces>(cacheKey);
+    const cachedSpace = await this.cacheManager.get<SharedspaceReturnMap<T>>(cacheKey);
 
     if (cachedSpace) {
       return cachedSpace;
     }
 
-    try {
-      const selectClause = columns ? Object.fromEntries(columns.map(column => [column, true])) : {};
+    const selectClause = columnGroup === 'full' ?
+      {} :
+      {
+        id: true,
+        name: true,
+        url: true,
+        private: true,
+        createdAt: true,
+        OwnerId: true,
+      };
 
+    try {
       const space = await this.sharedspacesRepository.findOne({
         select: selectClause,
         where: {
           url,
         },
-      });
+      }) as SharedspaceReturnMap<T>;
 
       if (space) {
         const minute = 60000;
@@ -85,7 +93,7 @@ export class SharedspacesService {
     UserId?: number,
   ) {
     try {
-      const space = await this.getSharedspaceByUrl(url, ['id', 'name', 'url', 'private', 'OwnerId']);
+      const space = await this.getSharedspaceByUrl(url);
 
       if (!space) {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
