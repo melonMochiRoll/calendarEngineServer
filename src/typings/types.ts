@@ -94,3 +94,7 @@ export const ChatsCommandList = {
   CHAT_DELETED: 'chat_deleted',
   CHAT_IMAGE_DELETED: 'chat_image_deleted',
 } as const;
+
+export type SharedspaceReturnMap<T> = T extends 'full' ? Sharedspaces :
+  T extends 'standard' ? Pick<Sharedspaces, 'id' | 'name' | 'url' | 'private' | 'createdAt' | 'OwnerId'> :
+  never;
