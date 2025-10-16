@@ -59,6 +59,46 @@ export class UsersService {
     }
   }
 
+  async getUserByEmail<T extends 'full' | 'standard' = 'standard'>(
+    email: string,
+    columnGroup?: T,
+  ): Promise<UserReturnMap<T>> {
+    const cacheKey = `user:${email}:${columnGroup}`;
+
+    const cachedUser = await this.cacheManager.get<UserReturnMap<T>>(cacheKey);
+
+    if (cachedUser) {
+      return cachedUser;
+    }
+
+    const selectClause = columnGroup === 'full' ?
+      {} :
+      {
+        id: true,
+        email: true,
+        provider: true,
+        profileImage: true,
+      };
+
+    try {
+      const user = await this.usersRepository.findOne({
+        select: selectClause,
+        where: {
+          email,
+        },
+      }) as UserReturnMap<T>;
+
+      if (user) {
+        const minute = 60000;
+        await this.cacheManager.set(cacheKey, user, 10 * minute);
+      }
+
+      return user;
+    } catch (err) {
+      handleError(err);
+    }
+  }
+
   async isUser(email: string) {
     try {
       return await this.usersRepository.findOneByOrFail({ email })
