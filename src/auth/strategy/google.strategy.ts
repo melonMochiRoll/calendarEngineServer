@@ -7,13 +7,15 @@ import { CONFLICT_ACCOUNT_MESSAGE } from "src/common/constant/error.message";
 import handleError from "src/common/function/handleError";
 import { Users } from "src/entities/Users";
 import { ProviderList, TGoogleProfile } from "src/typings/types";
+import { UsersService } from "src/users/users.service";
 import { Repository } from "typeorm";
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google'){
   constructor(
     @InjectRepository(Users)
-    private usersRepository: Repository<Users>
+    private usersRepository: Repository<Users>,
+    private usersService: UsersService,
   ) {
     super({
       clientID: process.env.GOOGLE_CLIENT_ID,
@@ -24,48 +26,24 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google'){
   }
 
   async validate(req: Request, accessToken: string, refreshToken: string, profile: TGoogleProfile) {
-    try {
-      const exUser = await this.usersRepository.findOne({
-        select: {
-          id: true,
-          email: true,
-          provider: true,
-          profileImage: true,
-        },
-        where: {
-          email: profile.emails[0].value,
-        },
-      });
+    const exUser = await this.usersService.getUserByEmail(profile.emails[0].value);
 
-      if (exUser) {
-        if (exUser.provider !== ProviderList.GOOGLE) {
-          throw new ConflictException(CONFLICT_ACCOUNT_MESSAGE);
-        }
-
-        return exUser;
+    if (exUser) {
+      if (exUser.provider !== ProviderList.GOOGLE) {
+        throw new ConflictException(CONFLICT_ACCOUNT_MESSAGE);
       }
 
-      await this.usersRepository.save({
-        email: profile.emails[0].value,
-        profileImage: profile._json.picture,
-        provider: ProviderList.GOOGLE,
-      });
-
-      const newUser = await this.usersRepository.findOne({
-        select: {
-          id: true,
-          email: true,
-          provider: true,
-          profileImage: true,
-        },
-        where: {
-          email: profile.emails[0].value,
-        },
-      });
-
-      return newUser;
-    } catch (err) {
-      handleError(err);
+      return exUser;
     }
+
+    await this.usersRepository.save({
+      email: profile.emails[0].value,
+      profileImage: profile._json.picture,
+      provider: ProviderList.GOOGLE,
+    });
+
+    const newUser = await this.usersService.getUserByEmail(profile.emails[0].value);
+
+    return newUser;
   }
 }

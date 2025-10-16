@@ -7,13 +7,15 @@ import { CONFLICT_ACCOUNT_MESSAGE } from "src/common/constant/error.message";
 import handleError from "src/common/function/handleError";
 import { Users } from "src/entities/Users";
 import { ProviderList, TNaverProfile } from "src/typings/types";
+import { UsersService } from "src/users/users.service";
 import { Repository } from "typeorm";
 
 @Injectable()
 export class NaverStrategy extends PassportStrategy(Strategy, 'naver') {
   constructor(
     @InjectRepository(Users)
-    private usersRepository: Repository<Users>
+    private usersRepository: Repository<Users>,
+    private usersService: UsersService,
   ) {
     super({
       clientID: process.env.NAVER_CLIENT_ID,
@@ -25,48 +27,24 @@ export class NaverStrategy extends PassportStrategy(Strategy, 'naver') {
   }
 
   async validate(req: Request, accessToken: string, refreshToken: string, profile: TNaverProfile) {
-    try {
-      const exUser = await this.usersRepository.findOne({
-        select: {
-          id: true,
-          email: true,
-          provider: true,
-          profileImage: true,
-        },
-        where: {
-          email: profile.emails[0].value,
-        },
-      });
+    const exUser = await this.usersService.getUserByEmail(profile.emails[0].value);
 
-      if (exUser) {
-        if (exUser.provider !== ProviderList.NAVER) {
-          throw new ConflictException(CONFLICT_ACCOUNT_MESSAGE);
-        }
-
-        return exUser;
+    if (exUser) {
+      if (exUser.provider !== ProviderList.NAVER) {
+        throw new ConflictException(CONFLICT_ACCOUNT_MESSAGE);
       }
-      
-      await this.usersRepository.save({
-        email: profile.emails[0].value,
-        profileImage: profile._json.profile_image,
-        provider: ProviderList.NAVER,
-      });
 
-      const newUser = await this.usersRepository.findOne({
-        select: {
-          id: true,
-          email: true,
-          provider: true,
-          profileImage: true,
-        },
-        where: {
-          email: profile.emails[0].value,
-        },
-      });
-
-      return newUser;
-    } catch (err) {
-      handleError(err);
+      return exUser;
     }
+    
+    await this.usersRepository.save({
+      email: profile.emails[0].value,
+      profileImage: profile._json.profile_image,
+      provider: ProviderList.NAVER,
+    });
+
+    const newUser = await this.usersService.getUserByEmail(profile.emails[0].value);
+
+    return newUser;
   }
 }
