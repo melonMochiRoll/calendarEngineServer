@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Users } from "src/entities/Users";
-import { IsNull, Like, Repository } from "typeorm";
+import { Like, Repository } from "typeorm";
 import 'dotenv/config';
 import bcrypt from 'bcrypt';
 import { CreateUserDTO } from "./dto/create.user.dto";
@@ -61,7 +61,7 @@ export class UsersService {
 
   async isUser(email: string) {
     try {
-      return await this.usersRepository.findOneByOrFail({ deletedAt: IsNull(), email })
+      return await this.usersRepository.findOneByOrFail({ email })
         .then(() => true)
         .catch(() => false);
     } catch (err) {
