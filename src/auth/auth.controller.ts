@@ -1,5 +1,4 @@
 import { Controller, Get, Post, Redirect, Res, UseGuards } from "@nestjs/common";
-import { LocalAuthGuard } from "./authGuard/local.auth.guard";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
 import { Response } from "express";
@@ -16,12 +15,6 @@ export class AuthController {
   constructor(
     private authService: AuthService,
   ) {}
-
-  @UseGuards(LocalAuthGuard)
-  @Post('login')
-  login(@User() user: Users) {
-    return user;
-  }
 
   @UseGuards(IsNotJwtAuthenicatedGuard, JwtLoginAuthGuard)
   @Post('login/jwt')
