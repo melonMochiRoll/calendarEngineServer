@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { ConflictException, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Users } from "src/entities/Users";
 import { Like, Repository } from "typeorm";
@@ -9,6 +9,7 @@ import handleError from "src/common/function/handleError";
 import { ProviderList, UserReturnMap } from "src/typings/types";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
+import { CONFLICT_ACCOUNT_MESSAGE } from "src/common/constant/error.message";
 
 @Injectable()
 export class UsersService {
@@ -141,6 +142,12 @@ export class UsersService {
     const { email, password } = dto;
 
     try {
+      const exUser = await this.getUserByEmail(email);
+
+      if (exUser) {
+        throw new ConflictException(CONFLICT_ACCOUNT_MESSAGE);
+      }
+
       const SALT_OR_ROUNDS = Number(process.env.SALT_OR_ROUNDS);
       const hash = await bcrypt.hash(password, SALT_OR_ROUNDS);
 
@@ -151,7 +158,7 @@ export class UsersService {
       });
       
       return true;
-    } catch (err: any) {
+    } catch (err) {
       handleError(err);
     }
   }
