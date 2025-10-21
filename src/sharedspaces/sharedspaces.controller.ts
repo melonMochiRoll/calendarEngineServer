@@ -118,14 +118,14 @@ export class SharedspacesController {
     return this.sharedspacesService.deleteSharedspaceMembers(targetSpace, UserId);
   }
 
-  @UseGuards(JwtAuthGuard, PublicSpaceGuard)
+  @UseGuards(PublicAuthGuard)
   @Get(':url/chats')
   getSharedspaceChats(
-    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
-    @Query('offset', ParseIntPipe) offset: number,
-    @Query('limit', ParseIntPipe) limit: number,
+    @Param('url') url: string,
+    @Query('page', ParseIntPipe) page: number,
+    @User() user: Users,
   ) {
-    return this.sharedspacesService.getSharedspaceChats(targetSpace, offset, limit);
+    return this.sharedspacesService.getSharedspaceChats(url, page, user?.id);
   }
 
   @UseInterceptors(FilesInterceptor('images', 6, {

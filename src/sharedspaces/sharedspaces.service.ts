@@ -454,58 +454,80 @@ export class SharedspacesService {
   }
 
   async getSharedspaceChats(
-    targetSpace: Sharedspaces,
-    offset: number,
-    limit: number,
+    url: string,
+    page: number,
+    UserId?: number,
+    limit = 30,
   ) {
     try {
-      const result = await this.chatsRepository.find({
+      const space = await this.getSharedspaceByUrl(url);
+
+      if (!space) {
+        throw new BadRequestException(BAD_REQUEST_MESSAGE);
+      }
+
+      const chatRecords = await this.chatsRepository.find({
         select: {
           id: true,
           content: true,
           SenderId: true,
-          SharedspaceId: true,
           createdAt: true,
           updatedAt: true,
           Sender: {
             email: true,
             profileImage: true,
           },
-          Images: {
-            id: true,
-            path: true,
-          },
         },
         relations: {
           Sender: true,
-          Images: true,
         },
         where: {
-          SharedspaceId: targetSpace.id,
+          SharedspaceId: space.id,
         },
         order: {
           createdAt: 'DESC',
         },
-        skip: (offset - 1) * limit,
+        skip: (page - 1) * limit,
         take: limit,
       });
 
-      if (result.length < limit) {
-        return {
-          chats: result,
-          hasMoreData: false,
-        };
-      }
-
-      const count = await this.chatsRepository.count({
+      const images = await this.imagesRepository.find({
+        select: {
+          id: true,
+          path: true,
+        },
         where: {
-          SharedspaceId: targetSpace.id,
+          ChatId: In(chatRecords.map((chat) => chat.id)),
+        },
+      });
+
+      const imagesMap = images.reduce((acc, image) => {
+        if (!acc[image.id]) {
+          acc[image.id] = [];
+        }
+        acc[image.id].push(image);
+        return acc;
+      }, {});
+
+      const chats = chatRecords.map((chat) => {
+        return {
+          ...chat,
+          Images: imagesMap[chat.id] || [],
+          permission: {
+            isSender: chat.SenderId === UserId,
+          },
+        };
+      });
+
+      const totalCount = await this.chatsRepository.count({
+        where: {
+          SharedspaceId: space.id,
         },
       });
 
       return {
-        chats: result,
-        hasMoreData: !Boolean((offset - 1) * limit >= count),
+        chats,
+        hasMoreData: !Boolean(page * limit >= totalCount),
       };
     } catch (err) {
       handleError(err);
