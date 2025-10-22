@@ -618,17 +618,22 @@ export class SharedspacesService {
   }
 
   async updateSharedspaceChat(
-    targetSpace: Sharedspaces,
+    url: string,
     dto: UpdateSharedspaceChatDTO,
-    user: Users,
+    UserId: number,
   ) {
     const { ChatId, content } = dto;
 
     try {
+      const space = await this.getSharedspaceByUrl(url);
       const targetChat = await this.chatsRepository.findOneBy({ id: ChatId });
 
-      if (targetChat.SenderId !== user.id || targetChat.SharedspaceId !== targetSpace.id) {
-        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+      if (
+        !space ||
+        targetChat.SenderId !== UserId ||
+        targetChat.SharedspaceId !== space.id
+      ) {
+        throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
       await this.chatsRepository.update({ id: ChatId }, { content });
@@ -638,7 +643,6 @@ export class SharedspacesService {
           id: true,
           content: true,
           SenderId: true,
-          SharedspaceId: true,
           createdAt: true,
           updatedAt: true,
           Sender: {
@@ -660,7 +664,7 @@ export class SharedspacesService {
       });
 
       this.eventsGateway.server
-        .to(`/sharedspace-${targetSpace.url}`)
+        .to(`/sharedspace-${space.url}`)
         .emit(`publicChats:${ChatsCommandList.CHAT_UPDATED}`, chatWithUser);
     } catch (err) {
       handleError(err);
