@@ -6,7 +6,6 @@ import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { OwnerOnlyRoles } from "src/common/decorator/owner.only.decorator";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
-import { PublicSpaceGuard } from "src/common/guard/public.space.guard";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
 import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dto";
 import { UpdateSharedspacePrivateDTO } from "./dto/update.sharedspace.private.dto";
@@ -147,11 +146,11 @@ export class SharedspacesController {
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Patch(':url/chats')
   updateSharedspaceChat(
-    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
+    @Param('url') url: string,
     @Body() dto: UpdateSharedspaceChatDTO,
     @User() user: Users,
   ) {
-    return this.sharedspacesService.updateSharedspaceChat(targetSpace, dto, user);
+    return this.sharedspacesService.updateSharedspaceChat(url, dto, user.id);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
