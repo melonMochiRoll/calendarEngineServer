@@ -535,10 +535,10 @@ export class SharedspacesService {
   }
 
   async createSharedspaceChat(
-    targetSpace: Sharedspaces,
+    url: string,
     dto: CreateSharedspaceChatDTO,
     files: Express.Multer.File[],
-    user: Users,
+    UserId: number,
   ) {
     const { content } = dto;
 
@@ -549,16 +549,22 @@ export class SharedspacesService {
     const s3Keys = files.map((file) => `${process.env.AWS_S3_FOLDER_NAME}/${Date.now()}${path.extname(file.originalname)}`);
 
     try {
-      const chat = await qr.manager.save(Chats, {
+      const space = await this.getSharedspaceByUrl(url);
+
+      if (!space) {
+        throw new BadRequestException(BAD_REQUEST_MESSAGE);
+      }
+
+      const chatRecord = await qr.manager.save(Chats, {
         content,
-        SenderId: user.id,
-        SharedspaceId: targetSpace.id,
+        SenderId: UserId,
+        SharedspaceId: space.id,
       });
 
       for (let i=0; i<files.length; i++) {
         const key = s3Keys[i];
 
-        await qr.manager.save(Images, { path: key, ChatId: chat.id })
+        await qr.manager.save(Images, { path: key, ChatId: chatRecord.id })
           .then(async () => {
             await this.awsService.uploadImageToS3(files[i], key);
           });
@@ -572,7 +578,6 @@ export class SharedspacesService {
           id: true,
           content: true,
           SenderId: true,
-          SharedspaceId: true,
           createdAt: true,
           updatedAt: true,
           Sender: {
@@ -589,12 +594,12 @@ export class SharedspacesService {
           Images: true,
         },
         where: {
-          id: chat.id,
+          id: chatRecord.id,
         },
       });
 
       this.eventsGateway.server
-        .to(`/sharedspace-${targetSpace.url}`)
+        .to(`/sharedspace-${space.url}`)
         .emit(`publicChats:${ChatsCommandList.CHAT_CREATED}`, chatWithUser);
     } catch (err) {
       if (!qr.isReleased) {
