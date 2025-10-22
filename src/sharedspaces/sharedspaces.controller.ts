@@ -157,11 +157,11 @@ export class SharedspacesController {
   @HttpCode(204)
   @Delete(':url/chats/:id')
   deleteSharedspaceChat(
-    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
+    @Param('url') url: string,
     @Param('id', ParseIntPipe) chatId: number,
     @User() user: Users,
   ) {
-    return this.sharedspacesService.deleteSharedspaceChat(targetSpace, chatId, user);
+    return this.sharedspacesService.deleteSharedspaceChat(url, chatId, user.id);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
