@@ -133,15 +133,15 @@ export class SharedspacesController {
       fileSize: Number(process.env.MAX_CHAT_IMAGE_SIZE) * 1024 * 1024,
     },
   }))
-  @UseGuards(JwtAuthGuard, PublicSpaceGuard)
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post(':url/chats')
   createSharedspaceChat(
-    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
+    @Param('url') url: string,
     @Body() dto: CreateSharedspaceChatDTO,
     @UploadedFiles() files: Express.Multer.File[],
     @User() user: Users,
   ) {
-    return this.sharedspacesService.createSharedspaceChat(targetSpace, dto, files, user);
+    return this.sharedspacesService.createSharedspaceChat(url, dto, files, user.id);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
