@@ -672,15 +672,17 @@ export class SharedspacesService {
   };
 
   async deleteSharedspaceChat(
-    targetSpace: Sharedspaces,
+    url: string,
     ChatId: number,
-    user: Users,
+    UserId: number,
   ) {
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
 
     try {
+      const space = await this.getSharedspaceByUrl(url);
+
       const targetChat = await this.chatsRepository.findOne({
         select: {
           id: true,
@@ -696,8 +698,12 @@ export class SharedspacesService {
         },
       });
 
-      if (targetChat.SenderId !== user.id || targetChat.SharedspaceId !== targetSpace.id) {
-        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+      if (
+        !space ||
+        targetChat.SenderId !== UserId ||
+        targetChat.SharedspaceId !== space.id
+      ) {
+        throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
       for (let i=0; i<targetChat.Images.length; i++) {
@@ -715,7 +721,7 @@ export class SharedspacesService {
       await qr.release();
 
       this.eventsGateway.server
-        .to(`/sharedspace-${targetSpace.url}`)
+        .to(`/sharedspace-${space.url}`)
         .emit(`publicChats:${ChatsCommandList.CHAT_DELETED}`, ChatId);
     } catch (err) {
       if (!qr.isReleased) {
