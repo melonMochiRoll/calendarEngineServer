@@ -1,21 +1,23 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable, UnauthorizedException } from "@nestjs/common";
 import dayjs from "dayjs";
 import { InjectRepository } from "@nestjs/typeorm";
-import { And, Brackets, DataSource, LessThanOrEqual, Like, MoreThanOrEqual, Repository } from "typeorm";
+import { And, LessThanOrEqual, Like, MoreThanOrEqual, Repository } from "typeorm";
 import { Todos } from "src/entities/Todos";
 import { CreateTodoDTO } from "./dto/create.todo.dto";
 import { UpdateTodoDto } from "./dto/update.todo.dto";
 import { Sharedspaces } from "src/entities/Sharedspaces";
-import { BAD_REQUEST_MESSAGE } from "src/common/constant/error.message";
+import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
 import handleError from "src/common/function/handleError";
+import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
+import { RolesService } from "src/roles/roles.service";
 
 @Injectable()
 export class TodosService {
   constructor(
     @InjectRepository(Todos)
     private todosRepository: Repository<Todos>,
-    @InjectRepository(Sharedspaces)
-    private sharedspacesRepository: Repository<Sharedspaces>,
+    private sharedspacesService: SharedspacesService,
+    private rolesService: RolesService,
   ) {}
 
   async getTodos(
@@ -55,15 +57,32 @@ export class TodosService {
   }
 
   async getTodosByDate(
-    targetSpace: Sharedspaces,
+    url: string,
     date: string,
+    UserId?: number,
   ) {
     try {
+      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+
+      if (!space) {
+        throw new BadRequestException(BAD_REQUEST_MESSAGE);
+      }
+
+      if (!UserId && space.private) {
+        throw new UnauthorizedException(UNAUTHORIZED_MESSAGE);
+      }
+
+      const userRole = await this.rolesService.getUserRole(UserId, space.id);
+
+      if (!userRole && space.private) {
+        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+      }
+
       return await this.todosRepository
         .createQueryBuilder('todos')
         .leftJoinAndSelect('todos.Author', 'Author')
         .leftJoinAndSelect('todos.Editor', 'Editor')
-        .where('todos.SharedspaceId = :SharedspaceId', { SharedspaceId: targetSpace.id })
+        .where('todos.SharedspaceId = :SharedspaceId', { SharedspaceId: space.id })
         .andWhere('todos.date = :date', { date })
         .orderBy('todos.startTime')
         .addOrderBy('todos.endTime')
