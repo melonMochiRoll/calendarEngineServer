@@ -7,9 +7,11 @@ import { PublicSpaceGuard } from 'src/common/guard/public.space.guard';
 import { DateValidationPipe } from 'src/common/pipe/date.validation.pipe';
 import { TransformSpacePipe } from 'src/common/pipe/transform.space.pipe';
 import { Sharedspaces } from 'src/entities/Sharedspaces';
-import { JwtAuthGuard } from 'src/auth/authGuard/jwt.auth.guard';
+import { JwtAuthGuard, PublicAuthGuard } from 'src/auth/authGuard/jwt.auth.guard';
 import { CSRFAuthGuard } from 'src/auth/authGuard/csrf.auth.guard';
 import { RolesGuard } from 'src/common/guard/roles.guard';
+import { Users } from 'src/entities/Users';
+import { User } from 'src/common/decorator/user.decorator';
 
 @Controller('api/sharedspaces')
 export class TodosController {
@@ -17,15 +19,17 @@ export class TodosController {
     private todosService: TodosService,
   ) {}
 
-  @UseGuards(JwtAuthGuard, PublicSpaceGuard)
+  @UseGuards(PublicAuthGuard)
   @Get(':url/todos')
   getTodosByDate(
-    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
+    @Param('url') url: string,
     @Query('date', DateValidationPipe) date: string,
+    @User() user: Users,
   ) {
     return this.todosService.getTodosByDate(
-      targetSpace,
+      url,
       date,
+      user?.id,
     );
   }
 
