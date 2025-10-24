@@ -629,9 +629,8 @@ export class SharedspacesService {
       const targetChat = await this.chatsRepository.findOneBy({ id: ChatId });
 
       if (
-        !space ||
-        targetChat.SenderId !== UserId ||
-        targetChat.SharedspaceId !== space.id
+        targetChat?.SenderId !== UserId ||
+        targetChat?.SharedspaceId !== space.id
       ) {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
@@ -699,9 +698,8 @@ export class SharedspacesService {
       });
 
       if (
-        !space ||
-        targetChat.SenderId !== UserId ||
-        targetChat.SharedspaceId !== space.id
+        targetChat?.SenderId !== UserId ||
+        targetChat?.SharedspaceId !== space.id
       ) {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
@@ -734,12 +732,14 @@ export class SharedspacesService {
   }
 
   async deleteSharedspaceChatImage(
-    targetSpace: Sharedspaces,
+    url: string,
     ChatId: number,
     ImageId: number,
-    user: Users,
+    UserId: number,
   ) {
     try {
+      const space = await this.getSharedspaceByUrl(url);
+
       const targetChat = await this.chatsRepository.findOne({
         select: {
           id: true,
@@ -761,8 +761,11 @@ export class SharedspacesService {
         },
       });
 
-      if (targetChat.SenderId !== user.id || targetChat.SharedspaceId !== targetSpace.id) {
-        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+      if (
+        targetChat?.SenderId !== UserId ||
+        targetChat?.SharedspaceId !== space.id
+      ) {
+        throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
       await this.imagesRepository.delete({ id: ImageId })
@@ -771,7 +774,7 @@ export class SharedspacesService {
         });
 
       this.eventsGateway.server
-        .to(`/sharedspace-${targetSpace.url}`)
+        .to(`/sharedspace-${space.url}`)
         .emit(`publicChats:${ChatsCommandList.CHAT_IMAGE_DELETED}`, ChatId, ImageId);
     } catch (err) {
       handleError(err);
