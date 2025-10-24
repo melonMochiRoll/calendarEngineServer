@@ -33,14 +33,14 @@ export class TodosController {
     );
   }
 
-  @UseGuards(JwtAuthGuard, PublicSpaceGuard)
+  @UseGuards(PublicAuthGuard)
   @Get(':url/todos/count')
   getTodosCount(
-    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
+    @Param('url') url: string,
     @Query('date', DateValidationPipe) date: string,
   ) {
     return this.todosService.getTodosCount(
-      targetSpace,
+      url,
       date,
     );
   }
