@@ -168,11 +168,11 @@ export class SharedspacesController {
   @HttpCode(204)
   @Delete(':url/chats/:ChatId/images/:ImageId')
   deleteSharedspaceChatImage(
-    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
+    @Param('url') url: string,
     @Param('ChatId', ParseIntPipe) ChatId: number,
     @Param('ImageId', ParseIntPipe) ImageId: number,
     @User() user: Users,
   ) {
-    return this.sharedspacesService.deleteSharedspaceChatImage(targetSpace, ChatId, ImageId, user);
+    return this.sharedspacesService.deleteSharedspaceChatImage(url, ChatId, ImageId, user.id);
   }
 }
