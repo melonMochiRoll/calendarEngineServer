@@ -93,7 +93,7 @@ export class TodosService {
   }
 
   async getTodosCount(
-    targetSpace: Sharedspaces,
+    url: string,
     date: string,
   ) {
     const [ year, month ] = date.split('-');
@@ -101,11 +101,17 @@ export class TodosService {
     const endDate = dayjs(`${year}-${month}-31`).toDate();
 
     try {
+      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+
+      if (!space) {
+        throw new BadRequestException(BAD_REQUEST_MESSAGE);
+      }
+
       const result = await this.todosRepository
         .createQueryBuilder('todos')
         .select("DATE_FORMAT(todos.date, '%Y-%m-%d') AS date")
         .addSelect('COUNT(*) AS count')
-        .where('todos.SharedspaceId = :SharedspaceId', { SharedspaceId: targetSpace.id })
+        .where('todos.SharedspaceId = :SharedspaceId', { SharedspaceId: space.id })
         .andWhere('todos.date >= :startDate', { startDate })
         .andWhere('todos.date <= :endDate', { endDate })
         .groupBy('todos.date')
