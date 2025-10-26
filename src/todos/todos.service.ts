@@ -141,12 +141,6 @@ export class TodosService {
           date: true,
           startTime: true,
           endTime: true,
-          Sharedspace: {
-            url: true,
-          },
-        },
-        relations: {
-          Sharedspace: true,
         },
         where: {
           Sharedspace: {
@@ -225,9 +219,26 @@ export class TodosService {
     url: string,
     query: string,
     offset: number,
-    limit: number,
+    limit = 10,
+    UserId?: number,
   ) {
     try {
+      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+
+      if (!space) {
+        throw new BadRequestException(BAD_REQUEST_MESSAGE);
+      }
+
+      if (space.private && !UserId) {
+        throw new UnauthorizedException(UNAUTHORIZED_MESSAGE);
+      }
+
+      const userRole = await this.rolesService.getUserRole(UserId, space.id);
+
+      if (space.private && !userRole) {
+        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+      }
+
       return await this.getTodosByQuery(
         url,
         query,
