@@ -80,10 +80,12 @@ export class SharedspacesService {
         },
       }) as SharedspaceReturnMap<T>;
 
-      if (space) {
-        const minute = 60000;
-        await this.cacheManager.set(cacheKey, space, 10 * minute);
+      if (!space) {
+        throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
+
+      const minute = 60000;
+      await this.cacheManager.set(cacheKey, space, 10 * minute);
 
       return space;
     } catch (err) {
