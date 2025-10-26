@@ -79,19 +79,19 @@ export class TodosController {
     return this.todosService.deleteTodo(targetSpace, todoId);
   }
 
-  @UseGuards(JwtAuthGuard, PublicSpaceGuard)
+  @UseGuards(PublicAuthGuard)
   @Get(':url/todos/search')
   searchTodos(
     @Param('url') url: string,
     @Query('query') query: string,
     @Query('offset', ParseIntPipe) offset: number,
-    @Query('limit', ParseIntPipe) limit: number,
+    @User() user: Users,
   ) {
     return this.todosService.searchTodos(
       url,
       query,
       offset,
-      limit,
+      user.id,
     );
   }
 }
