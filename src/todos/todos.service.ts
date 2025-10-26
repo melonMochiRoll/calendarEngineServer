@@ -225,18 +225,8 @@ export class TodosService {
     try {
       const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
-      if (!space) {
-        throw new BadRequestException(BAD_REQUEST_MESSAGE);
-      }
-
-      if (space.private && !UserId) {
-        throw new UnauthorizedException(UNAUTHORIZED_MESSAGE);
-      }
-
-      const userRole = await this.rolesService.getUserRole(UserId, space.id);
-
-      if (space.private && !userRole) {
-        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+      if (space.private) {
+        await this.rolesService.isParticipant(UserId, space.id);
       }
 
       return await this.getTodosByQuery(
