@@ -1,10 +1,9 @@
-import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import handleError from "src/common/function/handleError";
-import { CreateRoleDTO } from "./dto/create.role.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Roles } from "src/entities/Roles";
 import { Repository } from "typeorm";
-import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
+import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { ROLE_ID_MAP_KEY } from "src/common/constant/auth.constants";
@@ -99,22 +98,6 @@ export class RolesService {
       if (!userRole) {
         throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
       }
-    } catch (err) {
-      handleError(err);
-    }
-  }
-  
-  async createRole(dto: CreateRoleDTO) {
-    try {
-      const isExist = await this.rolesRepository.findOneBy({ name: dto.name });
-
-      if (isExist) {
-        throw new ConflictException(CONFLICT_MESSAGE);
-      }
-
-      await this.rolesRepository.save({
-        name: dto.name,
-      });
     } catch (err) {
       handleError(err);
     }
