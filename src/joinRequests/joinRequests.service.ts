@@ -29,9 +29,16 @@ export class JoinRequestsService {
   ) {}
 
   async getJoinRequests(
-    targetSpace: Sharedspaces,
+    url: string,
+    UserId: number,
   ) {
     try {
+      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+
+      if (space.private) {
+        await this.rolesService.requireOwner(UserId, space.id);
+      }
+
       const requests = await this.joinRequestsRepository.find({
         select: {
           id: true,
@@ -47,7 +54,7 @@ export class JoinRequestsService {
           Requestor: true,
         },
         where: {
-          SharedspaceId: targetSpace.id,
+          SharedspaceId: space.id,
         },
         order: {
           createdAt: 'DESC',

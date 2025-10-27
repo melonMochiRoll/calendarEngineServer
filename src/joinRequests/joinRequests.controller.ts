@@ -19,13 +19,13 @@ export class JoinRequestsController {
     private joinRequestsService: JoinRequestsService,
   ) {}
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @OwnerOnlyRoles()
+  @UseGuards(JwtAuthGuard)
   @Get(':url/joinrequest')
   getJoinRequests(
-    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
+    @Param('url') url: string,
+    @User() user: Users,
   ) {
-    return this.joinRequestsService.getJoinRequests(targetSpace);
+    return this.joinRequestsService.getJoinRequests(url, user.id);
   }
   
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
