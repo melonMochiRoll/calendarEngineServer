@@ -5,7 +5,6 @@ import { And, LessThanOrEqual, Like, MoreThanOrEqual, Repository } from "typeorm
 import { Todos } from "src/entities/Todos";
 import { CreateTodoDTO } from "./dto/create.todo.dto";
 import { UpdateTodoDto } from "./dto/update.todo.dto";
-import { Sharedspaces } from "src/entities/Sharedspaces";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
 import handleError from "src/common/function/handleError";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
@@ -95,6 +94,7 @@ export class TodosService {
   async getTodosCount(
     url: string,
     date: string,
+    UserId?: number,
   ) {
     const [ year, month ] = date.split('-');
     const startDate = dayjs(`${year}-${month}-01`).toDate();
@@ -103,8 +103,8 @@ export class TodosService {
     try {
       const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
-      if (!space) {
-        throw new BadRequestException(BAD_REQUEST_MESSAGE);
+      if (space.private) {
+        await this.rolesService.requireParticipant(UserId, space.id);
       }
 
       const result = await this.todosRepository

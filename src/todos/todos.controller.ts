@@ -33,10 +33,12 @@ export class TodosController {
   getTodosCount(
     @Param('url') url: string,
     @Query('date', DateValidationPipe) date: string,
+    @User() user: Users,
   ) {
     return this.todosService.getTodosCount(
       url,
       date,
+      user?.id
     );
   }
 
