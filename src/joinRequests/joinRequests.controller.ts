@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, UseGuards } from "@nestjs/common";
 import { JoinRequestsService } from "./joinRequests.service";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
@@ -28,15 +28,20 @@ export class JoinRequestsController {
     return this.joinRequestsService.getJoinRequests(targetSpace);
   }
   
-  @UseGuards(JwtAuthGuard, CSRFAuthGuard, RolesGuard)
-  @OwnerOnlyRoles()
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post(':url/joinrequest/:id/resolve')
   resolveJoinRequest(
-    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
-    @Param('id', TransformJoinRequestsPipe) targetJoinRequest: JoinRequests,
+    @Param('url') url: string,
+    @Param('id', ParseIntPipe) joinRequestId: number,
     @Body() dto: ResolveJoinRequestDTO,
+    @User() user: Users,
   ) {
-    return this.joinRequestsService.resolveJoinRequest(targetSpace, targetJoinRequest, dto);
+    return this.joinRequestsService.resolveJoinRequest(
+      url,
+      joinRequestId,
+      dto,
+      user.id
+    );
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)

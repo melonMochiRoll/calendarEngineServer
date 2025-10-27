@@ -7,10 +7,12 @@ import { JoinRequests } from "src/entities/JoinRequests";
 import handleError from "src/common/function/handleError";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
-import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, CONFLICT_REQUEST_MESSAGE } from "src/common/constant/error.message";
+import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_REQUEST_MESSAGE } from "src/common/constant/error.message";
 import { Roles } from "src/entities/Roles";
 import { ResolveJoinRequestDTO } from "./dto/resolve.joinRequest.dto";
 import { SharedspaceMembersRoles } from "src/typings/types";
+import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
+import { RolesService } from "src/roles/roles.service";
 
 @Injectable()
 export class JoinRequestsService {
@@ -22,6 +24,8 @@ export class JoinRequestsService {
     private sharedspaceMembersRepository: Repository<SharedspaceMembers>,
     @InjectRepository(Roles)
     private rolesRepository: Repository<Roles>,
+    private sharedspacesService: SharedspacesService,
+    private rolesService: RolesService,
   ) {}
 
   async getJoinRequests(
@@ -57,24 +61,48 @@ export class JoinRequestsService {
   }
 
   async resolveJoinRequest(
-    targetSpace: Sharedspaces,
-    targetJoinRequest: JoinRequests,
+    url: string,
+    joinRequestId: number,
     dto: ResolveJoinRequestDTO,
+    UserId: number,
   ) {
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
 
     try {
-      if (targetSpace.id !== targetJoinRequest.SharedspaceId) {
+      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+
+      if (space.private) {
+        await this.rolesService.requireOwner(UserId, space.id);
+      }
+
+      const targetJoinRequest = await this.joinRequestsRepository.findOne({
+        select: {
+          SharedspaceId: true,
+        },
+        where: {
+          id: joinRequestId,
+        },
+      });
+
+      if (space.id !== targetJoinRequest?.SharedspaceId) {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
-      if (dto.RoleName === SharedspaceMembersRoles.OWNER) {
+      const role = await this.rolesRepository.findOne({
+        select: {
+          id: true,
+          name: true,
+        },
+        where: {
+          name: dto.RoleName,
+        },
+      });
+
+      if (role.name === SharedspaceMembersRoles.OWNER) {
         throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
       }
-
-      const role = await this.rolesRepository.findOneBy({ name: dto.RoleName });
 
       await qr.manager.save(SharedspaceMembers, {
         UserId: targetJoinRequest.RequestorId,
