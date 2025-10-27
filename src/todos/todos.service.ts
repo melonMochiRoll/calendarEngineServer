@@ -176,15 +176,20 @@ export class TodosService {
   }
 
   async updateTodo(
-    targetSpace: Sharedspaces,
+    url: string,
     dto: UpdateTodoDto,
+    UserId: number,
   ) {
     const { id: todoId, ...rest } = dto;
 
     try {
+      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+
+      await this.rolesService.requireMember(UserId, space.id);
+
       const targetTodo = await this.todosRepository.findOneBy({ id: todoId });
 
-      if (targetTodo?.SharedspaceId !== targetSpace.id) {
+      if (targetTodo?.SharedspaceId !== space.id) {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 

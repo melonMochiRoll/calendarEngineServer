@@ -54,17 +54,14 @@ export class TodosController {
     return this.todosService.createTodo(targetSpace, dto);
   }
 
-  @UseGuards(JwtAuthGuard, CSRFAuthGuard, RolesGuard)
-  @AboveMemberRoles()
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Put(':url/todos')
   updateTodo(
-    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
+    @Param('url') url: string,
     @Body() dto: UpdateTodoDto,
+    @User() user: Users,
   ) {
-    return this.todosService.updateTodo(
-      targetSpace,
-      dto,
-    );
+    return this.todosService.updateTodo(url, dto, user.id);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
