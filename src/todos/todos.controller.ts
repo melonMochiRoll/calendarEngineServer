@@ -90,7 +90,7 @@ export class TodosController {
       url,
       query,
       offset,
-      user.id,
+      user?.id,
     );
   }
 }
