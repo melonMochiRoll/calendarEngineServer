@@ -8,6 +8,7 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { ROLE_ID_MAP_KEY } from "src/common/constant/auth.constants";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
+import { SharedspaceMembersRoles, TSharedspaceMembersRole } from "src/typings/types";
 
 @Injectable()
 export class RolesService {
@@ -83,7 +84,11 @@ export class RolesService {
     }
   }
 
-  async isParticipant(UserId: number, SpaceId: number) {
+  async requireRole(
+    UserId: number,
+    SpaceId: number,
+    roles: TSharedspaceMembersRole[],
+  ) {
     if (!UserId) {
       throw new UnauthorizedException(UNAUTHORIZED_MESSAGE);
     }
@@ -94,12 +99,36 @@ export class RolesService {
 
     try {
       const userRole = await this.getUserRole(UserId, SpaceId);
+      const roleNameMap = await this.getRoleMap();
 
-      if (!userRole) {
+      if (!roles.includes(roleNameMap[userRole.RoleId])) {
         throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
       }
+
+      return userRole;
     } catch (err) {
       handleError(err);
     }
+  }
+
+  async requireOwner(UserId: number, SpaceId: number) {
+    return await this.requireRole(UserId, SpaceId, [
+      SharedspaceMembersRoles.OWNER,
+    ]);
+  }
+
+  async requireMember(UserId: number, SpaceId: number) {
+    return await this.requireRole(UserId, SpaceId, [
+      SharedspaceMembersRoles.OWNER,
+      SharedspaceMembersRoles.MEMBER,
+    ]);
+  }
+
+  async requireParticipant(UserId: number, SpaceId: number) {
+    return await this.requireRole(UserId, SpaceId, [
+      SharedspaceMembersRoles.OWNER,
+      SharedspaceMembersRoles.MEMBER,
+      SharedspaceMembersRoles.VIEWER,
+    ]);
   }
 }
