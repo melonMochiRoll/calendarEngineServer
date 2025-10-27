@@ -231,7 +231,7 @@ export class TodosService {
       const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
       if (space.private) {
-        await this.rolesService.isParticipant(UserId, space.id);
+        await this.rolesService.requireParticipant(UserId, space.id);
       }
 
       return await this.getTodosByQuery(
