@@ -160,13 +160,18 @@ export class TodosService {
   }
 
   async createTodo(
-    targetSpace: Sharedspaces,
+    url: string,
     dto: CreateTodoDTO,
+    UserId: number,
   ) {
     try {
+      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+
+      await this.rolesService.requireMember(UserId, space.id);
+
       await this.todosRepository.save({
         ...dto,
-        SharedspaceId: targetSpace.id,
+        SharedspaceId: space.id,
       });
     } catch (err) {
       handleError(err);
