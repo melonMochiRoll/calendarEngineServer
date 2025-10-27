@@ -3,7 +3,6 @@ import { TodosService } from './todos.service';
 import { CreateTodoDTO } from './dto/create.todo.dto';
 import { UpdateTodoDto } from './dto/update.todo.dto';
 import { AboveMemberRoles } from 'src/common/decorator/above.member.decorator';
-import { PublicSpaceGuard } from 'src/common/guard/public.space.guard';
 import { DateValidationPipe } from 'src/common/pipe/date.validation.pipe';
 import { TransformSpacePipe } from 'src/common/pipe/transform.space.pipe';
 import { Sharedspaces } from 'src/entities/Sharedspaces';
@@ -68,15 +67,15 @@ export class TodosController {
     );
   }
 
-  @UseGuards(JwtAuthGuard, CSRFAuthGuard, RolesGuard)
-  @AboveMemberRoles()
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @HttpCode(204)
   @Delete(':url/todos/:id')
   deleteTodo(
-    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
+    @Param('url') url: string,
     @Param('id', ParseIntPipe) todoId: number,
+    @User() user: Users,
   ) {
-    return this.todosService.deleteTodo(targetSpace, todoId);
+    return this.todosService.deleteTodo(url, todoId, user.id);
   }
 
   @UseGuards(PublicAuthGuard)

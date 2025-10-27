@@ -197,18 +197,23 @@ export class TodosService {
   }
 
   async deleteTodo(
-    targetSpace: Sharedspaces,
+    url: string,
     todoId: number,
+    UserId: number,
   ) {
     try {
+      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+
+      await this.rolesService.requireMember(UserId, space.id);
+
       const targetTodo = await this.todosRepository.findOneBy({ id: todoId });
 
-      if (targetTodo?.SharedspaceId !== targetSpace.id) {
+      if (targetTodo?.SharedspaceId !== space.id) {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
       await this.todosRepository.delete(todoId);
-    } catch (err: any) {
+    } catch (err) {
       handleError(err);
     }
 
