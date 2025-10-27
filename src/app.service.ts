@@ -16,8 +16,6 @@ export class AppService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    console.log('onModuleInit');
-
     const roles = await this.rolesRepository.find({
       select: {
         id: true,
@@ -26,7 +24,7 @@ export class AppService implements OnModuleInit {
     });
 
     const role_map = roles.reduce((map, role) => {
-      map[role.name] = role.id;
+      map[role.id] = role.name;
       return map;
     }, {});
 

@@ -36,7 +36,7 @@ export class RolesService {
       });
 
       const role_map = roles.reduce((map, role) => {
-        map[role.name] = role.id;
+        map[role.id] = role.name;
         return map;
       }, {});
 
