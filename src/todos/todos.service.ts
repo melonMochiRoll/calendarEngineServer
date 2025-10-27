@@ -1,11 +1,11 @@
-import { BadRequestException, ForbiddenException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import dayjs from "dayjs";
 import { InjectRepository } from "@nestjs/typeorm";
 import { And, LessThanOrEqual, Like, MoreThanOrEqual, Repository } from "typeorm";
 import { Todos } from "src/entities/Todos";
 import { CreateTodoDTO } from "./dto/create.todo.dto";
 import { UpdateTodoDto } from "./dto/update.todo.dto";
-import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
+import { BAD_REQUEST_MESSAGE } from "src/common/constant/error.message";
 import handleError from "src/common/function/handleError";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { RolesService } from "src/roles/roles.service";
@@ -63,18 +63,8 @@ export class TodosService {
     try {
       const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
-      if (!space) {
-        throw new BadRequestException(BAD_REQUEST_MESSAGE);
-      }
-
-      if (!UserId && space.private) {
-        throw new UnauthorizedException(UNAUTHORIZED_MESSAGE);
-      }
-
-      const userRole = await this.rolesService.getUserRole(UserId, space.id);
-
-      if (!userRole && space.private) {
-        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+      if (space.private) {
+        await this.rolesService.requireParticipant(UserId, space.id);
       }
 
       return await this.todosRepository
