@@ -100,10 +100,6 @@ export class SharedspacesService {
     try {
       const space = await this.getSharedspaceByUrl(url);
 
-      if (!space) {
-        throw new BadRequestException(BAD_REQUEST_MESSAGE);
-      }
-
       if (!UserId) {
         if (space.private) {
           throw new UnauthorizedException(UNAUTHORIZED_MESSAGE);
@@ -119,34 +115,21 @@ export class SharedspacesService {
         };
       }
 
-      const roleIdMap = await this.rolesService.getRoleMap();
-      const userRole = await this.rolesService.getUserRole(UserId, space.id);
+      const userRole = await this.rolesService.requireParticipant(UserId, space.id);
 
-      if (!userRole) {
-        if (space.private) {
-          throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
-        }
-        
-        return {
-          ...space,
-          permission: {
-            isOwner: false,
-            isMember: false,
-            isViewer: true,
-          },
-        };
+      if (!userRole && space.private) {
+        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
       }
 
       const isOwner = space.OwnerId === UserId;
-      const isMember = isOwner || roleIdMap['member'] === userRole?.RoleId;
-      const isViewer = isOwner || isMember || roleIdMap['viewer'] === userRole?.RoleId;
+      const isMember = isOwner || userRole?.name === SharedspaceMembersRoles.MEMBER;
 
       return {
         ...space,
         permission: {
           isOwner,
           isMember,
-          isViewer,
+          isViewer: true,
         },
       };
     } catch (err) {
