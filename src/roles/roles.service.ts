@@ -101,7 +101,9 @@ export class RolesService {
       const userRole = await this.getUserRole(UserId, SpaceId);
       const roleNameMap = await this.getRoleMap();
 
-      return roles.includes(roleNameMap[userRole.RoleId]) ? userRole : false;
+      return roles.includes(roleNameMap[userRole.RoleId]) ?
+        { id: userRole.RoleId, name: roleNameMap[userRole.RoleId] } :
+        null;
     } catch (err) {
       handleError(err);
     }
