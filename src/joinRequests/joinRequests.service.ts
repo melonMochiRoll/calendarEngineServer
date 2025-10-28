@@ -33,8 +33,10 @@ export class JoinRequestsService {
     try {
       const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
-      if (space.private) {
-        await this.rolesService.requireOwner(UserId, space.id);
+      const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+
+      if (!isOwner) {
+        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
       }
 
       const requests = await this.joinRequestsRepository.find({
@@ -78,8 +80,10 @@ export class JoinRequestsService {
     try {
       const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
-      if (space.private) {
-        await this.rolesService.requireOwner(UserId, space.id);
+      const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+
+      if (!isOwner) {
+        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
       }
 
       const targetJoinRequest = await this.joinRequestsRepository.findOne({
