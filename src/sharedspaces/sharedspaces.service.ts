@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { CreateSharedspaceDTO } from "./dto/create.sharedspace.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, In, Repository } from "typeorm";
@@ -9,7 +9,7 @@ import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { ChatsCommandList, SharedspaceMembersRoles, SharedspaceReturnMap, SubscribedspacesSorts } from "src/typings/types";
 import { Users } from "src/entities/Users";
-import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, INTERNAL_SERVER_MESSAGE, NOT_FOUND_RESOURCE, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
+import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, NOT_FOUND_RESOURCE, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
 import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dto";
 import handleError from "src/common/function/handleError";
@@ -286,17 +286,26 @@ export class SharedspacesService {
   }
 
   async updateSharedspaceName(
-    targetSpace: Sharedspaces,
+    url: string,
     dto: UpdateSharedspaceNameDTO,
+    UserId: number,
   ) {
     const { name } = dto;
     
     try {
-      if (targetSpace.name === name) {
+      const space = await this.getSharedspaceByUrl(url);
+
+      const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+
+      if (!isOwner) {
+        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+      }
+
+      if (space.name === name) {
         throw new ConflictException('동일한 이름으로 바꿀수 없습니다.');
       }
 
-      await this.sharedspacesRepository.update({ id: targetSpace.id }, { name });
+      await this.sharedspacesRepository.update({ id: space.id }, { name });
     } catch (err) {
       handleError(err);
     }

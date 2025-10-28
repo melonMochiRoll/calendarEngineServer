@@ -49,14 +49,14 @@ export class SharedspacesController {
     return this.sharedspacesService.createSharedspace(dto);
   }
 
-  @UseGuards(JwtAuthGuard, CSRFAuthGuard, RolesGuard)
-  @OwnerOnlyRoles()
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Patch(':url/name')
   updateSharedspaceName(
-    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
+    @Param('url') url: string,
     @Body() dto: UpdateSharedspaceNameDTO,
+    @User() user: Users,
   ) {
-    return this.sharedspacesService.updateSharedspaceName(targetSpace, dto);
+    return this.sharedspacesService.updateSharedspaceName(url, dto, user.id);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard, RolesGuard)
