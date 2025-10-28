@@ -1,11 +1,9 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable } from "@nestjs/common";
-import { Users } from "src/entities/Users";
 import { CreateJoinRequestDTO } from "./dto/create.joinRequest.dto";
 import { DataSource, Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 import { JoinRequests } from "src/entities/JoinRequests";
 import handleError from "src/common/function/handleError";
-import { Sharedspaces } from "src/entities/Sharedspaces";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_REQUEST_MESSAGE } from "src/common/constant/error.message";
 import { Roles } from "src/entities/Roles";
@@ -163,11 +161,29 @@ export class JoinRequestsService {
   }
 
   async deleteJoinRequest(
-    targetSpace: Sharedspaces,
-    targetJoinRequest: JoinRequests
+    url: string,
+    joinRequestId: number,
+    UserId: number,
   ) {
     try {
-      if (targetSpace.id !== targetJoinRequest.SharedspaceId) {
+      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+
+      const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+
+      if (!isOwner) {
+        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+      }
+
+      const targetJoinRequest = await this.joinRequestsRepository.findOne({
+        select: {
+          SharedspaceId: true,
+        },
+        where: {
+          id: joinRequestId,
+        },
+      });
+
+      if (space.id !== targetJoinRequest?.SharedspaceId) {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
