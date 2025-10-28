@@ -47,11 +47,11 @@ export class JoinRequestsController {
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post(':url/joinrequest')
   createJoinRequest(
-    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
+    @Param('url') url: string,
     @Body() dto: CreateJoinRequestDTO,
     @User() user: Users,
   ) {
-    return this.joinRequestsService.createJoinRequest(targetSpace, dto, user);
+    return this.joinRequestsService.createJoinRequest(url, dto, user.id);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard, RolesGuard)

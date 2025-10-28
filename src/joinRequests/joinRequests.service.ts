@@ -131,42 +131,28 @@ export class JoinRequestsService {
   }
   
   async createJoinRequest(
-    targetSpace: Sharedspaces,
+    url: string,
     dto: CreateJoinRequestDTO,
-    user: Users,
+    UserId: number,
   ) {
     try {
-      const isMember = await this.sharedspaceMembersRepository.findOne({
-        select: {
-          UserId: true,
-          SharedspaceId: true,
-          RoleId: true,
-          Role: {
-            id: true,
-            name: true,
-          },
-        },
-        relations: {
-          Role: true,
-        },
-        where: { UserId: user.id, SharedspaceId: targetSpace.id },
-      });
+      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
-      const hasPermission = isMember.Role.name === SharedspaceMembersRoles.MEMBER || isMember.Role.name === SharedspaceMembersRoles.OWNER;
+      const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
 
-      if (hasPermission) {
-        throw new BadRequestException(BAD_REQUEST_MESSAGE);
+      if (isParticipant) {
+        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
       }
 
-      const isRequested = await this.joinRequestsRepository.findOneBy({ RequestorId: user.id, SharedspaceId: targetSpace.id });
+      const isRequested = await this.joinRequestsRepository.findOneBy({ RequestorId: UserId, SharedspaceId: space.id });
 
       if (isRequested) {
         throw new ConflictException(CONFLICT_REQUEST_MESSAGE);
       }
 
       await this.joinRequestsRepository.save({
-        SharedspaceId: targetSpace.id,
-        RequestorId: user.id,
+        SharedspaceId: space.id,
+        RequestorId: UserId,
         message: dto.message,
       });
     } catch (err) {
