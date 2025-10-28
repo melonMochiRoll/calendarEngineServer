@@ -256,16 +256,21 @@ export class SharedspacesService {
         ...dto,
       });
 
-      const owner = await this.rolesRepository.findOneBy({ name: SharedspaceMembersRoles.OWNER });
+      const roleMap = await this.rolesService.getRoleMap();
 
-      if (!owner) {
-        throw new InternalServerErrorException(INTERNAL_SERVER_MESSAGE);
-      }
+      const ownerRoleId = Object
+        .entries(roleMap)
+        .reduce((acc, role) => {
+          if (role[1] === SharedspaceMembersRoles.OWNER) {
+            return Number(role[0]);
+          }
+          return acc;
+        }, 0);
       
       await qr.manager.save(SharedspaceMembers, {
         UserId: OwnerId,
         SharedspaceId: created.id,
-        RoleId: owner.id,
+        RoleId: ownerRoleId,
       });
 
       await qr.commitTransaction();
