@@ -101,11 +101,7 @@ export class RolesService {
       const userRole = await this.getUserRole(UserId, SpaceId);
       const roleNameMap = await this.getRoleMap();
 
-      if (!roles.includes(roleNameMap[userRole.RoleId])) {
-        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
-      }
-
-      return userRole;
+      return roles.includes(roleNameMap[userRole.RoleId]) ? userRole : false;
     } catch (err) {
       handleError(err);
     }
