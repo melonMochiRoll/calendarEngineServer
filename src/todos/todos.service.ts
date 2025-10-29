@@ -1,11 +1,11 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable } from "@nestjs/common";
 import dayjs from "dayjs";
 import { InjectRepository } from "@nestjs/typeorm";
 import { And, LessThanOrEqual, Like, MoreThanOrEqual, Repository } from "typeorm";
 import { Todos } from "src/entities/Todos";
 import { CreateTodoDTO } from "./dto/create.todo.dto";
 import { UpdateTodoDto } from "./dto/update.todo.dto";
-import { BAD_REQUEST_MESSAGE } from "src/common/constant/error.message";
+import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE } from "src/common/constant/error.message";
 import handleError from "src/common/function/handleError";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { RolesService } from "src/roles/roles.service";
@@ -64,7 +64,11 @@ export class TodosService {
       const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
       if (space.private) {
-        await this.rolesService.requireParticipant(UserId, space.id);
+        const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
+
+        if (!isParticipant) {
+          throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+        }
       }
 
       return await this.todosRepository
@@ -94,7 +98,11 @@ export class TodosService {
       const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
       if (space.private) {
-        await this.rolesService.requireParticipant(UserId, space.id);
+        const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
+
+        if (!isParticipant) {
+          throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+        }
       }
 
       const result = await this.todosRepository
@@ -157,7 +165,11 @@ export class TodosService {
     try {
       const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
-      await this.rolesService.requireMember(UserId, space.id);
+      const isMember = await this.rolesService.requireMember(UserId, space.id);
+
+      if (!isMember) {
+        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+      }
 
       await this.todosRepository.save({
         ...dto,
@@ -180,7 +192,11 @@ export class TodosService {
     try {
       const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
-      await this.rolesService.requireMember(UserId, space.id);
+      const isMember = await this.rolesService.requireMember(UserId, space.id);
+
+      if (!isMember) {
+        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+      }
 
       const targetTodo = await this.todosRepository.findOneBy({ id: todoId });
 
@@ -204,7 +220,11 @@ export class TodosService {
     try {
       const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
-      await this.rolesService.requireMember(UserId, space.id);
+      const isMember = await this.rolesService.requireMember(UserId, space.id);
+
+      if (!isMember) {
+        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+      }
 
       const targetTodo = await this.todosRepository.findOneBy({ id: todoId });
 
@@ -231,7 +251,11 @@ export class TodosService {
       const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
       if (space.private) {
-        await this.rolesService.requireParticipant(UserId, space.id);
+        const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
+
+        if (!isParticipant) {
+          throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+        }
       }
 
       return await this.getTodosByQuery(
