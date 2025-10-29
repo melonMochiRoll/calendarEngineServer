@@ -313,7 +313,7 @@ export class SharedspacesService {
       if (space.OwnerId === newOwnerId) {
         throw new ConflictException(CONFLICT_OWNER_MESSAGE);
       }
-      
+
       const rolesArray = await this.rolesService.getRolesArray();
 
       const { ownerRoleId, memberRoleId } = rolesArray.reduce((acc, role) => {
@@ -344,11 +344,20 @@ export class SharedspacesService {
   }
 
   async updateSharedspacePrivate(
-    targetSpace: Sharedspaces,
+    url: string,
     dto: UpdateSharedspacePrivateDTO,
+    UserId: number,
   ) {
     try {
-      await this.sharedspacesRepository.update({ id: targetSpace.id }, { ...dto });
+      const space = await this.getSharedspaceByUrl(url);
+
+      const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+
+      if (!isOwner) {
+        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+      }
+
+      await this.sharedspacesRepository.update({ id: space.id }, { ...dto });
     } catch (err) {
       handleError(err);
     }
