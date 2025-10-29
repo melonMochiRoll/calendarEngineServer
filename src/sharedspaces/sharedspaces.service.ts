@@ -9,7 +9,7 @@ import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { ChatsCommandList, SharedspaceMembersRoles, SharedspaceReturnMap, SubscribedspacesSorts } from "src/typings/types";
 import { Users } from "src/entities/Users";
-import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, NOT_FOUND_RESOURCE, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
+import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, CONFLICT_OWNER_MESSAGE, NOT_FOUND_RESOURCE, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
 import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dto";
 import handleError from "src/common/function/handleError";
@@ -287,8 +287,9 @@ export class SharedspacesService {
   }
 
   async updateSharedspaceOwner(
-    targetSpace: Sharedspaces,
+    url: string,
     dto: UpdateSharedspaceOwnerDTO,
+    UserId: number,
   ) {
     const { OwnerId, newOwnerId } = dto;
 
@@ -297,16 +298,38 @@ export class SharedspacesService {
     await qr.startTransaction();
 
     try {
-      if (targetSpace.OwnerId === newOwnerId) {
-        throw new ConflictException('동일한 유저로 바꿀수 없습니다.');
+      const space = await this.getSharedspaceByUrl(url);
+
+      const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+
+      if (!isOwner) {
+        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
       }
 
-      const owner = await this.rolesRepository.findOneBy({ name: SharedspaceMembersRoles.OWNER });
-      const member = await this.rolesRepository.findOneBy({ name: SharedspaceMembersRoles.MEMBER });
+      if (OwnerId !== UserId) {
+        throw new BadRequestException(BAD_REQUEST_MESSAGE);
+      }
 
-      await qr.manager.update(Sharedspaces, { id: targetSpace.id }, { OwnerId: newOwnerId });
-      await qr.manager.update(SharedspaceMembers, { UserId: OwnerId, SharedspaceId: targetSpace.id }, { RoleId: member.id });
-      await qr.manager.save(SharedspaceMembers, { UserId: newOwnerId, SharedspaceId: targetSpace.id, RoleId: owner.id });
+      if (space.OwnerId === newOwnerId) {
+        throw new ConflictException(CONFLICT_OWNER_MESSAGE);
+      }
+      
+      const rolesArray = await this.rolesService.getRolesArray();
+
+      const { ownerRoleId, memberRoleId } = rolesArray.reduce((acc, role) => {
+        if (role.name === SharedspaceMembersRoles.OWNER) {
+          acc.ownerRoleId = role.id;
+        }
+        if (role.name === SharedspaceMembersRoles.MEMBER) {
+          acc.memberRoleId = role.id;
+        }
+
+        return acc;
+      }, { ownerRoleId: 0, memberRoleId: 0 });
+
+      await qr.manager.update(Sharedspaces, { id: space.id }, { OwnerId: newOwnerId });
+      await qr.manager.update(SharedspaceMembers, { UserId: OwnerId, SharedspaceId: space.id }, { RoleId: memberRoleId });
+      await qr.manager.save(SharedspaceMembers, { UserId: newOwnerId, SharedspaceId: space.id, RoleId: ownerRoleId });
 
       await qr.commitTransaction();
     } catch (err) {
