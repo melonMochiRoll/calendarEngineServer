@@ -1,12 +1,12 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import handleError from "src/common/function/handleError";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Roles } from "src/entities/Roles";
 import { Repository } from "typeorm";
-import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
+import { BAD_REQUEST_MESSAGE, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
-import { ROLE_ID_MAP_KEY } from "src/common/constant/auth.constants";
+import { ROLES_ARRAY_KEY } from "src/common/constant/auth.constants";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { SharedspaceMembersRoles, TSharedspaceMembersRole } from "src/typings/types";
 
@@ -21,11 +21,11 @@ export class RolesService {
     private sharedspaceMembersRepository: Repository<SharedspaceMembers>,
   ) {}
 
-  async getRoleMap() {
-    const roleIdMap = await this.cacheManager.get(ROLE_ID_MAP_KEY);
+  async getRolesArray() {
+    const rolesArray = await this.cacheManager.get(ROLES_ARRAY_KEY);
 
-    if (roleIdMap) {
-      return roleIdMap;
+    if (rolesArray) {
+      return rolesArray;
     }
 
     try {
@@ -36,16 +36,16 @@ export class RolesService {
         },
       });
 
-      const role_map = roles.reduce((map, role) => {
-        map[role.id] = role.name;
-        return map;
-      }, {});
+      const roles_array = roles.reduce((array, role) => {
+        array.push({ id: role.id, name: role.name });
+        return array;
+      }, []);
 
       if (roles) {
-        await this.cacheManager.set(ROLE_ID_MAP_KEY, role_map, 0);
+        await this.cacheManager.set(ROLES_ARRAY_KEY, roles_array, 0);
       }
 
-      return role_map;
+      return roles_array;
     } catch (err) {
       handleError(err);
     }
@@ -97,13 +97,13 @@ export class RolesService {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
-    try {
+    try { 
       const userRole = await this.getUserRole(UserId, SpaceId);
-      const roleNameMap = await this.getRoleMap();
+      const rolesArray = await this.getRolesArray() as Pick<Roles, 'id' | 'name'>[];
 
-      return roles.includes(roleNameMap[userRole.RoleId]) ?
-        { id: userRole.RoleId, name: roleNameMap[userRole.RoleId] } :
-        null;
+      const role = rolesArray.find(role => role.id === userRole.RoleId);
+
+      return roles.find(r => r === role?.name) ? role : null;
     } catch (err) {
       handleError(err);
     }
