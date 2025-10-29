@@ -148,19 +148,17 @@ export class SharedspacesService {
     };
 
     if (sort === SubscribedspacesSorts.OWNED) {
-      const roleIdMap = await this.rolesService.getRoleMap();
+      const rolesArray = await this.rolesService.getRolesArray();
+      const ownerRole = rolesArray.find(role => role.name === SharedspaceMembersRoles.OWNER);
 
-      const RoleId = roleIdMap[SharedspaceMembersRoles.OWNER];
-      Object.assign(whereCondition, { RoleId });
+      Object.assign(whereCondition, { RoleId: ownerRole.id });
     }
 
     if (sort === SubscribedspacesSorts.UNOWNED) {
-      const roleIdMap = await this.rolesService.getRoleMap();
-
-      const roleIdsWithoutOwner = Object
-        .entries(roleIdMap)
-        .filter((role: [string, number]) => role[0] !== SharedspaceMembersRoles.OWNER)
-        .map((role: [string, number]) => role[1]);
+      const rolesArray = await this.rolesService.getRolesArray();
+      const roleIdsWithoutOwner = rolesArray
+        .filter(role => role.name !== SharedspaceMembersRoles.OWNER)
+        .map(role => role.id);
       
       Object.assign(whereCondition, { RoleId: In(roleIdsWithoutOwner) });
     }
@@ -239,21 +237,13 @@ export class SharedspacesService {
         ...dto,
       });
 
-      const roleMap = await this.rolesService.getRoleMap();
-
-      const ownerRoleId = Object
-        .entries(roleMap)
-        .reduce((acc, role) => {
-          if (role[1] === SharedspaceMembersRoles.OWNER) {
-            return Number(role[0]);
-          }
-          return acc;
-        }, 0);
+      const rolesArray = await this.rolesService.getRolesArray();
+      const ownerRole = rolesArray.find(role => role.name === SharedspaceMembersRoles.OWNER);
       
       await qr.manager.save(SharedspaceMembers, {
         UserId: OwnerId,
         SharedspaceId: created.id,
-        RoleId: ownerRoleId,
+        RoleId: ownerRole.id,
       });
 
       await qr.commitTransaction();
