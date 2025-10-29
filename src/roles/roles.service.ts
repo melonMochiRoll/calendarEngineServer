@@ -22,7 +22,7 @@ export class RolesService {
   ) {}
 
   async getRolesArray() {
-    const rolesArray = await this.cacheManager.get(ROLES_ARRAY_KEY);
+    const rolesArray = await this.cacheManager.get<Pick<Roles, 'id' | 'name'>[]>(ROLES_ARRAY_KEY);
 
     if (rolesArray) {
       return rolesArray;
@@ -36,16 +36,16 @@ export class RolesService {
         },
       });
 
-      const roles_array = roles.reduce((array, role) => {
+      const rolesArray = roles.reduce((array, role) => {
         array.push({ id: role.id, name: role.name });
         return array;
-      }, []);
+      }, []) as Pick<Roles, 'id' | 'name'>[];
 
       if (roles) {
-        await this.cacheManager.set(ROLES_ARRAY_KEY, roles_array, 0);
+        await this.cacheManager.set(ROLES_ARRAY_KEY, rolesArray, 0);
       }
 
-      return roles_array;
+      return rolesArray;
     } catch (err) {
       handleError(err);
     }
