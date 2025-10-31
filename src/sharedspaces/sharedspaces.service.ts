@@ -409,9 +409,14 @@ export class SharedspacesService {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
-      const isMember = await this.sharedspaceMembersRepository.findOneBy({
-        UserId: targetUserId,
-        SharedspaceId: space.id,
+      const isMember = await this.sharedspaceMembersRepository.findOne({
+        select: {
+          RoleId: true,
+        },
+        where: {
+          UserId: targetUserId,
+          SharedspaceId: space.id,
+        },
       });
 
       if (isMember) {
@@ -453,9 +458,14 @@ export class SharedspacesService {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
-      const isMember = await this.sharedspaceMembersRepository.findOneBy({
-        UserId: targetUserId,
-        SharedspaceId: space.id,
+      const isMember = await this.sharedspaceMembersRepository.findOne({
+        select: {
+          RoleId: true,
+        },
+        where: {
+          UserId: targetUserId,
+          SharedspaceId: space.id,
+        }
       });
 
       if (!isMember) {
