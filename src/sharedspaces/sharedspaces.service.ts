@@ -431,25 +431,31 @@ export class SharedspacesService {
   }
 
   async updateSharedspaceMembers(
-    targetSpace: Sharedspaces,
+    url: string,
     dto: UpdateSharedspaceMembersDTO,
+    UserId: number,
   ) {
-    const { UserId, RoleName } = dto;
+    const { UserId: targetUserId, RoleName } = dto;
 
     try {
-      if (RoleName === SharedspaceMembersRoles.OWNER) {
-        throw new ConflictException(CONFLICT_MESSAGE);
+      const space = await this.getSharedspaceByUrl(url);
+
+      const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+
+      if (!isOwner) {
+        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
       }
 
-      const role = await this.rolesRepository.findOneBy({ name: RoleName });
+      const rolesArray = await this.rolesService.getRolesArray();
+      const role = rolesArray.find(role => role.name === RoleName);
 
-      if (!role) {
+      if (!role || role.name === SharedspaceMembersRoles.OWNER) {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
       const isMember = await this.sharedspaceMembersRepository.findOneBy({
-        UserId,
-        SharedspaceId: targetSpace.id,
+        UserId: targetUserId,
+        SharedspaceId: space.id,
       });
 
       if (!isMember) {
@@ -457,8 +463,8 @@ export class SharedspacesService {
       }
 
       await this.sharedspaceMembersRepository.update({
-        UserId,
-        SharedspaceId: targetSpace.id,
+        UserId: targetUserId,
+        SharedspaceId: space.id,
       },{
         RoleId: role.id,
       });
