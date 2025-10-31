@@ -387,21 +387,31 @@ export class SharedspacesService {
   }
 
   async createSharedspaceMembers(
-    targetSpace: Sharedspaces,
+    url: string,
     dto: CreateSharedspaceMembersDTO,
+    UserId: number,
   ) {
-    const { UserId, RoleName } = dto;
+    const { UserId: targetUserId, RoleName } = dto;
 
     try {
-      const role = await this.rolesRepository.findOneBy({ name: RoleName });
+      const space = await this.getSharedspaceByUrl(url);
 
-      if (!role) {
+      const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+
+      if (!isOwner) {
+        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+      }
+
+      const rolesArray = await this.rolesService.getRolesArray();
+      const role = rolesArray.find(role => role.name === RoleName);
+
+      if (!role || role.name === SharedspaceMembersRoles.OWNER) {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
       const isMember = await this.sharedspaceMembersRepository.findOneBy({
-        UserId,
-        SharedspaceId: targetSpace.id,
+        UserId: targetUserId,
+        SharedspaceId: space.id,
       });
 
       if (isMember) {
@@ -409,8 +419,8 @@ export class SharedspacesService {
       }
 
       await this.sharedspaceMembersRepository.save({
-        UserId,
-        SharedspaceId: targetSpace.id,
+        UserId: targetUserId,
+        SharedspaceId: space.id,
         RoleId: role.id,
       });
     } catch (err) {
