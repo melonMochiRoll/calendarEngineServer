@@ -365,9 +365,20 @@ export class SharedspacesService {
     return true;
   }
 
-  async deleteSharedspace(targetSpace: Sharedspaces) {
+  async deleteSharedspace(
+    url: string,
+    UserId: number,
+  ) {
     try {
-      await this.sharedspacesRepository.softRemove(targetSpace);
+      const space = await this.getSharedspaceByUrl(url);
+
+      const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+
+      if (!isOwner) {
+        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+      }
+
+      await this.sharedspacesRepository.softRemove(space);
     } catch (err) {
       handleError(err);
     }
