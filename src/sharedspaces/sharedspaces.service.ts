@@ -476,23 +476,39 @@ export class SharedspacesService {
   }
 
   async deleteSharedspaceMembers(
-    targetSpace: Sharedspaces,
+    url: string,
+    targetUserId: number,
     UserId: number,
   ) {
     try {
+      const space = await this.getSharedspaceByUrl(url);
 
-      const isMember = await this.sharedspaceMembersRepository.findOneBy({
-        UserId,
-        SharedspaceId: targetSpace?.id,
+      const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+
+      if (!isOwner) {
+        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+      }
+
+      const isMember = await this.sharedspaceMembersRepository.findOne({
+        select: {
+          RoleId: true
+        },
+        where: {
+          UserId: targetUserId,
+          SharedspaceId: space?.id,
+        }
       });
 
-      if (!isMember) {
+      const rolesArray = await this.rolesService.getRolesArray();
+      const role = rolesArray.find(role => role.id === isMember.RoleId);
+
+      if (!isMember || role.name === SharedspaceMembersRoles.OWNER) {
         throw new NotFoundException(NOT_FOUND_RESOURCE);
       }
 
       await this.sharedspaceMembersRepository.delete({
-        UserId,
-        SharedspaceId: targetSpace.id,
+        UserId: targetUserId,
+        SharedspaceId: space.id,
       });
     } catch (err) {
       handleError(err);

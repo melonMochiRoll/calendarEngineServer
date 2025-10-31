@@ -3,20 +3,17 @@ import { SharedspacesService } from "./sharedspaces.service";
 import { CreateSharedspaceDTO } from "./dto/create.sharedspace.dto";
 import { UpdateSharedspaceNameDTO } from "./dto/update.sharedspace.name.dto";
 import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
-import { OwnerOnlyRoles } from "src/common/decorator/owner.only.decorator";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
 import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dto";
 import { UpdateSharedspacePrivateDTO } from "./dto/update.sharedspace.private.dto";
-import { TransformSpacePipe } from "src/common/pipe/transform.space.pipe";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import { CreateSharedspaceChatDTO } from "./dto/create.sharedspace.chat.dto";
 import { FilesInterceptor } from "@nestjs/platform-express";
 import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
 import { JwtAuthGuard, PublicAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
-import { RolesGuard } from "src/common/guard/roles.guard";
 
 @Controller('api/sharedspaces')
 export class SharedspacesController {
@@ -109,14 +106,14 @@ export class SharedspacesController {
     return this.sharedspacesService.updateSharedspaceMembers(url, dto, user.id);
   }
 
-  @UseGuards(JwtAuthGuard, CSRFAuthGuard, RolesGuard)
-  @OwnerOnlyRoles()
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Delete(':url/members/:id')
   deleteSharedspaceMembers(
-    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
-    @Param('id', ParseIntPipe) UserId: number,
+    @Param('url') url: string,
+    @Param('id', ParseIntPipe) targetUserId: number,
+    @User() user: Users,
   ) {
-    return this.sharedspacesService.deleteSharedspaceMembers(targetSpace, UserId);
+    return this.sharedspacesService.deleteSharedspaceMembers(url, targetUserId, user.id);
   }
 
   @UseGuards(PublicAuthGuard)
