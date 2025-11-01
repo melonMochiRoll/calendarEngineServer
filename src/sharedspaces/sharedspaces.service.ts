@@ -14,7 +14,6 @@ import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dt
 import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dto";
 import handleError from "src/common/function/handleError";
 import { UpdateSharedspacePrivateDTO } from "./dto/update.sharedspace.private.dto";
-import { Roles } from "src/entities/Roles";
 import { Chats } from "src/entities/Chats";
 import { CreateSharedspaceChatDTO } from "./dto/create.sharedspace.chat.dto";
 import { EventsGateway } from "src/events/events.gateway";
@@ -38,8 +37,6 @@ export class SharedspacesService {
     private sharedspacesRepository: Repository<Sharedspaces>,
     @InjectRepository(SharedspaceMembers)
     private sharedspaceMembersRepository: Repository<SharedspaceMembers>,
-    @InjectRepository(Roles)
-    private rolesRepository: Repository<Roles>,
     @InjectRepository(Chats)
     private chatsRepository: Repository<Chats>,
     @InjectRepository(Images)
@@ -91,6 +88,11 @@ export class SharedspacesService {
     } catch (err) {
       handleError(err);
     }
+  }
+
+  async invalidateSharedspaceCache(url: string) {
+    await this.cacheManager.del(`sharedspace:${url}:full`);
+    await this.cacheManager.del(`sharedspace:${url}:standard`);
   }
 
   async getSharedspace(
