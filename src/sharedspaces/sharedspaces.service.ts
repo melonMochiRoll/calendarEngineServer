@@ -281,6 +281,7 @@ export class SharedspacesService {
       }
 
       await this.sharedspacesRepository.update({ id: space.id }, { name });
+      await this.invalidateSharedspaceCache(url);
     } catch (err) {
       handleError(err);
     }
@@ -334,6 +335,8 @@ export class SharedspacesService {
       await qr.manager.save(SharedspaceMembers, { UserId: newOwnerId, SharedspaceId: space.id, RoleId: ownerRoleId });
 
       await qr.commitTransaction();
+
+      await this.invalidateSharedspaceCache(url);
     } catch (err) {
       await qr.rollbackTransaction();
 
@@ -360,6 +363,7 @@ export class SharedspacesService {
       }
 
       await this.sharedspacesRepository.update({ id: space.id }, { ...dto });
+      await this.invalidateSharedspaceCache(url);
     } catch (err) {
       handleError(err);
     }
@@ -381,6 +385,7 @@ export class SharedspacesService {
       }
 
       await this.sharedspacesRepository.softRemove(space);
+      await this.invalidateSharedspaceCache(url);
     } catch (err) {
       handleError(err);
     }
