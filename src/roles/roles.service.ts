@@ -84,6 +84,13 @@ export class RolesService {
     }
   }
 
+  async invalidateUserRoleCache(
+    UserId: number,
+    SharedspaceId: number,
+  ) {
+    await this.cacheManager.del(`user:role:${UserId}:${SharedspaceId}`);
+  }
+
   async requireRole(
     UserId: number,
     SpaceId: number,
