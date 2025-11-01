@@ -337,6 +337,8 @@ export class SharedspacesService {
       await qr.commitTransaction();
 
       await this.invalidateSharedspaceCache(url);
+      await this.rolesService.invalidateUserRoleCache(OwnerId, space.id);
+      await this.rolesService.invalidateUserRoleCache(newOwnerId, space.id);
     } catch (err) {
       await qr.rollbackTransaction();
 
@@ -485,6 +487,8 @@ export class SharedspacesService {
       },{
         RoleId: role.id,
       });
+
+      await this.rolesService.invalidateUserRoleCache(targetUserId, space.id);
     } catch (err) {
       handleError(err);
     }
@@ -527,6 +531,8 @@ export class SharedspacesService {
         UserId: targetUserId,
         SharedspaceId: space.id,
       });
+
+      await this.rolesService.invalidateUserRoleCache(targetUserId, space.id);
     } catch (err) {
       handleError(err);
     }
