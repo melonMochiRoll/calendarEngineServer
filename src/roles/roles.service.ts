@@ -96,12 +96,8 @@ export class RolesService {
     SpaceId: number,
     roles: TSharedspaceMembersRole[],
   ) {
-    if (!UserId) {
-      throw new UnauthorizedException(UNAUTHORIZED_MESSAGE);
-    }
-
-    if (!SpaceId) {
-      throw new BadRequestException(BAD_REQUEST_MESSAGE);
+    if (!UserId || !SpaceId) {
+      return false;
     }
 
     try { 
