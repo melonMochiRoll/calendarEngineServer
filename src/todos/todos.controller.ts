@@ -78,13 +78,13 @@ export class TodosController {
   searchTodos(
     @Param('url') url: string,
     @Query('query') query: string,
-    @Query('offset', ParseIntPipe) offset: number,
+    @Query('page', ParseIntPipe) page: number,
     @User() user: Users,
   ) {
     return this.todosService.searchTodos(
       url,
       query,
-      offset,
+      page,
       user?.id,
     );
   }
