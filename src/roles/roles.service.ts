@@ -97,7 +97,7 @@ export class RolesService {
     roles: TSharedspaceMembersRole[],
   ) {
     if (!UserId || !SpaceId) {
-      return false;
+      return null;
     }
 
     try { 
