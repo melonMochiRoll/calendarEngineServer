@@ -142,7 +142,7 @@ export class SharedspacesService {
   async getSubscribedspaces(
     sort: string,
     UserId: number,
-    page: number,
+    page = 1,
     limit = 7,
   ) {
     const whereCondition = {
@@ -397,7 +397,7 @@ export class SharedspacesService {
 
   async getSharedspaceMembers(
     url: string,
-    page: number,
+    page = 1,
     UserId?: number,
     limit = 10,
   ) {
@@ -622,7 +622,7 @@ export class SharedspacesService {
 
   async getSharedspaceChats(
     url: string,
-    page: number,
+    page = 1,
     UserId?: number,
     limit = 30,
   ) {
