@@ -395,6 +395,86 @@ export class SharedspacesService {
     return true;
   }
 
+  async getSharedspaceMembers(
+    url: string,
+    page: number,
+    UserId?: number,
+    limit = 10,
+  ) {
+    try {
+      const space = await this.getSharedspaceByUrl(url);
+
+      if (space.private) {
+        const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
+
+        if (!isParticipant) {
+          throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+        }
+      }
+
+      const memberRecords = await this.sharedspaceMembersRepository.find({
+        select: {
+          UserId: true,
+          RoleId: true,
+          createdAt: true,
+        },
+        where: {
+          SharedspaceId: space.id,
+        },
+        order: {
+          createdAt: 'DESC',
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+      });
+
+      const rolesArray = await this.rolesService.getRolesArray();
+      const rolesMap = rolesArray.reduce((map, role) => {
+        map[role.id] = role.name;
+        return map;
+      }, {});
+
+      const userRecords = await this.usersRepository.find({
+        select: {
+          id: true,
+          email: true,
+          profileImage: true,
+        },
+        where: {
+          id: In(memberRecords.map(member => member.UserId)),
+        },
+      });
+      const usersMap = userRecords.reduce((map, user) => {
+        map[user.id] = {
+          email: user.email,
+          profileImage: user.profileImage,
+        };
+        return map;
+      }, {});
+
+      const members = memberRecords.map((member) => {
+        return {
+          ...member,
+          ...usersMap[member.UserId],
+          RoleName: rolesMap[member.RoleId],
+        };
+      });
+
+      const totalCount = await this.sharedspaceMembersRepository.count({
+        where: {
+          SharedspaceId: space.id,
+        },
+      });
+
+      return {
+        items: members,
+        hasMoreData: !Boolean(page * limit >= totalCount),
+      };
+    } catch (err) {
+      handleError(err);
+    }
+  }
+
   async createSharedspaceMembers(
     url: string,
     dto: CreateSharedspaceMembersDTO,

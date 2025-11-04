@@ -86,6 +86,16 @@ export class SharedspacesController {
     return this.sharedspacesService.deleteSharedspace(url, user.id);
   }
 
+  @UseGuards(PublicAuthGuard)
+  @Get(':url/members')
+  getSharedspaceMembers(
+    @Param('url') url: string,
+    @Query('page', ParseIntPipe) page: number,
+    @User() user: Users,
+  ) {
+    return this.sharedspacesService.getSharedspaceMembers(url, page, user?.id)
+  }
+
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post(':url/members')
   createSharedspaceMembers(
