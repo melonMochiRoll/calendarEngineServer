@@ -294,7 +294,7 @@ export class SharedspacesService {
     dto: UpdateSharedspaceOwnerDTO,
     UserId: number,
   ) {
-    const { OwnerId, newOwnerId } = dto;
+    const { newOwnerId } = dto;
 
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
@@ -309,7 +309,7 @@ export class SharedspacesService {
         throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
       }
 
-      if (OwnerId !== UserId) {
+      if (space.OwnerId !== UserId) {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
@@ -331,13 +331,13 @@ export class SharedspacesService {
       }, { ownerRoleId: 0, memberRoleId: 0 });
 
       await qr.manager.update(Sharedspaces, { id: space.id }, { OwnerId: newOwnerId });
-      await qr.manager.update(SharedspaceMembers, { UserId: OwnerId, SharedspaceId: space.id }, { RoleId: memberRoleId });
+      await qr.manager.update(SharedspaceMembers, { UserId: space.OwnerId, SharedspaceId: space.id }, { RoleId: memberRoleId });
       await qr.manager.save(SharedspaceMembers, { UserId: newOwnerId, SharedspaceId: space.id, RoleId: ownerRoleId });
 
       await qr.commitTransaction();
 
       await this.invalidateSharedspaceCache(url);
-      await this.rolesService.invalidateUserRoleCache(OwnerId, space.id);
+      await this.rolesService.invalidateUserRoleCache(space.OwnerId, space.id);
       await this.rolesService.invalidateUserRoleCache(newOwnerId, space.id);
     } catch (err) {
       await qr.rollbackTransaction();
