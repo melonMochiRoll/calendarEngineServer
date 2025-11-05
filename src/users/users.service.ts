@@ -1,4 +1,4 @@
-import { ConflictException, Inject, Injectable } from "@nestjs/common";
+import { ConflictException, ForbiddenException, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Users } from "src/entities/Users";
 import { Like, Repository } from "typeorm";
@@ -9,7 +9,10 @@ import handleError from "src/common/function/handleError";
 import { ProviderList, UserReturnMap } from "src/typings/types";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
-import { CONFLICT_ACCOUNT_MESSAGE } from "src/common/constant/error.message";
+import { ACCESS_DENIED_MESSAGE, CONFLICT_ACCOUNT_MESSAGE } from "src/common/constant/error.message";
+import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
+import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
+import { RolesService } from "src/roles/roles.service";
 
 @Injectable()
 export class UsersService {
@@ -17,7 +20,11 @@ export class UsersService {
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
     @InjectRepository(Users)
-    private usersRepository: Repository<Users>
+    private usersRepository: Repository<Users>,
+    @InjectRepository(SharedspaceMembers)
+    private sharedspaceMembersRepository: Repository<SharedspaceMembers>,
+    private sharedspacesService: SharedspacesService,
+    private rolesService: RolesService,
   ) {}
 
   async getUserById<T extends 'full' | 'standard' = 'standard'>(
@@ -110,29 +117,70 @@ export class UsersService {
     }
   }
 
-  async searchUsers(query: string) {
+  async searchUsers(
+    url: string,
+    query: string,
+    page = 1,
+    UserId: number,
+    limit = 10,
+  ) {
     try {
-      return await this.usersRepository.find({
+      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+
+      if (space.private) {
+        const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
+
+        if (!isParticipant) {
+          throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+        }
+      }
+
+      const userRecords = await this.usersRepository.find({
         select: {
           id: true,
           email: true,
           profileImage: true,
-          Sharedspacemembers: {
-            SharedspaceId: true,
-            Role: {
-              name: true,
-            }
-          },
-        },
-        relations: {
-          Sharedspacemembers: {
-            Role: true,
-          },
         },
         where: {
           email: Like(`${query}%`),
         },
+        skip: (page - 1) * limit,
+        take: limit,
       });
+
+      const memberRecords = await this.sharedspaceMembersRepository.find({
+        select: {
+          UserId: true,
+        },
+        where: {
+          SharedspaceId: space.id,
+        },
+      });
+
+      const memberSet = memberRecords.reduce((set, member) => {
+        set.add(member.UserId);
+        return set;
+      }, new Set());
+
+      const users = userRecords.map((user) => {
+        return {
+          ...user,
+          permission: {
+            isParticipant: memberSet.has(user.id),
+          },
+        };
+      });
+
+      const totalCount = await this.usersRepository.count({
+        where: {
+          email: Like(`${query}%`),
+        },
+      });
+
+      return {
+        items: users,
+        hasMoreData: !Boolean(page * limit >= totalCount),
+      };
     } catch (err) {
       handleError(err);
     }
