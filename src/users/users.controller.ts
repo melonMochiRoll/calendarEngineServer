@@ -3,10 +3,8 @@ import { UsersService } from "./users.service";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
 import { CreateUserDTO } from "./dto/create.user.dto";
-import { SkipThrottle } from "@nestjs/throttler";
 import { IsNotJwtAuthenicatedGuard, JwtAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 
-@SkipThrottle()
 @Controller('api/users')
 export class UsersController {
   constructor(
