@@ -19,13 +19,6 @@ export class UsersController {
     return user || false;
   }
 
-  @SkipThrottle({ default: false })
-  @UseGuards(JwtAuthGuard)
-  @Get('search')
-  searchUsers(@Query('query') query: string) {
-    return this.usersService.searchUsers(query);
-  }
-
   @Get('email')
   isUser(@Query('e') email: string) {
     return this.usersService.isUser(email);
