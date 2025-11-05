@@ -6,6 +6,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { RefreshTokens } from 'src/entities/RefreshTokens';
 import { SharedspaceMembers } from 'src/entities/SharedspaceMembers';
 import { SharedspacesModule } from 'src/sharedspaces/sharedspaces.module';
+import { SharedspacesUsersContoller } from './sharedspaces.users.controller';
+import { RolesModule } from 'src/roles/roles.module';
 
 @Module({
   imports: [
@@ -15,8 +17,12 @@ import { SharedspacesModule } from 'src/sharedspaces/sharedspaces.module';
       SharedspaceMembers,
     ]),
     SharedspacesModule,
+    RolesModule,
   ],
-  controllers: [ UsersController ],
+  controllers: [
+    UsersController,
+    SharedspacesUsersContoller,
+  ],
   providers: [
     UsersService,
   ],
