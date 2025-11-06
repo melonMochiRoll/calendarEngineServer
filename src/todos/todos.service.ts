@@ -243,7 +243,7 @@ export class TodosService {
   async searchTodos(
     url: string,
     query: string,
-    offset: number,
+    page: number,
     UserId?: number,
     limit = 10,
   ) {
@@ -258,12 +258,36 @@ export class TodosService {
         }
       }
 
-      return await this.getTodosByQuery(
-        url,
-        query,
-        offset,
-        limit,
-      );
+      const todoRecords = await this.todosRepository.find({
+        select: {
+          id: true,
+          description: true,
+          date: true,
+          startTime: true,
+          endTime: true,
+        },
+        where: {
+          SharedspaceId: space.id,
+          description: Like(`%${query}%`),
+        },
+        order: {
+          date: 'DESC',
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+      });
+
+      const totalCount = await this.todosRepository.count({
+        where: {
+          SharedspaceId: space.id,
+          description: Like(`%${query}%`),
+        },
+      });
+
+      return {
+        items: todoRecords,
+        hasMoreData: !Boolean(page * limit >= totalCount),
+      };
     } catch (err) {
       handleError(err);
     }
