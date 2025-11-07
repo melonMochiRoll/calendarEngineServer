@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, ParseIntPipe, Patch, Post, Query, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { SharedspacesService } from "./sharedspaces.service";
 import { CreateSharedspaceDTO } from "./dto/create.sharedspace.dto";
 import { UpdateSharedspaceNameDTO } from "./dto/update.sharedspace.name.dto";
@@ -8,10 +8,6 @@ import { Users } from "src/entities/Users";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
 import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dto";
 import { UpdateSharedspacePrivateDTO } from "./dto/update.sharedspace.private.dto";
-import { Sharedspaces } from "src/entities/Sharedspaces";
-import { CreateSharedspaceChatDTO } from "./dto/create.sharedspace.chat.dto";
-import { FilesInterceptor } from "@nestjs/platform-express";
-import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
 import { JwtAuthGuard, PublicAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
 
@@ -124,64 +120,5 @@ export class SharedspacesController {
     @User() user: Users,
   ) {
     return this.sharedspacesService.deleteSharedspaceMembers(url, targetUserId, user.id);
-  }
-
-  @UseGuards(PublicAuthGuard)
-  @Get(':url/chats')
-  getSharedspaceChats(
-    @Param('url') url: string,
-    @Query('page', ParseIntPipe) page: number,
-    @User() user: Users,
-  ) {
-    return this.sharedspacesService.getSharedspaceChats(url, page, user?.id);
-  }
-
-  @UseInterceptors(FilesInterceptor('images', 6, {
-    limits: {
-      fileSize: Number(process.env.MAX_CHAT_IMAGE_SIZE) * 1024 * 1024,
-    },
-  }))
-  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Post(':url/chats')
-  createSharedspaceChat(
-    @Param('url') url: string,
-    @Body() dto: CreateSharedspaceChatDTO,
-    @UploadedFiles() files: Express.Multer.File[],
-    @User() user: Users,
-  ) {
-    return this.sharedspacesService.createSharedspaceChat(url, dto, files, user.id);
-  }
-
-  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Patch(':url/chats')
-  updateSharedspaceChat(
-    @Param('url') url: string,
-    @Body() dto: UpdateSharedspaceChatDTO,
-    @User() user: Users,
-  ) {
-    return this.sharedspacesService.updateSharedspaceChat(url, dto, user.id);
-  }
-
-  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @HttpCode(204)
-  @Delete(':url/chats/:id')
-  deleteSharedspaceChat(
-    @Param('url') url: string,
-    @Param('id', ParseIntPipe) chatId: number,
-    @User() user: Users,
-  ) {
-    return this.sharedspacesService.deleteSharedspaceChat(url, chatId, user.id);
-  }
-
-  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @HttpCode(204)
-  @Delete(':url/chats/:ChatId/images/:ImageId')
-  deleteSharedspaceChatImage(
-    @Param('url') url: string,
-    @Param('ChatId', ParseIntPipe) ChatId: number,
-    @Param('ImageId', ParseIntPipe) ImageId: number,
-    @User() user: Users,
-  ) {
-    return this.sharedspacesService.deleteSharedspaceChatImage(url, ChatId, ImageId, user.id);
   }
 }
