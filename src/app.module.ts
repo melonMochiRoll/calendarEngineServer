@@ -16,6 +16,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { AwsModule } from './aws/aws.module';
 import { AppService } from './app.service';
 import { Roles } from 'src/entities/Roles';
+import { ChatsModule } from './chats/chats.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { Roles } from 'src/entities/Roles';
     RolesModule,
     EventsModule,
     AwsModule,
+    ChatsModule,
   ],
   controllers: [],
   providers: [
