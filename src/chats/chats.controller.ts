@@ -18,10 +18,14 @@ export class ChatsController {
   @Get(':url/chats')
   getSharedspaceChats(
     @Param('url') url: string,
-    @Query('page', ParseIntPipe) page: number,
+    @Query('before') beforeChatId: string,
     @User() user: Users,
   ) {
-    return this.chatsService.getSharedspaceChats(url, page, user?.id);
+    return this.chatsService.getSharedspaceChats(
+      url,
+      beforeChatId ? Number(beforeChatId) : null,
+      user?.id
+    );
   }
 
   @UseInterceptors(FilesInterceptor('images', 6, {

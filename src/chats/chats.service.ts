@@ -1,18 +1,19 @@
 import path from "path";
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { AwsService } from "src/aws/aws.service";
-import { BAD_REQUEST_MESSAGE } from "src/common/constant/error.message";
+import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE } from "src/common/constant/error.message";
 import handleError from "src/common/function/handleError";
 import { Chats } from "src/entities/Chats";
 import { Images } from "src/entities/Images";
 import { EventsGateway } from "src/events/events.gateway";
 import { RolesService } from "src/roles/roles.service";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
-import { DataSource, In, Repository } from "typeorm";
+import { DataSource, In, LessThan, Repository } from "typeorm";
 import { ChatsCommandList } from "src/typings/types";
 import { CreateSharedspaceChatDTO } from "./dto/create.sharedspace.chat.dto";
 import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
+import { Sharedspaces } from "src/entities/Sharedspaces";
 
 @Injectable()
 export class ChatsService {
@@ -30,15 +31,23 @@ export class ChatsService {
 
   async getSharedspaceChats(
     url: string,
-    page = 1,
+    beforeChatId: number,
     UserId?: number,
-    limit = 30,
+    limit = 100,
   ) {
     try {
       const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
       if (!space) {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
+      }
+
+      if (space.private) {
+        const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
+
+        if (!isParticipant) {
+          throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+        }
       }
 
       const chatRecords = await this.chatsRepository.find({
@@ -56,15 +65,24 @@ export class ChatsService {
         relations: {
           Sender: true,
         },
-        where: {
+        where: beforeChatId ? {
+          SharedspaceId: space.id,
+          id: LessThan(beforeChatId),
+        } : {
           SharedspaceId: space.id,
         },
         order: {
           createdAt: 'DESC',
         },
-        skip: (page - 1) * limit,
         take: limit,
       });
+
+      if (!chatRecords.length) {
+        return {
+          chats: [],
+          hasMoreData: false,
+        };
+      }
 
       const images = await this.imagesRepository.find({
         select: {
@@ -97,12 +115,13 @@ export class ChatsService {
       const totalCount = await this.chatsRepository.count({
         where: {
           SharedspaceId: space.id,
+          id: LessThan(chats[chats.length-1].id),
         },
       });
 
       return {
         chats,
-        hasMoreData: !Boolean(page * limit >= totalCount),
+        hasMoreData: totalCount,
       };
     } catch (err) {
       handleError(err);
