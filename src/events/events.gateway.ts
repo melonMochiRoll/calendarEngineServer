@@ -7,6 +7,9 @@ import { Server, Socket } from "socket.io";
     credentials: true,
   },
   namespace: /\/sharedspace-.+/,
+  connectionStateRecovery: {
+    maxDisconnectionDuration: 1 * 60 * 1000,
+  },
 })
 export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
