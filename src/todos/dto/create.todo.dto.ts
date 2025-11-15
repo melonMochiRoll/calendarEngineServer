@@ -1,4 +1,4 @@
-import { IsDateString, IsNotEmpty, IsNumber, MaxLength } from "class-validator";
+import { IsDateString, MaxLength } from "class-validator";
 import { IsTimeFormat } from "src/common/validator/IsTimeFormat";
 
 export class CreateTodoDTO {
@@ -22,8 +22,4 @@ export class CreateTodoDTO {
     message: '$property은 Time형식이 아닙니다.'
   })
   endTime: string;
-
-  @IsNotEmpty()
-  @IsNumber()
-  AuthorId: number;
 }

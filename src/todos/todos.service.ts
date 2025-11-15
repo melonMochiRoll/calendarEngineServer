@@ -173,6 +173,7 @@ export class TodosService {
 
       await this.todosRepository.save({
         ...dto,
+        AuthorId: UserId,
         SharedspaceId: space.id,
       });
     } catch (err) {
