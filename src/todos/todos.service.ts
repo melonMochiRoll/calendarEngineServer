@@ -205,7 +205,10 @@ export class TodosService {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
-      await this.todosRepository.update({ id: todoId }, rest);
+      await this.todosRepository.update({ id: todoId }, {
+        ...rest,
+        EditorId: UserId,
+      });
     } catch (err) {
       handleError(err);
     }

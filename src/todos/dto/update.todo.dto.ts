@@ -20,8 +20,4 @@ export class UpdateTodoDto {
     message: '$property은 Time형식이 아닙니다.'
   })
   endTime: string;
-
-  @IsNotEmpty()
-  @IsNumber()
-  EditorId: number;
 };
