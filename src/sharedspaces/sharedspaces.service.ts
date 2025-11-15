@@ -468,6 +468,19 @@ export class SharedspacesService {
     const { UserId: targetUserId, RoleName } = dto;
 
     try {
+      const targetUser = await this.usersRepository.find({
+        select: {
+          id: true,
+        },
+        where: {
+          id: targetUserId,
+        },
+      });
+
+      if (!targetUser) {
+        throw new BadRequestException(BAD_REQUEST_MESSAGE);
+      }
+
       const space = await this.getSharedspaceByUrl(url);
 
       const isOwner = await this.rolesService.requireOwner(UserId, space.id);
