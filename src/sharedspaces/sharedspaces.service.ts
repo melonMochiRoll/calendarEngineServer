@@ -1,5 +1,4 @@
 import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
-import { CreateSharedspaceDTO } from "./dto/create.sharedspace.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, In, Repository } from "typeorm";
 import { Sharedspaces } from "src/entities/Sharedspaces";
@@ -214,9 +213,7 @@ export class SharedspacesService {
     }
   }
 
-  async createSharedspace(dto: CreateSharedspaceDTO) {
-    const { OwnerId } = dto;
-
+  async createSharedspace(UserId: number) {
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
@@ -224,14 +221,14 @@ export class SharedspacesService {
     try {
       const created = await qr.manager.save(Sharedspaces, {
         url: nanoid(5),
-        ...dto,
+        OwnerId: UserId,
       });
 
       const rolesArray = await this.rolesService.getRolesArray();
       const ownerRole = rolesArray.find(role => role.name === SharedspaceMembersRoles.OWNER);
       
       await qr.manager.save(SharedspaceMembers, {
-        UserId: OwnerId,
+        UserId,
         SharedspaceId: created.id,
         RoleId: ownerRole.id,
       });

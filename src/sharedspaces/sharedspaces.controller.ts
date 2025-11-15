@@ -1,6 +1,5 @@
 import { Body, Controller, Delete, Get, HttpCode, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { SharedspacesService } from "./sharedspaces.service";
-import { CreateSharedspaceDTO } from "./dto/create.sharedspace.dto";
 import { UpdateSharedspaceNameDTO } from "./dto/update.sharedspace.name.dto";
 import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { User } from "src/common/decorator/user.decorator";
@@ -38,8 +37,8 @@ export class SharedspacesController {
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post()
-  createSharedspace(@Body() dto: CreateSharedspaceDTO) {
-    return this.sharedspacesService.createSharedspace(dto);
+  createSharedspace(@User() user: Users) {
+    return this.sharedspacesService.createSharedspace(user.id);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
