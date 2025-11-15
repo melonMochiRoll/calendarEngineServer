@@ -1,6 +1,4 @@
-import { Type } from "class-transformer";
 import { IsDateString, IsNotEmpty, IsNumber, MaxLength } from "class-validator";
-import { IsExistUser } from "src/common/validator/IsExistUser";
 import { IsTimeFormat } from "src/common/validator/IsTimeFormat";
 
 export class CreateTodoDTO {
@@ -25,9 +23,7 @@ export class CreateTodoDTO {
   })
   endTime: string;
 
-  @IsExistUser({
-    message: '$property은 존재하지 않는 회원입니다.'
-  })
-  @Type(() => Number)
+  @IsNotEmpty()
+  @IsNumber()
   AuthorId: number;
 }
