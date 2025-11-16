@@ -1,7 +1,7 @@
 import { BadRequestException, ForbiddenException, Injectable } from "@nestjs/common";
 import dayjs from "dayjs";
 import { InjectRepository } from "@nestjs/typeorm";
-import { And, LessThanOrEqual, Like, MoreThanOrEqual, Repository } from "typeorm";
+import { Like, Repository } from "typeorm";
 import { Todos } from "src/entities/Todos";
 import { CreateTodoDTO } from "./dto/create.todo.dto";
 import { UpdateTodoDto } from "./dto/update.todo.dto";
@@ -18,42 +18,6 @@ export class TodosService {
     private sharedspacesService: SharedspacesService,
     private rolesService: RolesService,
   ) {}
-
-  async getTodos(
-    SharedspaceId: number,
-    date: string,
-  ) {
-    const [ year, month ] = date.split('-');
-
-    try {
-      const startDate = dayjs(`${year}-${month}-01`).toDate();
-      const endDate = dayjs(`${year}-${month}-31`).toDate();
-
-      return await this.todosRepository.find({
-        select: {
-          Author: {
-            email: true,
-          },
-          Editor: {
-            email: true,
-          },
-        },
-        relations: {
-          Author: true,
-          Editor: true,
-        },
-        where: {
-          SharedspaceId,
-          date: And(
-            MoreThanOrEqual(startDate),
-            LessThanOrEqual(endDate)
-          ),
-        },
-      });
-    } catch (err) {
-      handleError(err);
-    }
-  }
 
   async getTodosByDate(
     url: string,
