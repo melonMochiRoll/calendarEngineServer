@@ -1,7 +1,7 @@
 import { BadRequestException, ForbiddenException, Injectable } from "@nestjs/common";
 import dayjs from "dayjs";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Like, Repository } from "typeorm";
+import { Between, Like, Repository } from "typeorm";
 import { Todos } from "src/entities/Todos";
 import { CreateTodoDTO } from "./dto/create.todo.dto";
 import { UpdateTodoDto } from "./dto/update.todo.dto";
@@ -18,6 +18,74 @@ export class TodosService {
     private sharedspacesService: SharedspacesService,
     private rolesService: RolesService,
   ) {}
+
+  async getTodosByMonth(
+    url: string,
+    date: string,
+    UserId?: number,
+  ) {
+    const [ year, month ] = date.split('-');
+    const startDate = dayjs(`${year}-${month}-01`).toDate();
+    const endDate = dayjs(`${year}-${month}-31`).toDate();
+
+    try {
+      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+
+      if (space.private) {
+        const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
+
+        if (!isParticipant) {
+          throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+        }
+      }
+
+      const todos = await this.todosRepository.find({
+        select: {
+          id: true,
+          description: true,
+          date: true,
+          startTime: true,
+          endTime: true,
+          createdAt: true,
+          updatedAt: true,
+          Author: {
+            email: true,
+          },
+          Editor: {
+            email: true,
+          },
+        },
+        relations: {
+          Author: true,
+          Editor: true,
+        },
+        where: {
+          SharedspaceId: space.id,
+          date: Between(startDate, endDate),
+        },
+        order: {
+          startTime: 'ASC',
+          endTime: 'ASC',
+        },
+      });
+
+      const todosMap = todos.reduce((map, todo) => {
+        if (!map[String(todo.date)]) {
+          map[String(todo.date)] = [];
+        }
+        map[String(todo.date)].push({
+          ...todo,
+          Author: todo.Author.email,
+          Editor: todo?.Editor?.email || '',
+        });
+        return map;
+      }, {});
+
+      return todosMap;
+    } catch (err) {
+      handleError(err);
+    }
+  }
 
   async getTodosByDate(
     url: string,

@@ -16,29 +16,15 @@ export class TodosController {
 
   @UseGuards(PublicAuthGuard)
   @Get(':url/todos')
-  getTodosByDate(
+  getTodosByMonth(
     @Param('url') url: string,
     @Query('date', DateValidationPipe) date: string,
     @User() user: Users,
   ) {
-    return this.todosService.getTodosByDate(
+    return this.todosService.getTodosByMonth(
       url,
       date,
       user?.id,
-    );
-  }
-
-  @UseGuards(PublicAuthGuard)
-  @Get(':url/todos/count')
-  getTodosCount(
-    @Param('url') url: string,
-    @Query('date', DateValidationPipe) date: string,
-    @User() user: Users,
-  ) {
-    return this.todosService.getTodosCount(
-      url,
-      date,
-      user?.id
     );
   }
 
