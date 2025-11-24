@@ -29,7 +29,7 @@ export class UsersService {
 
   async getUserById<T extends 'full' | 'standard' = 'standard'>(
     id: number,
-    columnGroup?: T,
+    columnGroup: T = 'standard' as T,
   ): Promise<UserReturnMap<T>> {
     const cacheKey = `user:${id}:${columnGroup}`;
 
