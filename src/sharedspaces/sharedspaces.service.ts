@@ -6,7 +6,7 @@ import { nanoid } from "nanoid";
 import { UpdateSharedspaceNameDTO } from "./dto/update.sharedspace.name.dto";
 import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
-import { SharedspaceMembersRoles, SharedspaceReturnMap, SubscribedspacesSorts } from "src/typings/types";
+import { CacheItem, SharedspaceMembersRoles, SharedspaceReturnMap, SubscribedspacesSorts } from "src/typings/types";
 import { Users } from "src/entities/Users";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, CONFLICT_OWNER_MESSAGE, NOT_FOUND_RESOURCE, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
@@ -17,6 +17,7 @@ import { Chats } from "src/entities/Chats";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { RolesService } from "src/roles/roles.service";
+import dayjs from "dayjs";
 
 @Injectable()
 export class SharedspacesService {
@@ -32,45 +33,73 @@ export class SharedspacesService {
     private sharedspaceMembersRepository: Repository<SharedspaceMembers>,
     private rolesService: RolesService,
   ) {}
+  private refreshLock = new Set<String>();
 
   async getSharedspaceByUrl<T extends 'full' | 'standard' = 'standard'>(
     url: string,
-    columnGroup?: T,
+    columnGroup: T = 'standard' as T,
+    beta = 1,
   ): Promise<SharedspaceReturnMap<T>> {
     const cacheKey = `sharedspace:${url}:${columnGroup}`;
 
-    const cachedSpace = await this.cacheManager.get<SharedspaceReturnMap<T>>(cacheKey);
+    const cachedItem = await this.cacheManager.get<CacheItem<SharedspaceReturnMap<T>>>(cacheKey);
 
-    if (cachedSpace) {
-      return cachedSpace;
-    }
+    const fetchSharedspaceAndWrite = async (cacheKey: string) => {
+      const selectClause = columnGroup === 'full' ?
+        {} :
+        {
+          id: true,
+          name: true,
+          url: true,
+          private: true,
+          createdAt: true,
+          OwnerId: true,
+        };
 
-    const selectClause = columnGroup === 'full' ?
-      {} :
-      {
-        id: true,
-        name: true,
-        url: true,
-        private: true,
-        createdAt: true,
-        OwnerId: true,
-      };
-
-    try {
+      const start = dayjs();
       const space = await this.sharedspacesRepository.findOne({
         select: selectClause,
         where: {
           url,
         },
       }) as SharedspaceReturnMap<T>;
+      const delta = dayjs().diff(start);
 
       if (!space) {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
       const minute = 60000;
-      await this.cacheManager.set(cacheKey, space, 10 * minute);
+      const ttl = 0.1 * minute;
 
+      await this.cacheManager.set(cacheKey, {
+        value: space,
+        duration: delta,
+        expireTime: dayjs().valueOf() + ttl,
+      }, ttl);
+
+      return space;
+    }
+
+    try {
+      if (cachedItem) {
+        const random = Math.log(Math.random());
+        const threshold = dayjs().valueOf() - (cachedItem.duration * beta * random);
+        const isRefresher = threshold >= cachedItem.expireTime;
+
+        if (isRefresher && !this.refreshLock.has(cacheKey)) {
+          this.refreshLock.add(cacheKey);
+
+          fetchSharedspaceAndWrite(cacheKey)
+            .finally(() => {
+              this.refreshLock.delete(cacheKey);
+            });
+        }
+
+        return cachedItem.value;
+      }
+
+      const space = await fetchSharedspaceAndWrite(cacheKey);
       return space;
     } catch (err) {
       handleError(err);
