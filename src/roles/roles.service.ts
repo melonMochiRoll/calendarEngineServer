@@ -64,7 +64,7 @@ export class RolesService {
 
       return cachedUserRole;
     }
-    
+
     try {
       const userRole = await this.sharedspaceMembersRepository.findOne({
         select: {
@@ -108,6 +108,10 @@ export class RolesService {
     try { 
       const userRole = await this.getUserRole(UserId, SpaceId);
       const rolesArray = await this.getRolesArray() as Pick<Roles, 'id' | 'name'>[];
+
+      if (!userRole) {
+        return null;
+      } 
 
       const role = rolesArray.find(role => role.id === userRole.RoleId);
 
