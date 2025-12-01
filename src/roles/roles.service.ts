@@ -1,12 +1,11 @@
-import { BadRequestException, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import handleError from "src/common/function/handleError";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Roles } from "src/entities/Roles";
 import { Repository } from "typeorm";
-import { BAD_REQUEST_MESSAGE, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
-import { ROLES_ARRAY_KEY } from "src/common/constant/auth.constants";
+import { DATA_NOT_FOUND, ROLES_ARRAY_KEY } from "src/common/constant/auth.constants";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { SharedspaceMembersRoles, TSharedspaceMembersRole } from "src/typings/types";
 
@@ -56,12 +55,16 @@ export class RolesService {
     SharedspaceId: number,
   ) {
     const cacheKey = `user:role:${UserId}:${SharedspaceId}`;
-    const cachedUserRole = await this.cacheManager.get<Pick<SharedspaceMembers, 'RoleId'>>(cacheKey);
+    const cachedUserRole = await this.cacheManager.get<Pick<SharedspaceMembers, 'RoleId'> | typeof DATA_NOT_FOUND>(cacheKey);
 
     if (cachedUserRole) {
+      if (cachedUserRole === DATA_NOT_FOUND) {
+        return null;
+      }
+
       return cachedUserRole;
     }
-
+    
     try {
       const userRole = await this.sharedspaceMembersRepository.findOne({
         select: {
@@ -73,10 +76,12 @@ export class RolesService {
         },
       });
 
-      if (userRole) {
-        const minute = 60000;
-        await this.cacheManager.set(cacheKey, userRole, 5 * minute);
-      }
+      const minute = 60000;
+      await this.cacheManager.set(
+        cacheKey,
+        userRole ? userRole : DATA_NOT_FOUND,
+        5 * minute,
+      );
 
       return userRole;
     } catch (err) {
