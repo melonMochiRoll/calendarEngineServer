@@ -3,3 +3,4 @@
 .env
 .env.dev
 ecosystem.config.js
+webpack-hmr.config.js
