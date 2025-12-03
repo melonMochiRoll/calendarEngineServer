@@ -4,7 +4,6 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Request } from "express";
 import { Strategy } from "passport-naver";
 import { CONFLICT_ACCOUNT_MESSAGE } from "src/common/constant/error.message";
-import handleError from "src/common/function/handleError";
 import { Users } from "src/entities/Users";
 import { ProviderList, TNaverProfile } from "src/typings/types";
 import { UsersService } from "src/users/users.service";
@@ -20,6 +19,7 @@ export class NaverStrategy extends PassportStrategy(Strategy, 'naver') {
     super({
       clientID: process.env.NAVER_CLIENT_ID,
       clientSecret: process.env.NAVER_CLIENT_SECRET,
+      callbackURL: `${process.env.SERVER_ORIGIN}/api/auth/login/oauth2/naver/callback`,
       profileURL: 'https://openapi.naver.com/v1/nid/me',
       authType: 'reprompt',
       passReqToCallback: true,
