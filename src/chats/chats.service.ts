@@ -86,8 +86,8 @@ export class ChatsService {
 
       const images = await this.imagesRepository.find({
         select: {
-          id: true,
           path: true,
+          ChatId: true,
         },
         where: {
           ChatId: In(chatRecords.map((chat) => chat.id)),
@@ -95,17 +95,17 @@ export class ChatsService {
       });
 
       const imagesMap = images.reduce((acc, image) => {
-        if (!acc[image.id]) {
-          acc[image.id] = [];
+        if (!acc[image.ChatId]) {
+          acc[image.ChatId] = [];
         }
-        acc[image.id].push(image);
+        acc[image.ChatId].push(image);
         return acc;
       }, {});
 
       const chats = chatRecords.map((chat) => {
         return {
           ...chat,
-          Images: imagesMap[chat.id] || [],
+          Images: imagesMap[`${chat.id}`] || [],
           permission: {
             isSender: chat.SenderId === UserId,
           },
