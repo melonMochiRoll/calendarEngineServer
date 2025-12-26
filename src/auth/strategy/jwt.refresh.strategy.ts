@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
 import dayjs from "dayjs";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import { PassportStrategy } from "@nestjs/passport";
@@ -40,7 +40,7 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
     });
 
     if (!refreshTokenData || dayjs().isSameOrAfter(dayjs(refreshTokenData.revokedAt))) {
-      throw new ForbiddenException(TOKEN_EXPIRED);
+      throw new UnauthorizedException(TOKEN_EXPIRED);
     }
 
     const user = await this.usersRepository.findOne({
