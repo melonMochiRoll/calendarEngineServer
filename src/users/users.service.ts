@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException, Inject, Injectable } from "@nestjs/common";
+import { ConflictException, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Users } from "src/entities/Users";
 import { Like, Repository } from "typeorm";
@@ -9,7 +9,7 @@ import handleError from "src/common/function/handleError";
 import { ProviderList, UserReturnMap } from "src/typings/types";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
-import { ACCESS_DENIED_MESSAGE, CONFLICT_ACCOUNT_MESSAGE } from "src/common/constant/error.message";
+import { CONFLICT_ACCOUNT_MESSAGE } from "src/common/constant/error.message";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { RolesService } from "src/roles/roles.service";
@@ -121,19 +121,10 @@ export class UsersService {
     url: string,
     query: string,
     page = 1,
-    UserId: number,
     limit = 10,
   ) {
     try {
       const space = await this.sharedspacesService.getSharedspaceByUrl(url);
-
-      if (space.private) {
-        const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
-
-        if (!isParticipant) {
-          throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
-        }
-      }
 
       const userRecords = await this.usersRepository.find({
         select: {
