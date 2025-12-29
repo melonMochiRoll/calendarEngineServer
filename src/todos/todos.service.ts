@@ -35,7 +35,10 @@ export class TodosService {
         const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
 
         if (!isParticipant) {
-          throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+          throw new ForbiddenException({
+            message: ACCESS_DENIED_MESSAGE,
+            metaData: { spaceUrl: space.url },
+          });
         }
       }
 
@@ -99,7 +102,10 @@ export class TodosService {
         const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
 
         if (!isParticipant) {
-          throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+          throw new ForbiddenException({
+            message: ACCESS_DENIED_MESSAGE,
+            metaData: { spaceUrl: space.url },
+          });
         }
       }
 
@@ -133,7 +139,10 @@ export class TodosService {
         const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
 
         if (!isParticipant) {
-          throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+          throw new ForbiddenException({
+            message: ACCESS_DENIED_MESSAGE,
+            metaData: { spaceUrl: space.url },
+          });
         }
       }
 
@@ -200,7 +209,10 @@ export class TodosService {
       const isMember = await this.rolesService.requireMember(UserId, space.id);
 
       if (!isMember) {
-        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+        throw new ForbiddenException({
+          message: ACCESS_DENIED_MESSAGE,
+          metaData: { spaceUrl: space.url },
+        });
       }
 
       await this.todosRepository.save({
@@ -228,7 +240,10 @@ export class TodosService {
       const isMember = await this.rolesService.requireMember(UserId, space.id);
 
       if (!isMember) {
-        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+        throw new ForbiddenException({
+          message: ACCESS_DENIED_MESSAGE,
+          metaData: { spaceUrl: space.url },
+        });
       }
 
       const targetTodo = await this.todosRepository.findOneBy({ id: todoId });
@@ -259,7 +274,10 @@ export class TodosService {
       const isMember = await this.rolesService.requireMember(UserId, space.id);
 
       if (!isMember) {
-        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+        throw new ForbiddenException({
+          message: ACCESS_DENIED_MESSAGE,
+          metaData: { spaceUrl: space.url },
+        });
       }
 
       const targetTodo = await this.todosRepository.findOneBy({ id: todoId });
@@ -290,7 +308,10 @@ export class TodosService {
         const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
 
         if (!isParticipant) {
-          throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+          throw new ForbiddenException({
+            message: ACCESS_DENIED_MESSAGE,
+            metaData: { spaceUrl: space.url },
+          });
         }
       }
 

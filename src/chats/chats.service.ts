@@ -46,7 +46,10 @@ export class ChatsService {
         const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
 
         if (!isParticipant) {
-          throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+          throw new ForbiddenException({
+            message: ACCESS_DENIED_MESSAGE,
+            metaData: { spaceUrl: space.url },
+          });
         }
       }
 

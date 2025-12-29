@@ -136,7 +136,10 @@ export class SharedspacesService {
       const userRole = await this.rolesService.requireParticipant(UserId, space.id);
 
       if (!userRole && space.private) {
-        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+        throw new ForbiddenException({
+          message: ACCESS_DENIED_MESSAGE,
+          metaData: { spaceUrl: space.url },
+        });
       }
 
       const isOwner = space.OwnerId === UserId;
@@ -422,7 +425,10 @@ export class SharedspacesService {
         const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
 
         if (!isParticipant) {
-          throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+          throw new ForbiddenException({
+            message: ACCESS_DENIED_MESSAGE,
+            metaData: { spaceUrl: space.url },
+          });
         }
       }
 
