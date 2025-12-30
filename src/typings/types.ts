@@ -30,8 +30,9 @@ export const SubscribedspacesSorts = {
 
 export interface IErrorResponse {
   message: string,
-  error: string,
-  statusCode: number,
+  metaData?: {
+    spaceUrl?: string,
+  },
 };
 
 export type TGoogleProfile = {
