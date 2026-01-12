@@ -1,7 +1,6 @@
 import path from "path";
-import { BadRequestException, ForbiddenException, Injectable } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { StorageService } from "src/storage/storage.service";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE } from "src/common/constant/error.message";
 import handleError from "src/common/function/handleError";
 import { Chats } from "src/entities/Chats";
@@ -10,7 +9,7 @@ import { EventsGateway } from "src/events/events.gateway";
 import { RolesService } from "src/roles/roles.service";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { DataSource, In, LessThan, Repository } from "typeorm";
-import { ChatsCommandList } from "src/typings/types";
+import { ChatsCommandList, IStorageService, STORAGE_SERVICE } from "src/typings/types";
 import { CreateSharedspaceChatDTO } from "./dto/create.sharedspace.chat.dto";
 import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
 import { Sharedspaces } from "src/entities/Sharedspaces";
@@ -25,7 +24,8 @@ export class ChatsService {
     private imagesRepository: Repository<Images>,
     private readonly eventsGateway: EventsGateway,
     private rolesService: RolesService,
-    private storageService: StorageService,
+    @Inject(STORAGE_SERVICE)
+    private storageService: IStorageService,
     private sharedspacesService: SharedspacesService,
   ) {}
 
@@ -138,12 +138,13 @@ export class ChatsService {
     UserId: number,
   ) {
     const { content } = dto;
+    let folderName = process.env.STORAGE_PROVIDER === 's3' ?
+      process.env.AWS_S3_FOLDER_NAME :
+      process.env.OCI_FOLDER_NAME;
 
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
-
-    const s3Keys = files.map((file) => `${process.env.AWS_S3_FOLDER_NAME}/${Date.now()}${path.extname(file.originalname)}`);
 
     try {
       const space = await this.sharedspacesService.getSharedspaceByUrl(url);
@@ -159,11 +160,11 @@ export class ChatsService {
       });
 
       for (let i=0; i<files.length; i++) {
-        const key = s3Keys[i];
+        const key = `${folderName}/${Date.now()}${path.extname(files[i].originalname)}`;
 
         await qr.manager.save(Images, { path: key, ChatId: chatRecord.id })
           .then(async () => {
-            await this.storageService.uploadImageToS3(files[i], key);
+            await this.storageService.uploadFile(files[i], key);
           });
       }
 
@@ -204,8 +205,10 @@ export class ChatsService {
         await qr.release();
       }
 
-      for (let i=0; i<s3Keys.length; i++) {
-        await this.storageService.deleteImageFromS3(s3Keys[i]);
+      for (let i=0; i<files.length; i++) {
+        const key = `${folderName}/${Date.now()}${path.extname(files[i].originalname)}`;
+
+        await this.storageService.deleteFile(key);
       }
 
       handleError(err);
@@ -306,7 +309,7 @@ export class ChatsService {
 
         await qr.manager.delete(Images, { id: image.id })
           .then(async () => {
-            await this.storageService.deleteImageFromS3(image.path);
+            await this.storageService.deleteFile(image.path);
           });
       }
 
@@ -367,7 +370,7 @@ export class ChatsService {
 
       await this.imagesRepository.delete({ id: ImageId })
         .then(async () => {
-          await this.storageService.deleteImageFromS3(targetChat.Images[0].path);
+          await this.storageService.deleteFile(targetChat.Images[0].path);
         });
 
       this.eventsGateway.server

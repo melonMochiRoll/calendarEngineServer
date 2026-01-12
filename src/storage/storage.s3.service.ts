@@ -1,10 +1,10 @@
 import { DeleteObjectCommand, PutObjectCommand, S3Client, waitUntilObjectNotExists } from "@aws-sdk/client-s3";
 import { Injectable } from "@nestjs/common";
 import handleError from "src/common/function/handleError";
-
+import { IStorageService } from "src/typings/types";
 
 @Injectable()
-export class StorageService {
+export class StorageS3Service implements IStorageService {
   s3Client: S3Client;
   
   constructor() {
@@ -17,7 +17,7 @@ export class StorageService {
     });
   }
 
-  async uploadImageToS3( 
+  async uploadFile( 
     file: Express.Multer.File,
     key: string,
   ) {
@@ -37,7 +37,7 @@ export class StorageService {
     return true;
   }
 
-  async deleteImageFromS3(
+  async deleteFile(
     key: string,
   ) {
     const command = new DeleteObjectCommand({

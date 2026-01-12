@@ -1,9 +1,21 @@
 import { Module } from '@nestjs/common';
-import { StorageService } from './storage.service';
+import { STORAGE_SERVICE } from 'src/typings/types';
+import { StorageOciService } from './storage.oci.service';
+import { StorageS3Service } from './storage.s3.service';
 
 @Module({
-  providers: [ StorageService ],
-  exports: [ StorageService ],
+  providers: [
+    StorageS3Service,
+    StorageOciService,
+    {
+      provide: STORAGE_SERVICE,
+      useFactory: (s3: StorageS3Service, oci: StorageOciService) => {
+        return process.env.STORAGE_PROVIDER === 's3' ? s3 : oci;
+      },
+      inject: [ StorageS3Service, StorageOciService ],
+    },
+  ],
+  exports: [ STORAGE_SERVICE ],
 })
 
 export class StorageModule {}
