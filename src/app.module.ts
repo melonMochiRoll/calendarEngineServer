@@ -13,7 +13,7 @@ import { EventsModule } from './events/events.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import path from 'path';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { AwsModule } from './aws/aws.module';
+import { StorageModule } from './storage/storage.module';
 import { AppService } from './app.service';
 import { Roles } from 'src/entities/Roles';
 import { ChatsModule } from './chats/chats.module';
@@ -43,7 +43,7 @@ import { ChatsModule } from './chats/chats.module';
     JoinRequestsModule,
     RolesModule,
     EventsModule,
-    AwsModule,
+    StorageModule,
     ChatsModule,
   ],
   controllers: [],

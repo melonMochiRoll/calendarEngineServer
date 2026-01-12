@@ -4,7 +4,7 @@ import handleError from "src/common/function/handleError";
 
 
 @Injectable()
-export class AwsService {
+export class StorageService {
   s3Client: S3Client;
   
   constructor() {

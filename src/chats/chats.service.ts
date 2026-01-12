@@ -1,7 +1,7 @@
 import path from "path";
 import { BadRequestException, ForbiddenException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { AwsService } from "src/aws/aws.service";
+import { StorageService } from "src/storage/storage.service";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE } from "src/common/constant/error.message";
 import handleError from "src/common/function/handleError";
 import { Chats } from "src/entities/Chats";
@@ -25,7 +25,7 @@ export class ChatsService {
     private imagesRepository: Repository<Images>,
     private readonly eventsGateway: EventsGateway,
     private rolesService: RolesService,
-    private awsService: AwsService,
+    private storageService: StorageService,
     private sharedspacesService: SharedspacesService,
   ) {}
 
@@ -163,7 +163,7 @@ export class ChatsService {
 
         await qr.manager.save(Images, { path: key, ChatId: chatRecord.id })
           .then(async () => {
-            await this.awsService.uploadImageToS3(files[i], key);
+            await this.storageService.uploadImageToS3(files[i], key);
           });
       }
 
@@ -205,7 +205,7 @@ export class ChatsService {
       }
 
       for (let i=0; i<s3Keys.length; i++) {
-        await this.awsService.deleteImageFromS3(s3Keys[i]);
+        await this.storageService.deleteImageFromS3(s3Keys[i]);
       }
 
       handleError(err);
@@ -306,7 +306,7 @@ export class ChatsService {
 
         await qr.manager.delete(Images, { id: image.id })
           .then(async () => {
-            await this.awsService.deleteImageFromS3(image.path);
+            await this.storageService.deleteImageFromS3(image.path);
           });
       }
 
@@ -367,7 +367,7 @@ export class ChatsService {
 
       await this.imagesRepository.delete({ id: ImageId })
         .then(async () => {
-          await this.awsService.deleteImageFromS3(targetChat.Images[0].path);
+          await this.storageService.deleteImageFromS3(targetChat.Images[0].path);
         });
 
       this.eventsGateway.server
