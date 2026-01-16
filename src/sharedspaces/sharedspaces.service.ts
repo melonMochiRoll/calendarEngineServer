@@ -18,6 +18,7 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { RolesService } from "src/roles/roles.service";
 import dayjs from "dayjs";
+import { NANOID_SHAREDSPACE_URL_LENGTH } from "src/common/constant/constants";
 
 @Injectable()
 export class SharedspacesService {
@@ -252,7 +253,7 @@ export class SharedspacesService {
 
     try {
       const created = await qr.manager.save(Sharedspaces, {
-        url: nanoid(5),
+        url: nanoid(NANOID_SHAREDSPACE_URL_LENGTH),
         OwnerId: UserId,
       });
 

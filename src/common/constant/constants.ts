@@ -1,0 +1,2 @@
+
+export const NANOID_SHAREDSPACE_URL_LENGTH = 9;
