@@ -138,13 +138,21 @@ export class ChatsService {
     UserId: number,
   ) {
     const { content } = dto;
-    let folderName = process.env.STORAGE_PROVIDER === 's3' ?
-      process.env.AWS_S3_FOLDER_NAME :
-      process.env.OCI_FOLDER_NAME;
 
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
+
+    const keyAndFiles = files.map(file => {
+      const folderName = process.env.STORAGE_PROVIDER === 's3' ?
+        process.env.AWS_S3_FOLDER_NAME :
+        process.env.OCI_FOLDER_NAME;
+
+      return {
+        key: `${folderName}/${Date.now()}${path.extname(file.originalname)}`,
+        file,
+      };
+    });
 
     try {
       const space = await this.sharedspacesService.getSharedspaceByUrl(url);
@@ -159,12 +167,10 @@ export class ChatsService {
         SharedspaceId: space.id,
       });
 
-      for (let i=0; i<files.length; i++) {
-        const key = `${folderName}/${Date.now()}${path.extname(files[i].originalname)}`;
-
+      for (const { key, file } of keyAndFiles) {
         await qr.manager.save(Images, { path: key, ChatId: chatRecord.id })
           .then(async () => {
-            await this.storageService.uploadFile(files[i], key);
+            await this.storageService.uploadFile(file, key);
           });
       }
 
@@ -205,9 +211,7 @@ export class ChatsService {
         await qr.release();
       }
 
-      for (let i=0; i<files.length; i++) {
-        const key = `${folderName}/${Date.now()}${path.extname(files[i].originalname)}`;
-
+      for (const { key, file } of keyAndFiles) {
         await this.storageService.deleteFile(key);
       }
 
