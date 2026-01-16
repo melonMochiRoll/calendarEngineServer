@@ -149,7 +149,7 @@ export class ChatsService {
         process.env.OCI_FOLDER_NAME;
 
       return {
-        key: `${folderName}/${Date.now()}${path.extname(file.originalname)}`,
+        key: `${folderName}/${url}/${Date.now()}${path.extname(file.originalname)}`,
         file,
       };
     });
