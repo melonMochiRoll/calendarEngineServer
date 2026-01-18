@@ -97,6 +97,10 @@ export class ChatsService {
         },
       });
 
+      for (const image of images) {
+        image.path = await this.storageService.generatePresignedGetUrl(image.path);
+      }
+
       const imagesMap = images.reduce((acc, image) => {
         if (!acc[image.ChatId]) {
           acc[image.ChatId] = [];
@@ -201,6 +205,10 @@ export class ChatsService {
           id: chatRecord.id,
         },
       });
+
+      for (const image of chatWithUser.Images) {
+        image.path = await this.storageService.generatePresignedGetUrl(image.path);
+      }
 
       this.eventsGateway.server
         .to(`/sharedspace-${space.url}`)
