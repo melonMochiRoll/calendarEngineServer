@@ -1,4 +1,5 @@
-import { DeleteObjectCommand, PutObjectCommand, S3Client, waitUntilObjectNotExists } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client, waitUntilObjectNotExists } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Injectable } from "@nestjs/common";
 import handleError from "src/common/function/handleError";
 import { IStorageService } from "src/typings/types";
@@ -64,5 +65,20 @@ export class StorageOciService implements IStorageService {
     }
 
     return true;
+  }
+
+  async generatePresignedGetUrl(key: string) {
+    try {
+      const command = new GetObjectCommand({
+        Bucket: process.env.OCI_BUCKET_NAME,
+        Key: key,
+      });
+
+      return await getSignedUrl(this.ociClient, command, {
+        expiresIn: 3600 * 3,
+      });
+    } catch (err) {
+      handleError(err);
+    }
   }
 }

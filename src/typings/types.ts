@@ -113,6 +113,7 @@ export type CacheItem<T> = {
 export interface IStorageService {
   uploadFile(file: Express.Multer.File, key: string): Promise<boolean>,
   deleteFile(key: string): Promise<boolean>,
+  generatePresignedGetUrl(key: string): Promise<string>,
 };
 
 export const STORAGE_SERVICE = Symbol('STORAGE_SERVICE');
