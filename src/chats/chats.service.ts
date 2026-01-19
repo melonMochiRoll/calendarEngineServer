@@ -13,6 +13,7 @@ import { ChatsCommandList, IStorageService, STORAGE_SERVICE } from "src/typings/
 import { CreateSharedspaceChatDTO } from "./dto/create.sharedspace.chat.dto";
 import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
 import { Sharedspaces } from "src/entities/Sharedspaces";
+import dayjs from "dayjs";
 
 @Injectable()
 export class ChatsService {
@@ -247,36 +248,19 @@ export class ChatsService {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
-      await this.chatsRepository.update({ id: ChatId }, { content });
+      const updatedAt = dayjs.utc();
 
-      const chatWithUser = await this.chatsRepository.findOne({
-        select: {
-          id: true,
-          content: true,
-          SenderId: true,
-          createdAt: true,
-          updatedAt: true,
-          Sender: {
-            email: true,
-            profileImage: true,
-          },
-          Images: {
-            id: true,
-            path: true,
-          },
-        },
-        relations: {
-          Sender: true,
-          Images: true,
-        },
-        where: {
-          id: ChatId,
-        },
-      });
+      await this.chatsRepository.update(
+        { id: ChatId },
+        {
+          content,
+          updatedAt,
+        }
+      );
 
       this.eventsGateway.server
         .to(`/sharedspace-${space.url}`)
-        .emit(`publicChats:${ChatsCommandList.CHAT_UPDATED}`, chatWithUser);
+        .emit(`publicChats:${ChatsCommandList.CHAT_UPDATED}`, { id: ChatId, content, updatedAt });
     } catch (err) {
       handleError(err);
     }
