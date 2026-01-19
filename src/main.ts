@@ -11,6 +11,12 @@ import helmet from 'helmet';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import cookieParser from 'cookie-parser';
+import { RedisIoAdapter } from './events/redis.io.adapter';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 
 declare const module: any;
 
@@ -75,6 +81,15 @@ async function bootstrap() {
   app.use(passport.initialize());
   app.use(passport.session());
   app.use(cookieParser());
+
+  // const redisIoAdapter = new RedisIoAdapter(app);
+  // await redisIoAdapter.connectToRedis();
+  // app.useWebSocketAdapter(redisIoAdapter);
+
+  dayjs.extend(utc);
+  dayjs.extend(timezone);
+  dayjs.extend(isSameOrAfter);
+  dayjs.extend(customParseFormat);
 
   const port = Number(process.env.PORT);
   await app.listen(port);

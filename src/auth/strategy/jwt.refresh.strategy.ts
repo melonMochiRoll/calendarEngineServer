@@ -1,6 +1,5 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import dayjs from "dayjs";
-import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import { PassportStrategy } from "@nestjs/passport";
 import { InjectRepository } from "@nestjs/typeorm";
 import { ExtractJwt, Strategy } from "passport-jwt";
@@ -28,7 +27,6 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
       ignoreExpiration: false,
       secretOrKey: process.env.JWT_SECRET,
     });
-    dayjs.extend(isSameOrAfter);
   }
 
   async validate(payload: TRefreshTokenPayload) {

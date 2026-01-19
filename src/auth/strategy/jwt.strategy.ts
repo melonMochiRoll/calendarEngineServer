@@ -11,7 +11,6 @@ import { TAccessTokenPayload, TRefreshTokenPayload } from "src/typings/types";
 import { UsersService } from "src/users/users.service";
 import { Repository } from "typeorm";
 import dayjs from "dayjs";
-import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import { AuthService } from "../auth.service";
 
 @Injectable()
@@ -24,7 +23,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     private refreshTokensRepository: Repository<RefreshTokens>,
   ) {
     super();
-    dayjs.extend(isSameOrAfter);
   }
 
   async validate(request: Request) {

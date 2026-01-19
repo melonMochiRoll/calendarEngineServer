@@ -1,17 +1,12 @@
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException } from '@nestjs/common';
 import { Request, Response } from 'express';
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
 import { INTERNAL_SERVER_MESSAGE } from '../constant/error.message';
 import { IErrorResponse } from 'src/typings/types';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
-  constructor() {
-    dayjs.extend(utc);
-    dayjs.extend(timezone);
-  }
+  constructor() {}
 
   catch(exception: HttpException, host: ArgumentsHost) {
     console.error(exception);
