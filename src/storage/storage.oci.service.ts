@@ -81,4 +81,18 @@ export class StorageOciService implements IStorageService {
       handleError(err);
     }
   }
+
+  async generatePresignedPutUrl(key: string) {
+    try {
+      const command = new PutObjectCommand({
+        Bucket: process.env.OCI_BUCKET_NAME,
+        Key: key,
+        CacheControl: 'public, max-age=31536000, immutable',
+      });
+
+      return await getSignedUrl(this.ociClient, command);
+    } catch (err) {
+      handleError(err);
+    }
+  }
 }

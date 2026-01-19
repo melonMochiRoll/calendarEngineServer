@@ -81,4 +81,18 @@ export class StorageS3Service implements IStorageService {
       handleError(err);
     }
   }
+
+  async generatePresignedPutUrl(key: string) {
+    try {
+      const command = new PutObjectCommand({
+        Bucket: process.env.AWS_S3_BUCKET_NAME,
+        Key: key,
+        CacheControl: 'public, max-age=31536000, immutable',
+      });
+
+      return await getSignedUrl(this.s3Client, command);
+    } catch (err) {
+      handleError(err);
+    }
+  }
 }
