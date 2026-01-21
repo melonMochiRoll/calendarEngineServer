@@ -14,6 +14,7 @@ import { CreateSharedspaceChatDTO } from "./dto/create.sharedspace.chat.dto";
 import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import dayjs from "dayjs";
+import { GeneratePresignedPutUrlDTO } from "./dto/generate.presigned.put.url.dto";
 
 @Injectable()
 export class ChatsService {
@@ -372,6 +373,30 @@ export class ChatsService {
       this.eventsGateway.server
         .to(`/sharedspace-${space.url}`)
         .emit(`publicChats:${ChatsCommandList.CHAT_IMAGE_DELETED}`, ChatId, ImageId);
+    } catch (err) {
+      handleError(err);
+    }
+  }
+
+  async generatePresignedPutUrl(
+    url: string,
+    dto: GeneratePresignedPutUrlDTO,
+  ) {
+    const { fileNames } = dto;
+
+    try {
+      const folderName = process.env.STORAGE_PROVIDER === 's3' ?
+        process.env.AWS_S3_FOLDER_NAME :
+        process.env.OCI_FOLDER_NAME;
+
+      const urls = await Promise.all(
+        fileNames.map(async (fileName) => {
+          const result = await this.storageService.generatePresignedPutUrl(`${folderName}/${url}/${Date.now()}${path.extname(fileName)}`);
+          return result;
+        })
+      );
+
+      return urls;
     } catch (err) {
       handleError(err);
     }

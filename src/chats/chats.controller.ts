@@ -7,6 +7,7 @@ import { FilesInterceptor } from "@nestjs/platform-express";
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
 import { CreateSharedspaceChatDTO } from "./dto/create.sharedspace.chat.dto";
 import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
+import { GeneratePresignedPutUrlDTO } from "./dto/generate.presigned.put.url.dto";
 
 @Controller('api/sharedspaces')
 export class ChatsController {
@@ -75,5 +76,14 @@ export class ChatsController {
     @User() user: Users,
   ) {
     return this.chatsService.deleteSharedspaceChatImage(url, ChatId, ImageId, user.id);
+  }
+
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
+  @Post(':url/chats/images/presigned-url')
+  generatePresignedPutUrl(
+    @Param('url') url: string,
+    @Body() dto: GeneratePresignedPutUrlDTO,
+  ) {
+    return this.chatsService.generatePresignedPutUrl(url, dto);
   }
 }
