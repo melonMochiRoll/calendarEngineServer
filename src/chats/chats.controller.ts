@@ -3,7 +3,7 @@ import { ChatsService } from "./chats.service";
 import { JwtAuthGuard, PublicAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
-import { FilesInterceptor } from "@nestjs/platform-express";
+import { FilesInterceptor, NoFilesInterceptor } from "@nestjs/platform-express";
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
 import { CreateSharedspaceChatDTO } from "./dto/create.sharedspace.chat.dto";
 import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
@@ -29,20 +29,14 @@ export class ChatsController {
     );
   }
 
-  @UseInterceptors(FilesInterceptor('images', 6, {
-    limits: {
-      fileSize: Number(process.env.MAX_CHAT_IMAGE_SIZE) * 1024 * 1024,
-    },
-  }))
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post(':url/chats')
   createSharedspaceChat(
     @Param('url') url: string,
     @Body() dto: CreateSharedspaceChatDTO,
-    @UploadedFiles() files: Express.Multer.File[],
     @User() user: Users,
   ) {
-    return this.chatsService.createSharedspaceChat(url, dto, files, user.id);
+    return this.chatsService.createSharedspaceChat(url, dto, user.id);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)

@@ -140,25 +140,13 @@ export class ChatsService {
   async createSharedspaceChat(
     url: string,
     dto: CreateSharedspaceChatDTO,
-    files: Express.Multer.File[],
     UserId: number,
   ) {
-    const { content } = dto;
+    const { content, imageKeys } = dto;
 
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
-
-    const keyAndFiles = files.map(file => {
-      const folderName = process.env.STORAGE_PROVIDER === 's3' ?
-        process.env.AWS_S3_FOLDER_NAME :
-        process.env.OCI_FOLDER_NAME;
-
-      return {
-        key: `${folderName}/${url}/${Date.now()}${path.extname(file.originalname)}`,
-        file,
-      };
-    });
 
     try {
       const space = await this.sharedspacesService.getSharedspaceByUrl(url);
@@ -173,11 +161,10 @@ export class ChatsService {
         SharedspaceId: space.id,
       });
 
-      for (const { key, file } of keyAndFiles) {
-        await qr.manager.save(Images, { path: key, ChatId: chatRecord.id })
-          .then(async () => {
-            await this.storageService.uploadFile(file, key);
-          });
+      if (imageKeys.length) {
+        for (const key of imageKeys) {
+          await qr.manager.save(Images, { path: key, ChatId: chatRecord.id });
+        }
       }
 
       await qr.commitTransaction();
@@ -221,8 +208,10 @@ export class ChatsService {
         await qr.release();
       }
 
-      for (const { key, file } of keyAndFiles) {
-        await this.storageService.deleteFile(key);
+      if (imageKeys.length) {
+        for (const key of imageKeys) {
+          await this.storageService.deleteFile(key);
+        }
       }
 
       handleError(err);
@@ -389,14 +378,18 @@ export class ChatsService {
         process.env.AWS_S3_FOLDER_NAME :
         process.env.OCI_FOLDER_NAME;
 
-      const urls = await Promise.all(
+      const keyAndUrls = await Promise.all(
         fileNames.map(async (fileName) => {
-          const result = await this.storageService.generatePresignedPutUrl(`${folderName}/${url}/${Date.now()}${path.extname(fileName)}`);
-          return result;
+          const key = `${folderName}/${url}/${Date.now()}${path.extname(fileName)}`;
+          const presignedUrl = await this.storageService.generatePresignedPutUrl(key);
+          return {
+            key,
+            presignedUrl,
+          };
         })
       );
 
-      return urls;
+      return keyAndUrls;
     } catch (err) {
       handleError(err);
     }
