@@ -20,6 +20,16 @@ export class StorageOciService implements IStorageService {
     });
   }
 
+  getStorageFolderName() {
+    const folderNameMap = {
+      's3': process.env.AWS_S3_FOLDER_NAME,
+      'oci': process.env.OCI_FOLDER_NAME,
+      'r2': process.env.R2_FOLDER_NAME,
+    };
+    
+    return folderNameMap[process.env.STORAGE_PROVIDER];
+  }
+
   async uploadFile(
     file: Express.Multer.File,
     key: string,

@@ -17,7 +17,17 @@ export class StorageR2Service implements IStorageService {
         secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
       },
     });
-  }  
+  }
+
+  getStorageFolderName() {
+    const folderNameMap = {
+      's3': process.env.AWS_S3_FOLDER_NAME,
+      'oci': process.env.OCI_FOLDER_NAME,
+      'r2': process.env.R2_FOLDER_NAME,
+    };
+    
+    return folderNameMap[process.env.STORAGE_PROVIDER];
+  }
   
   async uploadFile(
     file: Express.Multer.File,
@@ -38,6 +48,7 @@ export class StorageR2Service implements IStorageService {
 
     return true;
   }
+
   async deleteFile(key: string) {
     const command = new DeleteObjectCommand({
       Bucket: process.env.R2_BUCKET_NAME,
@@ -64,6 +75,7 @@ export class StorageR2Service implements IStorageService {
 
     return true;
   }
+
   async generatePresignedGetUrl(key: string) {
     try {
       const command = new GetObjectCommand({
@@ -78,6 +90,7 @@ export class StorageR2Service implements IStorageService {
       handleError(err);
     }
   }
+  
   async generatePresignedPutUrl(key: string) {
     try {
       const command = new PutObjectCommand({
