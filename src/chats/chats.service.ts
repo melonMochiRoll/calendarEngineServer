@@ -1,4 +1,3 @@
-import path from "path";
 import { BadRequestException, ForbiddenException, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE } from "src/common/constant/error.message";
@@ -374,13 +373,9 @@ export class ChatsService {
     const { fileNames } = dto;
 
     try {
-      const folderName = process.env.STORAGE_PROVIDER === 's3' ?
-        process.env.AWS_S3_FOLDER_NAME :
-        process.env.OCI_FOLDER_NAME;
-
       const keyAndUrls = await Promise.all(
         fileNames.map(async (fileName) => {
-          const key = `${folderName}/${url}/${Date.now()}${path.extname(fileName)}`;
+          const key = this.storageService.generateStorageKey(url, fileName);
           const presignedUrl = await this.storageService.generatePresignedPutUrl(key);
           return {
             key,
