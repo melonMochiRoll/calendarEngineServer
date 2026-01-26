@@ -1,6 +1,7 @@
 import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client, waitUntilObjectNotExists } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Injectable } from "@nestjs/common";
+import path from "path";
 import handleError from "src/common/function/handleError";
 import { IStorageService } from "src/typings/types";
 
@@ -18,14 +19,17 @@ export class StorageS3Service implements IStorageService {
     });
   }
 
-  getStorageFolderName() {
+  generateStorageKey(
+    url: string,
+    fileName: string,
+  ) {
     const folderNameMap = {
       's3': process.env.AWS_S3_FOLDER_NAME,
       'oci': process.env.OCI_FOLDER_NAME,
       'r2': process.env.R2_FOLDER_NAME,
     };
-    
-    return folderNameMap[process.env.STORAGE_PROVIDER];
+
+    return `${folderNameMap[process.env.STORAGE_PROVIDER]}/${url}/${Date.now()}${path.extname(fileName)}`
   }
 
   async uploadFile( 
