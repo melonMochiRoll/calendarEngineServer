@@ -10,6 +10,9 @@ export class Images {
   @Column({ type: 'text' })
   path: string;
 
+  @Column({ type: 'varchar', name: 'status', length: 255, default: 'PENDING' })
+  status: string;
+
   @Column({ type: 'int', name: 'ChatId' })
   ChatId: number;
 
