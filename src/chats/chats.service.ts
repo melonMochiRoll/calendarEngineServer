@@ -14,6 +14,7 @@ import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import dayjs from "dayjs";
 import { GeneratePresignedPutUrlDTO } from "./dto/generate.presigned.put.url.dto";
+import { IMAGE_STATUS } from "src/common/constant/constants";
 
 @Injectable()
 export class ChatsService {
@@ -162,7 +163,13 @@ export class ChatsService {
 
       if (imageKeys.length) {
         for (const key of imageKeys) {
-          await qr.manager.save(Images, { path: key, ChatId: chatRecord.id });
+          await qr.manager.update(
+            Images,
+            { path: key },
+            {
+              status: IMAGE_STATUS.ACTIVE,
+              ChatId: chatRecord.id,
+            });
         }
       }
 
@@ -210,6 +217,7 @@ export class ChatsService {
       if (imageKeys.length) {
         for (const key of imageKeys) {
           await this.storageService.deleteFile(key);
+          await this.imagesRepository.delete({ path: key });
         }
       }
 
@@ -383,6 +391,10 @@ export class ChatsService {
           };
         })
       );
+
+      for (const { key } of keyAndUrls) {
+        await this.imagesRepository.save({ path: key });
+      }
 
       return keyAndUrls;
     } catch (err) {
