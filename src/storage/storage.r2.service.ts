@@ -30,7 +30,7 @@ export class StorageR2Service implements IStorageService {
       'r2': process.env.R2_FOLDER_NAME,
     };
 
-    return `${folderNameMap[process.env.STORAGE_PROVIDER]}/${url}/${Date.now()}${path.extname(fileName)}`
+    return `${folderNameMap[process.env.STORAGE_PROVIDER]}/${url}/${performance.now()}${path.extname(fileName)}`
   }
   
   async uploadFile(
