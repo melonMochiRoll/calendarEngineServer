@@ -348,15 +348,13 @@ export class ChatsService {
         },
         where: {
           id: ChatId,
-          Images: {
-            id: ImageId,
-          },
         },
       });
 
       if (
         targetChat?.SenderId !== UserId ||
-        targetChat?.SharedspaceId !== space.id
+        targetChat?.SharedspaceId !== space.id ||
+        !targetChat.Images.find(image => image.id === ImageId)
       ) {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
@@ -365,6 +363,15 @@ export class ChatsService {
         .then(async () => {
           await this.storageService.deleteFile(targetChat.Images[0].path);
         });
+
+      if (targetChat.Images.length === 1) {
+        await this.chatsRepository.delete({ id: targetChat.id });
+
+        this.eventsGateway.server
+          .to(`/sharedspace-${space.url}`)
+          .emit(`publicChats:${ChatsCommandList.CHAT_DELETED}`, ChatId);
+        return true;
+      }
 
       this.eventsGateway.server
         .to(`/sharedspace-${space.url}`)
