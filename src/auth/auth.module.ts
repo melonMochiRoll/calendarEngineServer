@@ -13,7 +13,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtLocalStrategy } from './strategy/jwt.local.strategy';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { RefreshTokens } from 'src/entities/RefreshTokens';
-import { JwtRefreshStrategy } from './strategy/jwt.refresh.strategy';
 
 @Module({
   imports: [
@@ -34,7 +33,6 @@ import { JwtRefreshStrategy } from './strategy/jwt.refresh.strategy';
     AuthService,
     JwtLocalStrategy,
     JwtStrategy,
-    JwtRefreshStrategy,
     GoogleStrategy,
     NaverStrategy,
     SessionSerializer,
