@@ -3,7 +3,7 @@ import { UsersService } from "./users.service";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
 import { CreateUserDTO } from "./dto/create.user.dto";
-import { IsNotJwtAuthenicatedGuard, JwtAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
+import { IsNotJwtAuthenicatedGuard, PublicAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 
 @Controller('api/users')
 export class UsersController {
@@ -11,7 +11,7 @@ export class UsersController {
     private usersService: UsersService,
   ) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(PublicAuthGuard)
   @Get()
   getUser(@User() user: Users) {
     return user || false;
