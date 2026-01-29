@@ -17,6 +17,7 @@ import { StorageModule } from './storage/storage.module';
 import { AppService } from './app.service';
 import { Roles } from 'src/entities/Roles';
 import { ChatsModule } from './chats/chats.module';
+import { InvitesModule } from './invites/invites.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { ChatsModule } from './chats/chats.module';
     EventsModule,
     StorageModule,
     ChatsModule,
+    InvitesModule,
   ],
   controllers: [],
   providers: [
