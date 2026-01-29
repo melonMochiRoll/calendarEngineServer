@@ -7,7 +7,7 @@ import { GoogleAuthGuard } from "./authGuard/google.auth.guard";
 import { AuthService } from "./auth.service";
 import { OAuth2CSRFGuard } from "./authGuard/oauth2.csrf.guard";
 import { JwtLoginAuthGuard } from "./authGuard/jwt.local.auth.guard";
-import { IsNotJwtAuthenicatedGuard, JwtAuthGuard } from "./authGuard/jwt.auth.guard";
+import { IsNotJwtAuthenicatedGuard, JwtAuthGuard, PublicAuthGuard } from "./authGuard/jwt.auth.guard";
 import { getOrigin } from "src/common/function/getOrigin";
 
 @Controller('api/auth')
@@ -71,7 +71,7 @@ export class AuthController {
     res.send('ok');
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(PublicAuthGuard)
   @Get('csrf-token')
   getCsrfToken(@Res() res: Response) {
     this.authService.getCsrfToken(res);
