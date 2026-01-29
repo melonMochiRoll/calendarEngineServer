@@ -4,6 +4,7 @@ import { Todos } from "./Todos";
 import { SharedspaceMembers } from "./SharedspaceMembers";
 import { JoinRequests } from "./JoinRequests";
 import { Chats } from "./Chats";
+import { Invites } from "./Invites";
 
 @Index('sharedspaces_createdAt_idx', ['createdAt'])
 @Entity({ name: 'sharedspaces' })
@@ -60,6 +61,9 @@ export class Sharedspaces {
     cascade: true,
   })
   Chats: Chats[];
+
+  @OneToMany(() => Invites, invites => invites.Sharedspace)
+  Invites: Invites[];
 
   @ManyToMany(() => Users, users => users.Sharedspaces)
   Members: Users[];

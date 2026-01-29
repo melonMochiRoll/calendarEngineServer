@@ -5,6 +5,7 @@ import { SharedspaceMembers } from "./SharedspaceMembers";
 import { JoinRequests } from "./JoinRequests";
 import { Chats } from "./Chats";
 import { RefreshTokens } from "./RefreshTokens";
+import { Invites } from "./Invites";
 
 @Index('users_createdAt_idx', ['createdAt'])
 @Entity({ name: 'users' })
@@ -53,6 +54,12 @@ export class Users {
 
   @OneToMany(() => RefreshTokens, refreshTokens => refreshTokens.User)
   RefreshTokens: RefreshTokens[];
+
+  @OneToMany(() => Invites, invites => invites.Inviter)
+  SentInvites: Invites[];
+
+  @OneToMany(() => Invites, invites => invites.Invitee)
+  ReceivedInvites: Invites[];
 
   @ManyToMany(() => Sharedspaces, sharedspaces => sharedspaces.Members)
   @JoinTable({
