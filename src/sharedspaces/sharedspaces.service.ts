@@ -119,19 +119,8 @@ export class SharedspacesService {
     try {
       const space = await this.getSharedspaceByUrl(url);
 
-      if (!UserId) {
-        if (space.private) {
-          throw new UnauthorizedException(UNAUTHORIZED_MESSAGE);
-        }
-        
-        return {
-          ...space,
-          permission: {
-            isOwner: false,
-            isMember: false,
-            isViewer: true,
-          },
-        };
+      if (!UserId && space.private) {
+        throw new UnauthorizedException(UNAUTHORIZED_MESSAGE);
       }
 
       const userRole = await this.rolesService.requireParticipant(UserId, space.id);
@@ -145,13 +134,14 @@ export class SharedspacesService {
 
       const isOwner = space.OwnerId === UserId;
       const isMember = isOwner || userRole?.name === SharedspaceMembersRoles.MEMBER;
+      const isViewer = isOwner || isMember || userRole?.name === SharedspaceMembersRoles.VIEWER;
 
       return {
         ...space,
         permission: {
           isOwner,
           isMember,
-          isViewer: true,
+          isViewer,
         },
       };
     } catch (err) {
