@@ -155,6 +155,15 @@ export class ChatsService {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
+      const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
+
+      if (!isParticipant) {
+        throw new ForbiddenException({
+          message: ACCESS_DENIED_MESSAGE,
+          metaData: { spaceUrl: space.url },
+        });
+      }
+
       const chatRecord = await qr.manager.save(Chats, {
         content,
         SenderId: UserId,
