@@ -11,6 +11,8 @@ export const MISMATCH_STATE_MESSAGE = 'state 값이 다릅니다.';
 
 export const TOKEN_EXPIRED = '토큰이 만료되었거나 유효하지 않습니다. 다시 로그인해주세요.';
 
+export const NOT_FOUND_USER = '존재하지 않는 유저입니다.';
+
 export const NOT_FOUND_SPACE_MESSAGE = '존재하지 않는 스페이스입니다.';
 
 export const NOT_FOUND_RESOURCE = '요청하신 리소스를 찾을 수 없습니다.';
