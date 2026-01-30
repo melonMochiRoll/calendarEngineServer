@@ -1,4 +1,4 @@
-import { ConflictException, Inject, Injectable } from "@nestjs/common";
+import { ConflictException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Users } from "src/entities/Users";
 import { Like, Repository } from "typeorm";
@@ -9,7 +9,7 @@ import handleError from "src/common/function/handleError";
 import { ProviderList, UserReturnMap } from "src/typings/types";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
-import { CONFLICT_ACCOUNT_MESSAGE } from "src/common/constant/error.message";
+import { CONFLICT_ACCOUNT_MESSAGE, NOT_FOUND_USER } from "src/common/constant/error.message";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { RolesService } from "src/roles/roles.service";
@@ -56,10 +56,12 @@ export class UsersService {
         },
       }) as UserReturnMap<T>;
 
-      if (user) {
-        const minute = 60000;
-        await this.cacheManager.set(cacheKey, user, 10 * minute);
+      if (!user) {
+        throw new NotFoundException(NOT_FOUND_USER);
       }
+
+      const minute = 60000;
+      await this.cacheManager.set(cacheKey, user, 10 * minute);
 
       return user;
     } catch (err) {
@@ -96,10 +98,12 @@ export class UsersService {
         },
       }) as UserReturnMap<T>;
 
-      if (user) {
-        const minute = 60000;
-        await this.cacheManager.set(cacheKey, user, 10 * minute);
+      if (!user) {
+        throw new NotFoundException(NOT_FOUND_USER);
       }
+
+      const minute = 60000;
+      await this.cacheManager.set(cacheKey, user, 10 * minute);
 
       return user;
     } catch (err) {
