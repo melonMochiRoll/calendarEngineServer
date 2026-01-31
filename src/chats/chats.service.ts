@@ -183,7 +183,6 @@ export class ChatsService {
       }
 
       await qr.commitTransaction();
-      await qr.release();
 
       const chatWithUser = await this.chatsRepository.findOne({
         select: {
@@ -218,10 +217,7 @@ export class ChatsService {
         .to(`/sharedspace-${space.url}`)
         .emit(`publicChats:${ChatsCommandList.CHAT_CREATED}`, chatWithUser);
     } catch (err) {
-      if (!qr.isReleased) {
-        await qr.rollbackTransaction();
-        await qr.release();
-      }
+      await qr.rollbackTransaction();
 
       if (imageKeys.length) {
         for (const key of imageKeys) {
@@ -231,6 +227,8 @@ export class ChatsService {
       }
 
       handleError(err);
+    } finally {
+      await qr.release();
     }
 
     return true;
@@ -318,18 +316,16 @@ export class ChatsService {
       await qr.manager.delete(Chats, { id: ChatId });
 
       await qr.commitTransaction();
-      await qr.release();
 
       this.eventsGateway.server
         .to(`/sharedspace-${space.url}`)
         .emit(`publicChats:${ChatsCommandList.CHAT_DELETED}`, ChatId);
     } catch (err) {
-      if (!qr.isReleased) {
-        await qr.rollbackTransaction();
-        await qr.release();
-      }
+      await qr.rollbackTransaction();
 
       handleError(err);
+    } finally {
+      await qr.release();
     }
   }
 
