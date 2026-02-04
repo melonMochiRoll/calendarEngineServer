@@ -21,6 +21,8 @@ export const CONFLICT_MESSAGE = '요청한 데이터와 서버의 데이터 상�
 
 export const CONFLICT_ACCOUNT_MESSAGE = '이미 가입된 이메일입니다.';
 
+export const CONFLICT_USER_MESSAGE = '이미 가입된 유저입니다.';
+
 export const CONFLICT_REQUEST_MESSAGE = '이미 요청을 보냈습니다.';
 
 export const CONFLICT_OWNER_MESSAGE = '동일한 유저로 바꿀수 없습니다.';
