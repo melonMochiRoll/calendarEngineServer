@@ -6,7 +6,7 @@ import { User } from "src/common/decorator/user.decorator";
 import { SendInviteDTO } from "./dto/send.invite.dto";
 
 @Controller('api/invites')
-export class InvitesContoller {
+export class InvitesController {
   constructor(
     private invitesService: InvitesService
   ) {}

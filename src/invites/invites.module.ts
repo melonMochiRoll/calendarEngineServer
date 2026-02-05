@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Invites } from 'src/entities/Invites';
-import { InvitesContoller } from './invites.controller';
+import { InvitesController } from './invites.controller';
 import { InvitesService } from './invites.service';
 import { SharedspacesModule } from 'src/sharedspaces/sharedspaces.module';
 import { UsersModule } from 'src/users/users.module';
@@ -16,7 +16,7 @@ import { RolesModule } from 'src/roles/roles.module';
     UsersModule,
     RolesModule,
   ],
-  controllers: [ InvitesContoller ],
+  controllers: [ InvitesController ],
   providers: [ InvitesService ],
   exports: [],
 })
