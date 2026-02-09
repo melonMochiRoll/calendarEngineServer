@@ -51,7 +51,18 @@ export class InvitesService {
         take: limit,
       });
 
-      return invites;
+      const totalCount = await this.invitesRepository.count({
+        where: {
+          InviteeId: UserId,
+          status: INVITE_STATUS.PENDING,
+          expiredAt: MoreThan(dayjs().toDate()),
+        },
+      });
+
+      return {
+        invites,
+        hasMoredata: !Boolean(page * limit >= totalCount),
+      };
     } catch (err) {
       handleError(err);
     }
