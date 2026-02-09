@@ -1,4 +1,4 @@
-import { Body, Controller, Get, ParseIntPipe, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Query, UseGuards } from "@nestjs/common";
 import { InvitesService } from "./invites.service";
 import { JwtAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { Users } from "src/entities/Users";
@@ -47,5 +47,15 @@ export class InvitesController {
     @User() user: Users,
   ) {
     return this.invitesService.declineInvite(dto, user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('cancel/:id')
+  cancelInvite(
+    @Param('id', ParseIntPipe) targetInviteId: number,
+    @Query('url') url: string,
+    @User() user: Users,
+  ) {
+    return this.invitesService.cancelInvite(targetInviteId, url, user.id);
   }
 }

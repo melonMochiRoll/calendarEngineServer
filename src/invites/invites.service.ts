@@ -228,4 +228,42 @@ export class InvitesService {
       handleError(err);
     }
   }
+
+  async cancelInvite(
+    targetInviteId: number,
+    url: string,
+    UserId: number,
+  ) {
+    try {
+      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+
+      const isMember = await this.rolesService.requireMember(UserId, space.id);
+      
+      if (!isMember) {
+        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+      }
+
+      const targetInvite = await this.invitesRepository.findOne({
+        select: {
+          id: true,
+        },
+        where: {
+          id: targetInviteId,
+          InviterId: UserId,
+          status: INVITE_STATUS.PENDING,
+          expiredAt: MoreThan(dayjs().toDate()),
+        },
+      });
+
+      if (!targetInvite) {
+        throw new BadRequestException(BAD_REQUEST_MESSAGE);
+      }
+
+      await this.invitesRepository.delete({ id: targetInvite.id });
+
+      return true;
+    } catch (err) {
+      handleError(err);
+    }
+  }
 }
