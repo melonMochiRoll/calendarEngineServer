@@ -13,6 +13,7 @@ import { UsersService } from "src/users/users.service";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { SharedspaceMembersRoles } from "src/typings/types";
 import { AcceptInviteDTO } from "./dto/accept.invite.dto";
+import { DeclineInviteDTO } from "./dto/decline.invite.dto";
 
 @Injectable()
 export class InvitesService {
@@ -188,5 +189,43 @@ export class InvitesService {
     } finally {
       await qr.release();
     } 
+  }
+
+  async declineInvite(
+    dto: DeclineInviteDTO,
+    UserId: number,
+  ) {
+    const { id: targetInviteId } = dto;
+
+    try {
+      const targetInvite = await this.invitesRepository.findOne({
+        select: {
+          id: true,
+        },
+        where: {
+          id: targetInviteId,
+          InviteeId: UserId,
+          status: INVITE_STATUS.PENDING,
+          expiredAt: MoreThan(dayjs().toDate()),
+        },
+      });
+
+      if (!targetInvite) {
+        throw new BadRequestException(BAD_REQUEST_MESSAGE);
+      }
+
+      await this.invitesRepository.update(
+        {
+          id: targetInvite.id,
+        },
+        {
+          status: INVITE_STATUS.REJECTED,
+        }
+      );
+
+      return true;
+    } catch (err) {
+      handleError(err);
+    }
   }
 }

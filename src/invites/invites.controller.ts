@@ -5,6 +5,7 @@ import { Users } from "src/entities/Users";
 import { User } from "src/common/decorator/user.decorator";
 import { SendInviteDTO } from "./dto/send.invite.dto";
 import { AcceptInviteDTO } from "./dto/accept.invite.dto";
+import { DeclineInviteDTO } from "./dto/decline.invite.dto";
 
 @Controller('api/invites')
 export class InvitesController {
@@ -37,5 +38,14 @@ export class InvitesController {
     @User() user: Users,
   ) {
     return this.invitesService.acceptInvite(dto, user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('decline')
+  declineInvite(
+    @Body() dto: DeclineInviteDTO,
+    @User() user: Users,
+  ) {
+    return this.invitesService.declineInvite(dto, user.id);
   }
 }
