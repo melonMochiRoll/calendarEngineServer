@@ -1,19 +1,23 @@
-import { ConflictException, ForbiddenException, Injectable } from "@nestjs/common";
+import { BadRequestException, ConflictException, ForbiddenException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import handleError from "src/common/function/handleError";
 import { Invites } from "src/entities/Invites";
-import { MoreThan, Repository } from "typeorm";
+import { DataSource, MoreThan, Repository } from "typeorm";
 import dayjs from "dayjs";
 import { INVITE_STATUS } from "src/common/constant/constants";
 import { SendInviteDTO } from "./dto/send.invite.dto";
-import { ACCESS_DENIED_MESSAGE, CONFLICT_REQUEST_MESSAGE, CONFLICT_USER_MESSAGE } from "src/common/constant/error.message";
+import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_REQUEST_MESSAGE, CONFLICT_USER_MESSAGE } from "src/common/constant/error.message";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { RolesService } from "src/roles/roles.service";
 import { UsersService } from "src/users/users.service";
+import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
+import { SharedspaceMembersRoles } from "src/typings/types";
+import { AcceptInviteDTO } from "./dto/accept.invite.dto";
 
 @Injectable()
 export class InvitesService {
   constructor(
+    private dataSource: DataSource,
     @InjectRepository(Invites)
     private invitesRepository: Repository<Invites>,
     private usersService: UsersService,
@@ -117,5 +121,72 @@ export class InvitesService {
     } catch (err) {
       handleError(err);
     }
+  }
+
+  async acceptInvite(
+    dto: AcceptInviteDTO,
+    UserId: number,
+  ) {
+    const { id: targetInviteId, url } = dto;
+
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+
+    try {
+      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+
+      const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
+
+      if (isParticipant) {
+        throw new ConflictException(CONFLICT_USER_MESSAGE);
+      }
+
+      const targetInvite = await this.invitesRepository.findOne({
+        select: {
+          id: true,
+        },
+        where: {
+          id: targetInviteId,
+          InviteeId: UserId,
+          status: INVITE_STATUS.PENDING,
+          expiredAt: MoreThan(dayjs().toDate()),
+        },
+      });
+
+      if (!targetInvite) {
+        throw new BadRequestException(BAD_REQUEST_MESSAGE);
+      }
+
+      await qr.manager.update(Invites,
+        {
+          id: targetInvite.id,
+        },
+        {
+          status: INVITE_STATUS.ACCEPTED,
+        },
+      );
+
+      const rolesArray = await this.rolesService.getRolesArray();
+      const role = rolesArray.find(role => role.name === SharedspaceMembersRoles.VIEWER);
+
+      await qr.manager.save(SharedspaceMembers,
+        {
+          UserId,
+          SharedspaceId: space.id,
+          RoleId: role.id,
+        }
+      );
+
+      await qr.commitTransaction();
+
+      return true;
+    } catch (err) {
+      await qr.rollbackTransaction();
+
+      handleError(err);
+    } finally {
+      await qr.release();
+    } 
   }
 }
