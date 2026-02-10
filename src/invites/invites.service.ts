@@ -32,17 +32,22 @@ export class InvitesService {
     limit = 7,
   ) {
     try {
-      const invites = await this.invitesRepository.find({
+      const inviteRecords = await this.invitesRepository.find({
         select: {
           id: true,
           createdAt: true,
           Sharedspace: {
             name: true,
             url: true,
+            Owner: {
+              email: true,
+            },
           },
         },
         relations: {
-          Sharedspace: true,
+          Sharedspace: {
+            Owner: true,
+          },
         },
         where: {
           InviteeId: UserId,
@@ -62,6 +67,16 @@ export class InvitesService {
           status: INVITE_STATUS.PENDING,
           expiredAt: MoreThan(dayjs().toDate()),
         },
+      });
+
+      const invites = inviteRecords.map((invite) => {
+        const { Sharedspace, ...rest } = invite;
+        return {
+          ...rest,
+          SharedspaceName: Sharedspace.name,
+          url: Sharedspace.url,
+          OwnerEmail: Sharedspace.Owner.email,
+        };
       });
 
       return {
