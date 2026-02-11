@@ -195,6 +195,7 @@ export class InvitesService {
       );
 
       await qr.commitTransaction();
+      await this.rolesService.invalidateUserRoleCache(UserId, space.id);
 
       return true;
     } catch (err) {
