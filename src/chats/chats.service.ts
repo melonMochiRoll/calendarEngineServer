@@ -1,7 +1,6 @@
 import { BadRequestException, ForbiddenException, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE } from "src/common/constant/error.message";
-import handleError from "src/common/function/handleError";
 import { Chats } from "src/entities/Chats";
 import { Images } from "src/entities/Images";
 import { EventsGateway } from "src/events/events.gateway";
@@ -37,104 +36,100 @@ export class ChatsService {
     UserId?: number,
     limit = 100,
   ) {
-    try {
-      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+    const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
-      if (!space) {
-        throw new BadRequestException(BAD_REQUEST_MESSAGE);
-      }
-
-      if (space.private) {
-        const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
-
-        if (!isParticipant) {
-          throw new ForbiddenException({
-            message: ACCESS_DENIED_MESSAGE,
-            metaData: { spaceUrl: space.url },
-          });
-        }
-      }
-
-      const chatRecords = await this.chatsRepository.find({
-        select: {
-          id: true,
-          content: true,
-          SenderId: true,
-          createdAt: true,
-          updatedAt: true,
-          Sender: {
-            email: true,
-            profileImage: true,
-          },
-        },
-        relations: {
-          Sender: true,
-        },
-        where: beforeChatId ? {
-          SharedspaceId: space.id,
-          id: LessThan(beforeChatId),
-        } : {
-          SharedspaceId: space.id,
-        },
-        order: {
-          createdAt: 'DESC',
-        },
-        take: limit,
-      });
-
-      if (!chatRecords.length) {
-        return {
-          chats: [],
-          hasMoreData: false,
-        };
-      }
-
-      const images = await this.imagesRepository.find({
-        select: {
-          path: true,
-          ChatId: true,
-        },
-        where: {
-          ChatId: In(chatRecords.map((chat) => chat.id)),
-        },
-      });
-
-      for (const image of images) {
-        image.path = await this.storageService.generatePresignedGetUrl(image.path);
-      }
-
-      const imagesMap = images.reduce((acc, image) => {
-        if (!acc[image.ChatId]) {
-          acc[image.ChatId] = [];
-        }
-        acc[image.ChatId].push(image);
-        return acc;
-      }, {});
-
-      const chats = chatRecords.map((chat) => {
-        return {
-          ...chat,
-          Images: imagesMap[`${chat.id}`] || [],
-          permission: {
-            isSender: chat.SenderId === UserId,
-          },
-        };
-      });
-
-      const totalCount = await this.chatsRepository.count({
-        where: {
-          SharedspaceId: space.id,
-          id: LessThan(chats[chats.length-1].id),
-        },
-      });
-
-      return {
-        chats,
-        hasMoreData: totalCount,
-      };
-    } catch (err) {
-      handleError(err);
+    if (!space) {
+      throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
+
+    if (space.private) {
+      const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
+
+      if (!isParticipant) {
+        throw new ForbiddenException({
+          message: ACCESS_DENIED_MESSAGE,
+          metaData: { spaceUrl: space.url },
+        });
+      }
+    }
+
+    const chatRecords = await this.chatsRepository.find({
+      select: {
+        id: true,
+        content: true,
+        SenderId: true,
+        createdAt: true,
+        updatedAt: true,
+        Sender: {
+          email: true,
+          profileImage: true,
+        },
+      },
+      relations: {
+        Sender: true,
+      },
+      where: beforeChatId ? {
+        SharedspaceId: space.id,
+        id: LessThan(beforeChatId),
+      } : {
+        SharedspaceId: space.id,
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+      take: limit,
+    });
+
+    if (!chatRecords.length) {
+      return {
+        chats: [],
+        hasMoreData: false,
+      };
+    }
+
+    const images = await this.imagesRepository.find({
+      select: {
+        path: true,
+        ChatId: true,
+      },
+      where: {
+        ChatId: In(chatRecords.map((chat) => chat.id)),
+      },
+    });
+
+    for (const image of images) {
+      image.path = await this.storageService.generatePresignedGetUrl(image.path);
+    }
+
+    const imagesMap = images.reduce((acc, image) => {
+      if (!acc[image.ChatId]) {
+        acc[image.ChatId] = [];
+      }
+      acc[image.ChatId].push(image);
+      return acc;
+    }, {});
+
+    const chats = chatRecords.map((chat) => {
+      return {
+        ...chat,
+        Images: imagesMap[`${chat.id}`] || [],
+        permission: {
+          isSender: chat.SenderId === UserId,
+        },
+      };
+    });
+
+    const totalCount = await this.chatsRepository.count({
+      where: {
+        SharedspaceId: space.id,
+        id: LessThan(chats[chats.length-1].id),
+      },
+    });
+
+    return {
+      chats,
+      hasMoreData: totalCount,
+    };
   }
 
   async createSharedspaceChat(
@@ -226,7 +221,7 @@ export class ChatsService {
         }
       }
 
-      handleError(err);
+      throw err;
     } finally {
       await qr.release();
     }
@@ -241,33 +236,29 @@ export class ChatsService {
   ) {
     const { ChatId, content } = dto;
 
-    try {
-      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
-      const targetChat = await this.chatsRepository.findOneBy({ id: ChatId });
+    const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+    const targetChat = await this.chatsRepository.findOneBy({ id: ChatId });
 
-      if (
-        targetChat?.SenderId !== UserId ||
-        targetChat?.SharedspaceId !== space.id
-      ) {
-        throw new BadRequestException(BAD_REQUEST_MESSAGE);
-      }
-
-      const updatedAt = dayjs.utc();
-
-      await this.chatsRepository.update(
-        { id: ChatId },
-        {
-          content,
-          updatedAt,
-        }
-      );
-
-      this.eventsGateway.server
-        .to(`/sharedspace-${space.url}`)
-        .emit(`publicChats:${ChatsCommandList.CHAT_UPDATED}`, { id: ChatId, content, updatedAt });
-    } catch (err) {
-      handleError(err);
+    if (
+      targetChat?.SenderId !== UserId ||
+      targetChat?.SharedspaceId !== space.id
+    ) {
+      throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
+
+    const updatedAt = dayjs.utc();
+
+    await this.chatsRepository.update(
+      { id: ChatId },
+      {
+        content,
+        updatedAt,
+      }
+    );
+
+    this.eventsGateway.server
+      .to(`/sharedspace-${space.url}`)
+      .emit(`publicChats:${ChatsCommandList.CHAT_UPDATED}`, { id: ChatId, content, updatedAt });
   };
 
   async deleteSharedspaceChat(
@@ -323,7 +314,7 @@ export class ChatsService {
     } catch (err) {
       await qr.rollbackTransaction();
 
-      handleError(err);
+      throw err;
     } finally {
       await qr.release();
     }
@@ -335,55 +326,51 @@ export class ChatsService {
     ImageId: number,
     UserId: number,
   ) {
-    try {
-      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+    const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
-      const targetChat = await this.chatsRepository.findOne({
-        select: {
+    const targetChat = await this.chatsRepository.findOne({
+      select: {
+        id: true,
+        SenderId: true,
+        SharedspaceId: true,
+        Images: {
           id: true,
-          SenderId: true,
-          SharedspaceId: true,
-          Images: {
-            id: true,
-            path: true,
-          },
+          path: true,
         },
-        relations: {
-          Images: true,
-        },
-        where: {
-          id: ChatId,
-        },
+      },
+      relations: {
+        Images: true,
+      },
+      where: {
+        id: ChatId,
+      },
+    });
+
+    if (
+      targetChat?.SenderId !== UserId ||
+      targetChat?.SharedspaceId !== space.id ||
+      !targetChat.Images.find(image => image.id === ImageId)
+    ) {
+      throw new BadRequestException(BAD_REQUEST_MESSAGE);
+    }
+
+    await this.imagesRepository.delete({ id: ImageId })
+      .then(async () => {
+        await this.storageService.deleteFile(targetChat.Images[0].path);
       });
 
-      if (
-        targetChat?.SenderId !== UserId ||
-        targetChat?.SharedspaceId !== space.id ||
-        !targetChat.Images.find(image => image.id === ImageId)
-      ) {
-        throw new BadRequestException(BAD_REQUEST_MESSAGE);
-      }
-
-      await this.imagesRepository.delete({ id: ImageId })
-        .then(async () => {
-          await this.storageService.deleteFile(targetChat.Images[0].path);
-        });
-
-      if (targetChat.Images.length === 1) {
-        await this.chatsRepository.delete({ id: targetChat.id });
-
-        this.eventsGateway.server
-          .to(`/sharedspace-${space.url}`)
-          .emit(`publicChats:${ChatsCommandList.CHAT_DELETED}`, ChatId);
-        return true;
-      }
+    if (targetChat.Images.length === 1) {
+      await this.chatsRepository.delete({ id: targetChat.id });
 
       this.eventsGateway.server
         .to(`/sharedspace-${space.url}`)
-        .emit(`publicChats:${ChatsCommandList.CHAT_IMAGE_DELETED}`, ChatId, ImageId);
-    } catch (err) {
-      handleError(err);
+        .emit(`publicChats:${ChatsCommandList.CHAT_DELETED}`, ChatId);
+      return true;
     }
+
+    this.eventsGateway.server
+      .to(`/sharedspace-${space.url}`)
+      .emit(`publicChats:${ChatsCommandList.CHAT_IMAGE_DELETED}`, ChatId, ImageId);
   }
 
   async generatePresignedPutUrl(
@@ -392,25 +379,21 @@ export class ChatsService {
   ) {
     const { fileNames } = dto;
 
-    try {
-      const keyAndUrls = await Promise.all(
-        fileNames.map(async (fileName) => {
-          const key = this.storageService.generateStorageKey(url, fileName);
-          const presignedUrl = await this.storageService.generatePresignedPutUrl(key);
-          return {
-            key,
-            presignedUrl,
-          };
-        })
-      );
+    const keyAndUrls = await Promise.all(
+      fileNames.map(async (fileName) => {
+        const key = this.storageService.generateStorageKey(url, fileName);
+        const presignedUrl = await this.storageService.generatePresignedPutUrl(key);
+        return {
+          key,
+          presignedUrl,
+        };
+      })
+    );
 
-      for (const { key } of keyAndUrls) {
-        await this.imagesRepository.save({ path: key });
-      }
-
-      return keyAndUrls;
-    } catch (err) {
-      handleError(err);
+    for (const { key } of keyAndUrls) {
+      await this.imagesRepository.save({ path: key });
     }
+
+    return keyAndUrls;
   }
 }
