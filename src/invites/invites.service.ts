@@ -1,6 +1,5 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import handleError from "src/common/function/handleError";
 import { Invites } from "src/entities/Invites";
 import { DataSource, MoreThan, Repository } from "typeorm";
 import dayjs from "dayjs";
@@ -31,61 +30,57 @@ export class InvitesService {
     page = 1,
     limit = 7,
   ) {
-    try {
-      const inviteRecords = await this.invitesRepository.find({
-        select: {
-          id: true,
-          createdAt: true,
-          Sharedspace: {
-            name: true,
-            url: true,
-            Owner: {
-              email: true,
-            },
+    const inviteRecords = await this.invitesRepository.find({
+      select: {
+        id: true,
+        createdAt: true,
+        Sharedspace: {
+          name: true,
+          url: true,
+          Owner: {
+            email: true,
           },
         },
-        relations: {
-          Sharedspace: {
-            Owner: true,
-          },
+      },
+      relations: {
+        Sharedspace: {
+          Owner: true,
         },
-        where: {
-          InviteeId: UserId,
-          status: INVITE_STATUS.PENDING,
-          expiredAt: MoreThan(dayjs().toDate()),
-        },
-        order: {
-          createdAt: 'DESC',
-        },
-        skip: (page - 1) * limit,
-        take: limit,
-      });
+      },
+      where: {
+        InviteeId: UserId,
+        status: INVITE_STATUS.PENDING,
+        expiredAt: MoreThan(dayjs().toDate()),
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
 
-      const totalCount = await this.invitesRepository.count({
-        where: {
-          InviteeId: UserId,
-          status: INVITE_STATUS.PENDING,
-          expiredAt: MoreThan(dayjs().toDate()),
-        },
-      });
+    const totalCount = await this.invitesRepository.count({
+      where: {
+        InviteeId: UserId,
+        status: INVITE_STATUS.PENDING,
+        expiredAt: MoreThan(dayjs().toDate()),
+      },
+    });
 
-      const invites = inviteRecords.map((invite) => {
-        const { Sharedspace, ...rest } = invite;
-        return {
-          ...rest,
-          SharedspaceName: Sharedspace.name,
-          url: Sharedspace.url,
-          OwnerEmail: Sharedspace.Owner.email,
-        };
-      });
-
+    const invites = inviteRecords.map((invite) => {
+      const { Sharedspace, ...rest } = invite;
       return {
-        invites,
-        hasMoredata: !Boolean(page * limit >= totalCount),
+        ...rest,
+        SharedspaceName: Sharedspace.name,
+        url: Sharedspace.url,
+        OwnerEmail: Sharedspace.Owner.email,
       };
-    } catch (err) {
-      handleError(err);
-    }
+    });
+
+    return {
+      invites,
+      hasMoredata: !Boolean(page * limit >= totalCount),
+    };
   }
 
   async sendInvite(
@@ -94,49 +89,43 @@ export class InvitesService {
   ) {
     const { url, inviteeEmail } = dto;
 
-    try {
-      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+    const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
-      const isMember = await this.rolesService.requireMember(UserId, space.id);
-      
-      if (!isMember) {
-        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
-      }
-
-      const invitee = await this.usersService.getUserByEmail(inviteeEmail);
-
-      const isParticipant = await this.rolesService.requireParticipant(invitee.id, space.id);
-
-      if (isParticipant) {
-        throw new ConflictException(CONFLICT_USER_MESSAGE);
-      }
-
-      const isSent = await this.invitesRepository.findOne({
-        select: {
-          id: true,
-        },
-        where: {
-          SharedspaceId: space.id,
-          status: INVITE_STATUS.PENDING,
-          expiredAt: MoreThan(dayjs().toDate()),
-        },
-      });
-
-      if (isSent) {
-        throw new ConflictException(CONFLICT_REQUEST_MESSAGE);
-      }
-
-      await this.invitesRepository.save({
-        SharedspaceId: space.id,
-        InviterId: UserId,
-        InviteeId: invitee.id,
-        expiredAt: dayjs().add(7, 'day').format('YYYY-MM-DD HH:mm:ss'),
-      });
-
-      return true;
-    } catch (err) {
-      handleError(err);
+    const isMember = await this.rolesService.requireMember(UserId, space.id);
+    
+    if (!isMember) {
+      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
+
+    const invitee = await this.usersService.getUserByEmail(inviteeEmail);
+
+    const isParticipant = await this.rolesService.requireParticipant(invitee.id, space.id);
+
+    if (isParticipant) {
+      throw new ConflictException(CONFLICT_USER_MESSAGE);
+    }
+
+    const isSent = await this.invitesRepository.findOne({
+      select: {
+        id: true,
+      },
+      where: {
+        SharedspaceId: space.id,
+        status: INVITE_STATUS.PENDING,
+        expiredAt: MoreThan(dayjs().toDate()),
+      },
+    });
+
+    if (isSent) {
+      throw new ConflictException(CONFLICT_REQUEST_MESSAGE);
+    }
+
+    await this.invitesRepository.save({
+      SharedspaceId: space.id,
+      InviterId: UserId,
+      InviteeId: invitee.id,
+      expiredAt: dayjs().add(7, 'day').format('YYYY-MM-DD HH:mm:ss'),
+    });
   }
 
   async acceptInvite(
@@ -196,12 +185,10 @@ export class InvitesService {
 
       await qr.commitTransaction();
       await this.rolesService.invalidateUserRoleCache(UserId, space.id);
-
-      return true;
     } catch (err) {
       await qr.rollbackTransaction();
 
-      handleError(err);
+      throw err;
     } finally {
       await qr.release();
     } 
@@ -213,36 +200,30 @@ export class InvitesService {
   ) {
     const { id: targetInviteId } = dto;
 
-    try {
-      const targetInvite = await this.invitesRepository.findOne({
-        select: {
-          id: true,
-        },
-        where: {
-          id: targetInviteId,
-          InviteeId: UserId,
-          status: INVITE_STATUS.PENDING,
-          expiredAt: MoreThan(dayjs().toDate()),
-        },
-      });
+    const targetInvite = await this.invitesRepository.findOne({
+      select: {
+        id: true,
+      },
+      where: {
+        id: targetInviteId,
+        InviteeId: UserId,
+        status: INVITE_STATUS.PENDING,
+        expiredAt: MoreThan(dayjs().toDate()),
+      },
+    });
 
-      if (!targetInvite) {
-        throw new BadRequestException(BAD_REQUEST_MESSAGE);
-      }
-
-      await this.invitesRepository.update(
-        {
-          id: targetInvite.id,
-        },
-        {
-          status: INVITE_STATUS.REJECTED,
-        }
-      );
-
-      return true;
-    } catch (err) {
-      handleError(err);
+    if (!targetInvite) {
+      throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
+
+    await this.invitesRepository.update(
+      {
+        id: targetInvite.id,
+      },
+      {
+        status: INVITE_STATUS.REJECTED,
+      }
+    );
   }
 
   async cancelInvite(
@@ -250,36 +231,30 @@ export class InvitesService {
     url: string,
     UserId: number,
   ) {
-    try {
-      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+    const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
-      const isMember = await this.rolesService.requireMember(UserId, space.id);
-      
-      if (!isMember) {
-        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
-      }
-
-      const targetInvite = await this.invitesRepository.findOne({
-        select: {
-          id: true,
-        },
-        where: {
-          id: targetInviteId,
-          InviterId: UserId,
-          status: INVITE_STATUS.PENDING,
-          expiredAt: MoreThan(dayjs().toDate()),
-        },
-      });
-
-      if (!targetInvite) {
-        throw new BadRequestException(BAD_REQUEST_MESSAGE);
-      }
-
-      await this.invitesRepository.delete({ id: targetInvite.id });
-
-      return true;
-    } catch (err) {
-      handleError(err);
+    const isMember = await this.rolesService.requireMember(UserId, space.id);
+    
+    if (!isMember) {
+      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
+
+    const targetInvite = await this.invitesRepository.findOne({
+      select: {
+        id: true,
+      },
+      where: {
+        id: targetInviteId,
+        InviterId: UserId,
+        status: INVITE_STATUS.PENDING,
+        expiredAt: MoreThan(dayjs().toDate()),
+      },
+    });
+
+    if (!targetInvite) {
+      throw new BadRequestException(BAD_REQUEST_MESSAGE);
+    }
+
+    await this.invitesRepository.delete({ id: targetInvite.id });
   }
 }

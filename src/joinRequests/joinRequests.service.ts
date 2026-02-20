@@ -3,7 +3,6 @@ import { CreateJoinRequestDTO } from "./dto/create.joinRequest.dto";
 import { DataSource, Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 import { JoinRequests } from "src/entities/JoinRequests";
-import handleError from "src/common/function/handleError";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_REQUEST_MESSAGE } from "src/common/constant/error.message";
 import { Roles } from "src/entities/Roles";
@@ -30,41 +29,37 @@ export class JoinRequestsService {
     url: string,
     UserId: number,
   ) {
-    try {
-      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+    const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
-      const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+    const isOwner = await this.rolesService.requireOwner(UserId, space.id);
 
-      if (!isOwner) {
-        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
-      }
-
-      const requests = await this.joinRequestsRepository.find({
-        select: {
-          id: true,
-          RequestorId: true,
-          createdAt: true,
-          message: true,
-          Requestor: {
-            email: true,
-            profileImage: true,
-          },
-        },
-        relations: {
-          Requestor: true,
-        },
-        where: {
-          SharedspaceId: space.id,
-        },
-        order: {
-          createdAt: 'DESC',
-        },
-      });
-
-      return requests;
-    } catch (err) {
-      handleError(err);
+    if (!isOwner) {
+      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
+
+    const requests = await this.joinRequestsRepository.find({
+      select: {
+        id: true,
+        RequestorId: true,
+        createdAt: true,
+        message: true,
+        Requestor: {
+          email: true,
+          profileImage: true,
+        },
+      },
+      relations: {
+        Requestor: true,
+      },
+      where: {
+        SharedspaceId: space.id,
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+
+    return requests;
   }
 
   async resolveJoinRequest(
@@ -124,12 +119,10 @@ export class JoinRequestsService {
     } catch (err) {
       await qr.rollbackTransaction();
 
-      handleError(err);
+      throw err;
     } finally {
       await qr.release();
     }
-
-    return true;
   }
   
   async createJoinRequest(
@@ -137,31 +130,25 @@ export class JoinRequestsService {
     dto: CreateJoinRequestDTO,
     UserId: number,
   ) {
-    try {
-      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+    const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
-      const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
+    const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
 
-      if (isParticipant) {
-        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
-      }
-
-      const isRequested = await this.joinRequestsRepository.findOneBy({ RequestorId: UserId, SharedspaceId: space.id });
-
-      if (isRequested) {
-        throw new ConflictException(CONFLICT_REQUEST_MESSAGE);
-      }
-
-      await this.joinRequestsRepository.save({
-        SharedspaceId: space.id,
-        RequestorId: UserId,
-        message: dto.message,
-      });
-    } catch (err) {
-      handleError(err);
+    if (isParticipant) {
+      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
-    return true;
+    const isRequested = await this.joinRequestsRepository.findOneBy({ RequestorId: UserId, SharedspaceId: space.id });
+
+    if (isRequested) {
+      throw new ConflictException(CONFLICT_REQUEST_MESSAGE);
+    }
+
+    await this.joinRequestsRepository.save({
+      SharedspaceId: space.id,
+      RequestorId: UserId,
+      message: dto.message,
+    });
   }
 
   async deleteJoinRequest(
@@ -169,33 +156,27 @@ export class JoinRequestsService {
     joinRequestId: number,
     UserId: number,
   ) {
-    try {
-      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+    const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
-      const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+    const isOwner = await this.rolesService.requireOwner(UserId, space.id);
 
-      if (!isOwner) {
-        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
-      }
-
-      const targetJoinRequest = await this.joinRequestsRepository.findOne({
-        select: {
-          SharedspaceId: true,
-        },
-        where: {
-          id: joinRequestId,
-        },
-      });
-
-      if (space.id !== targetJoinRequest?.SharedspaceId) {
-        throw new BadRequestException(BAD_REQUEST_MESSAGE);
-      }
-
-      await this.joinRequestsRepository.delete({ id: targetJoinRequest.id });
-    } catch (err) {
-      handleError(err);
+    if (!isOwner) {
+      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
-    return true;
+    const targetJoinRequest = await this.joinRequestsRepository.findOne({
+      select: {
+        SharedspaceId: true,
+      },
+      where: {
+        id: joinRequestId,
+      },
+    });
+
+    if (space.id !== targetJoinRequest?.SharedspaceId) {
+      throw new BadRequestException(BAD_REQUEST_MESSAGE);
+    }
+
+    await this.joinRequestsRepository.delete({ id: targetJoinRequest.id });
   }
 }

@@ -5,7 +5,6 @@ import { Like, Repository } from "typeorm";
 import 'dotenv/config';
 import bcrypt from 'bcrypt';
 import { CreateUserDTO } from "./dto/create.user.dto";
-import handleError from "src/common/function/handleError";
 import { ProviderList, UserReturnMap } from "src/typings/types";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
@@ -48,25 +47,21 @@ export class UsersService {
         profileImage: true,
       };
 
-    try {
-      const user = await this.usersRepository.findOne({
-        select: selectClause,
-        where: {
-          id,
-        },
-      }) as UserReturnMap<T>;
+    const user = await this.usersRepository.findOne({
+      select: selectClause,
+      where: {
+        id,
+      },
+    }) as UserReturnMap<T>;
 
-      if (!user) {
-        throw new NotFoundException(NOT_FOUND_USER);
-      }
-
-      const minute = 60000;
-      await this.cacheManager.set(cacheKey, user, 10 * minute);
-
-      return user;
-    } catch (err) {
-      handleError(err);
+    if (!user) {
+      throw new NotFoundException(NOT_FOUND_USER);
     }
+
+    const minute = 60000;
+    await this.cacheManager.set(cacheKey, user, 10 * minute);
+
+    return user;
   }
 
   async getUserByEmail<T extends 'full' | 'standard' = 'standard'>(
@@ -90,35 +85,27 @@ export class UsersService {
         profileImage: true,
       };
 
-    try {
-      const user = await this.usersRepository.findOne({
-        select: selectClause,
-        where: {
-          email,
-        },
-      }) as UserReturnMap<T>;
+    const user = await this.usersRepository.findOne({
+      select: selectClause,
+      where: {
+        email,
+      },
+    }) as UserReturnMap<T>;
 
-      if (!user) {
-        throw new NotFoundException(NOT_FOUND_USER);
-      }
-
-      const minute = 60000;
-      await this.cacheManager.set(cacheKey, user, 10 * minute);
-
-      return user;
-    } catch (err) {
-      handleError(err);
+    if (!user) {
+      throw new NotFoundException(NOT_FOUND_USER);
     }
+
+    const minute = 60000;
+    await this.cacheManager.set(cacheKey, user, 10 * minute);
+
+    return user;
   }
 
   async isUser(email: string) {
-    try {
-      return await this.usersRepository.findOneByOrFail({ email })
-        .then(() => true)
-        .catch(() => false);
-    } catch (err) {
-      handleError(err);
-    }
+    return await this.usersRepository.findOneByOrFail({ email })
+      .then(() => true)
+      .catch(() => false);
   }
 
   async searchUsers(
@@ -127,82 +114,72 @@ export class UsersService {
     page = 1,
     limit = 10,
   ) {
-    try {
-      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+    const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
-      const userRecords = await this.usersRepository.find({
-        select: {
-          id: true,
-          email: true,
-          profileImage: true,
-        },
-        where: {
-          email: Like(`${query}%`),
-        },
-        skip: (page - 1) * limit,
-        take: limit,
-      });
+    const userRecords = await this.usersRepository.find({
+      select: {
+        id: true,
+        email: true,
+        profileImage: true,
+      },
+      where: {
+        email: Like(`${query}%`),
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
 
-      const memberRecords = await this.sharedspaceMembersRepository.find({
-        select: {
-          UserId: true,
-        },
-        where: {
-          SharedspaceId: space.id,
-        },
-      });
+    const memberRecords = await this.sharedspaceMembersRepository.find({
+      select: {
+        UserId: true,
+      },
+      where: {
+        SharedspaceId: space.id,
+      },
+    });
 
-      const memberSet = memberRecords.reduce((set, member) => {
-        set.add(member.UserId);
-        return set;
-      }, new Set());
+    const memberSet = memberRecords.reduce((set, member) => {
+      set.add(member.UserId);
+      return set;
+    }, new Set());
 
-      const users = userRecords.map((user) => {
-        return {
-          ...user,
-          permission: {
-            isParticipant: memberSet.has(user.id),
-          },
-        };
-      });
-
-      const totalCount = await this.usersRepository.count({
-        where: {
-          email: Like(`${query}%`),
-        },
-      });
-
+    const users = userRecords.map((user) => {
       return {
-        items: users,
-        hasMoreData: !Boolean(page * limit >= totalCount),
+        ...user,
+        permission: {
+          isParticipant: memberSet.has(user.id),
+        },
       };
-    } catch (err) {
-      handleError(err);
-    }
+    });
+
+    const totalCount = await this.usersRepository.count({
+      where: {
+        email: Like(`${query}%`),
+      },
+    });
+
+    return {
+      items: users,
+      hasMoreData: !Boolean(page * limit >= totalCount),
+    };
   }
 
   async createUser(dto: CreateUserDTO) {
     const { email, password } = dto;
 
-    try {
-      const exUser = await this.getUserByEmail(email);
+    const exUser = await this.getUserByEmail(email);
 
-      if (exUser) {
-        throw new ConflictException(CONFLICT_ACCOUNT_MESSAGE);
-      }
-
-      const SALT_OR_ROUNDS = Number(process.env.SALT_OR_ROUNDS);
-      const hash = await bcrypt.hash(password, SALT_OR_ROUNDS);
-
-      await this.usersRepository.save({
-        email,
-        password: hash,
-        provider: ProviderList.LOCAL,
-      });
-      
-      return true;
-    } catch (err) {
-      handleError(err);
+    if (exUser) {
+      throw new ConflictException(CONFLICT_ACCOUNT_MESSAGE);
     }
+
+    const SALT_OR_ROUNDS = Number(process.env.SALT_OR_ROUNDS);
+    const hash = await bcrypt.hash(password, SALT_OR_ROUNDS);
+
+    await this.usersRepository.save({
+      email,
+      password: hash,
+      provider: ProviderList.LOCAL,
+    });
   }
 }

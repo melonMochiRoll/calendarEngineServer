@@ -1,5 +1,4 @@
 import { Inject, Injectable } from "@nestjs/common";
-import handleError from "src/common/function/handleError";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Roles } from "src/entities/Roles";
 import { Repository } from "typeorm";
@@ -21,33 +20,29 @@ export class RolesService {
   ) {}
 
   async getRolesArray() {
-    const rolesArray = await this.cacheManager.get<Pick<Roles, 'id' | 'name'>[]>(ROLES_ARRAY_KEY);
+    const cachedrolesArray = await this.cacheManager.get<Pick<Roles, 'id' | 'name'>[]>(ROLES_ARRAY_KEY);
 
-    if (rolesArray) {
-      return rolesArray;
+    if (cachedrolesArray) {
+      return cachedrolesArray;
     }
 
-    try {
-      const roles = await this.rolesRepository.find({
-        select: {
-          id: true,
-          name: true,
-        },
-      });
+    const roles = await this.rolesRepository.find({
+      select: {
+        id: true,
+        name: true,
+      },
+    });
 
-      const rolesArray = roles.reduce((array, role) => {
-        array.push({ id: role.id, name: role.name });
-        return array;
-      }, []) as Pick<Roles, 'id' | 'name'>[];
+    const rolesArray = roles.reduce((array, role) => {
+      array.push({ id: role.id, name: role.name });
+      return array;
+    }, []) as Pick<Roles, 'id' | 'name'>[];
 
-      if (roles) {
-        await this.cacheManager.set(ROLES_ARRAY_KEY, rolesArray, 0);
-      }
-
-      return rolesArray;
-    } catch (err) {
-      handleError(err);
+    if (roles) {
+      await this.cacheManager.set(ROLES_ARRAY_KEY, rolesArray, 0);
     }
+
+    return rolesArray;
   }
 
   async getUserRole(
@@ -65,28 +60,24 @@ export class RolesService {
       return cachedUserRole;
     }
 
-    try {
-      const userRole = await this.sharedspaceMembersRepository.findOne({
-        select: {
-          RoleId: true,
-        },
-        where: {
-          UserId,
-          SharedspaceId,
-        },
-      });
+    const userRole = await this.sharedspaceMembersRepository.findOne({
+      select: {
+        RoleId: true,
+      },
+      where: {
+        UserId,
+        SharedspaceId,
+      },
+    });
 
-      const minute = 60000;
-      await this.cacheManager.set(
-        cacheKey,
-        userRole ? userRole : DATA_NOT_FOUND,
-        5 * minute,
-      );
+    const minute = 60000;
+    await this.cacheManager.set(
+      cacheKey,
+      userRole ? userRole : DATA_NOT_FOUND,
+      5 * minute,
+    );
 
-      return userRole;
-    } catch (err) {
-      handleError(err);
-    }
+    return userRole;
   }
 
   async invalidateUserRoleCache(
@@ -105,20 +96,16 @@ export class RolesService {
       return null;
     }
 
-    try { 
-      const userRole = await this.getUserRole(UserId, SpaceId);
-      const rolesArray = await this.getRolesArray() as Pick<Roles, 'id' | 'name'>[];
+    const userRole = await this.getUserRole(UserId, SpaceId);
+    const rolesArray = await this.getRolesArray() as Pick<Roles, 'id' | 'name'>[];
 
-      if (!userRole) {
-        return null;
-      } 
+    if (!userRole) {
+      return null;
+    } 
 
-      const role = rolesArray.find(role => role.id === userRole.RoleId);
+    const role = rolesArray.find(role => role.id === userRole.RoleId);
 
-      return roles.find(r => r === role?.name) ? role : null;
-    } catch (err) {
-      handleError(err);
-    }
+    return roles.find(r => r === role?.name) ? role : null;
   }
 
   async requireOwner(UserId: number, SpaceId: number) {
