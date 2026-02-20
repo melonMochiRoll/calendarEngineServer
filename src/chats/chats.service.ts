@@ -225,8 +225,6 @@ export class ChatsService {
     } finally {
       await qr.release();
     }
-
-    return true;
   }
 
   async updateSharedspaceChat(
