@@ -2,7 +2,6 @@ import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client, wait
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Injectable } from "@nestjs/common";
 import path from "path";
-import handleError from "src/common/function/handleError";
 import { IStorageService } from "src/typings/types";
 
 @Injectable()
@@ -45,13 +44,7 @@ export class StorageOciService implements IStorageService {
       CacheControl: 'public, max-age=31536000, immutable',
     });
 
-    try {
-      await this.ociClient.send(command);
-    } catch (err) {
-      handleError(err);
-    }
-
-    return true;
+    await this.ociClient.send(command);
   }
 
   async deleteFile(key: string) {
@@ -60,53 +53,39 @@ export class StorageOciService implements IStorageService {
       Key: key,
     });
 
-    try {
-      await this.ociClient.send(command);
+    await this.ociClient.send(command);
 
-      await waitUntilObjectNotExists(
-        { 
-          client: this.ociClient,
-          maxWaitTime: 6,
-          minDelay: 5,
-        },
-        {
-          Bucket: process.env.OCI_BUCKET_NAME,
-          Key: key,
-        },
-      );
-    } catch (err) {
-      handleError(err);
-    }
-
-    return true;
+    await waitUntilObjectNotExists(
+      { 
+        client: this.ociClient,
+        maxWaitTime: 6,
+        minDelay: 5,
+      },
+      {
+        Bucket: process.env.OCI_BUCKET_NAME,
+        Key: key,
+      },
+    );
   }
 
   async generatePresignedGetUrl(key: string) {
-    try {
-      const command = new GetObjectCommand({
-        Bucket: process.env.OCI_BUCKET_NAME,
-        Key: key,
-      });
+    const command = new GetObjectCommand({
+      Bucket: process.env.OCI_BUCKET_NAME,
+      Key: key,
+    });
 
-      return await getSignedUrl(this.ociClient, command, {
-        expiresIn: 3600 * 3,
-      });
-    } catch (err) {
-      handleError(err);
-    }
+    return await getSignedUrl(this.ociClient, command, {
+      expiresIn: 3600 * 3,
+    });
   }
 
   async generatePresignedPutUrl(key: string) {
-    try {
-      const command = new PutObjectCommand({
-        Bucket: process.env.OCI_BUCKET_NAME,
-        Key: key,
-        CacheControl: 'public, max-age=31536000, immutable',
-      });
+    const command = new PutObjectCommand({
+      Bucket: process.env.OCI_BUCKET_NAME,
+      Key: key,
+      CacheControl: 'public, max-age=31536000, immutable',
+    });
 
-      return await getSignedUrl(this.ociClient, command);
-    } catch (err) {
-      handleError(err);
-    }
+    return await getSignedUrl(this.ociClient, command);
   }
 }
