@@ -14,31 +14,24 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
-    const status = exception instanceof HttpException ?
-      exception.getStatus() :
-      HttpStatus.INTERNAL_SERVER_ERROR;
+    const status = exception.getStatus();
     const exceptionResponse = exception.getResponse();
 
     const responseJson = {
       code: `${status}-${request.url}`,
-      message: INTERNAL_SERVER_MESSAGE,
+      message: exception.message,
       timestamp: dayjs.utc().tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss'),
       path: request.url,
-      metaData: {},
+      metaData: this.hasMetaData(exceptionResponse) ? exceptionResponse.metaData : {},
     };
-
-    if (this.isExceptionResponse(exceptionResponse)) {
-      responseJson.message = exceptionResponse.message;
-      responseJson.metaData = exceptionResponse.metaData || {};
-    }
 
     response
       .status(status)
       .json(responseJson);
   }
 
-  private isExceptionResponse(value: string | object): value is IErrorResponse {
-    return (value as IErrorResponse).message !== undefined;
+  private hasMetaData(value: string | object): value is IErrorResponse {
+    return typeof value === 'object' && value.hasOwnProperty('metaData');
   }
 }
 
