@@ -11,7 +11,6 @@ import { Users } from "src/entities/Users";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, CONFLICT_OWNER_MESSAGE, NOT_FOUND_RESOURCE, NOT_FOUND_SPACE_MESSAGE, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
 import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dto";
-import handleError from "src/common/function/handleError";
 import { UpdateSharedspacePrivateDTO } from "./dto/update.sharedspace.private.dto";
 import { Chats } from "src/entities/Chats";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
@@ -82,29 +81,25 @@ export class SharedspacesService {
       return space;
     }
 
-    try {
-      if (cachedItem) {
-        const random = Math.log(Math.random());
-        const threshold = dayjs().valueOf() - (cachedItem.duration * beta * random);
-        const isRefresher = threshold >= cachedItem.expireTime;
+    if (cachedItem) {
+      const random = Math.log(Math.random());
+      const threshold = dayjs().valueOf() - (cachedItem.duration * beta * random);
+      const isRefresher = threshold >= cachedItem.expireTime;
 
-        if (isRefresher && !this.refreshLock.has(cacheKey)) {
-          this.refreshLock.add(cacheKey);
+      if (isRefresher && !this.refreshLock.has(cacheKey)) {
+        this.refreshLock.add(cacheKey);
 
-          fetchSharedspaceAndWrite(cacheKey)
-            .finally(() => {
-              this.refreshLock.delete(cacheKey);
-            });
-        }
-
-        return cachedItem.value;
+        fetchSharedspaceAndWrite(cacheKey)
+          .finally(() => {
+            this.refreshLock.delete(cacheKey);
+          });
       }
 
-      const space = await fetchSharedspaceAndWrite(cacheKey);
-      return space;
-    } catch (err) {
-      handleError(err);
+      return cachedItem.value;
     }
+
+    const space = await fetchSharedspaceAndWrite(cacheKey);
+    return space;
   }
 
   async invalidateSharedspaceCache(url: string) {
@@ -116,37 +111,33 @@ export class SharedspacesService {
     url: string,
     UserId?: number,
   ) {
-    try {
-      const space = await this.getSharedspaceByUrl(url);
+    const space = await this.getSharedspaceByUrl(url);
 
-      if (!UserId && space.private) {
-        throw new UnauthorizedException(UNAUTHORIZED_MESSAGE);
-      }
-
-      const userRole = await this.rolesService.requireParticipant(UserId, space.id);
-
-      if (!userRole && space.private) {
-        throw new ForbiddenException({
-          message: ACCESS_DENIED_MESSAGE,
-          metaData: { spaceUrl: space.url },
-        });
-      }
-
-      const isOwner = space.OwnerId === UserId;
-      const isMember = isOwner || userRole?.name === SharedspaceMembersRoles.MEMBER;
-      const isViewer = isOwner || isMember || userRole?.name === SharedspaceMembersRoles.VIEWER;
-
-      return {
-        ...space,
-        permission: {
-          isOwner,
-          isMember,
-          isViewer,
-        },
-      };
-    } catch (err) {
-      handleError(err);
+    if (!UserId && space.private) {
+      throw new UnauthorizedException(UNAUTHORIZED_MESSAGE);
     }
+
+    const userRole = await this.rolesService.requireParticipant(UserId, space.id);
+
+    if (!userRole && space.private) {
+      throw new ForbiddenException({
+        message: ACCESS_DENIED_MESSAGE,
+        metaData: { spaceUrl: space.url },
+      });
+    }
+
+    const isOwner = space.OwnerId === UserId;
+    const isMember = isOwner || userRole?.name === SharedspaceMembersRoles.MEMBER;
+    const isViewer = isOwner || isMember || userRole?.name === SharedspaceMembersRoles.VIEWER;
+
+    return {
+      ...space,
+      permission: {
+        isOwner,
+        isMember,
+        isViewer,
+      },
+    };
   }
 
   async getSubscribedspaces(
@@ -175,65 +166,61 @@ export class SharedspacesService {
       Object.assign(whereCondition, { RoleId: In(roleIdsWithoutOwner) });
     }
 
-    try {
-      const user_roles = await this.sharedspaceMembersRepository.find({
-        select: {
-          SharedspaceId: true,
-        },
-        where: whereCondition,
-        order: {
-          createdAt: 'DESC',
-        },
-        skip: (page - 1) * limit,
-        take: limit,
-      });
+    const user_roles = await this.sharedspaceMembersRepository.find({
+      select: {
+        SharedspaceId: true,
+      },
+      where: whereCondition,
+      order: {
+        createdAt: 'DESC',
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
 
-      const subscribedspaces = await this.sharedspacesRepository.find({
-        select: {
-          name: true,
-          url: true,
-          private: true,
-          OwnerId: true,
+    const subscribedspaces = await this.sharedspacesRepository.find({
+      select: {
+        name: true,
+        url: true,
+        private: true,
+        OwnerId: true,
+      },
+      where: {
+        id: In(user_roles.map((role) => role.SharedspaceId)),
+      },
+    });
+
+    const owners = await this.usersRepository.find({
+      select: {
+        id: true,
+        email: true,
+      },
+      where: {
+        id: In(subscribedspaces.map((space) => space.OwnerId)),
+      },
+    });
+
+    const owners_map = owners.reduce((obj, owner) => {
+      obj[owner.id] = owner.email;
+      return obj;
+    }, {});
+
+    const spaces = subscribedspaces.map((space) => {
+      const { OwnerId, ...rest } = space;
+      return {
+        ...rest,
+        owner: owners_map[space.OwnerId],
+        permission: {
+          isOwner: UserId === space.OwnerId,
         },
-        where: {
-          id: In(user_roles.map((role) => role.SharedspaceId)),
-        },
-      });
+      };
+    });
 
-      const owners = await this.usersRepository.find({
-        select: {
-          id: true,
-          email: true,
-        },
-        where: {
-          id: In(subscribedspaces.map((space) => space.OwnerId)),
-        },
-      });
+    const totalCount = await this.sharedspaceMembersRepository.count({
+      where: whereCondition,
+    });
 
-      const owners_map = owners.reduce((obj, owner) => {
-        obj[owner.id] = owner.email;
-        return obj;
-      }, {});
-
-      const spaces = subscribedspaces.map((space) => {
-        const { OwnerId, ...rest } = space;
-        return {
-          ...rest,
-          owner: owners_map[space.OwnerId],
-          permission: {
-            isOwner: UserId === space.OwnerId,
-          },
-        };
-      });
-
-      const totalCount = await this.sharedspaceMembersRepository.count({
-        where: whereCondition,
-      });
-
-      return { spaces, totalCount };
-    } catch (err) {
-      handleError(err);
-    }
+    return { spaces, totalCount };
   }
 
   async createSharedspace(UserId: number) {
@@ -262,7 +249,7 @@ export class SharedspacesService {
     } catch (err) {
       await qr.rollbackTransaction();
 
-      handleError(err);
+      throw err;
     } finally {
       await qr.release();
     }
@@ -275,26 +262,20 @@ export class SharedspacesService {
   ) {
     const { name } = dto;
     
-    try {
-      const space = await this.getSharedspaceByUrl(url);
+    const space = await this.getSharedspaceByUrl(url);
 
-      const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+    const isOwner = await this.rolesService.requireOwner(UserId, space.id);
 
-      if (!isOwner) {
-        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
-      }
-
-      if (space.name === name) {
-        throw new ConflictException('동일한 이름으로 바꿀수 없습니다.');
-      }
-
-      await this.sharedspacesRepository.update({ id: space.id }, { name });
-      await this.invalidateSharedspaceCache(url);
-    } catch (err) {
-      handleError(err);
+    if (!isOwner) {
+      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
-    return true;
+    if (space.name === name) {
+      throw new ConflictException('동일한 이름으로 바꿀수 없습니다.');
+    }
+
+    await this.sharedspacesRepository.update({ id: space.id }, { name });
+    await this.invalidateSharedspaceCache(url);
   }
 
   async updateSharedspaceOwner(
@@ -350,12 +331,10 @@ export class SharedspacesService {
     } catch (err) {
       await qr.rollbackTransaction();
 
-      handleError(err);
+      throw err;
     } finally {
       await qr.release();
     }
-
-    return true;
   }
 
   async updateSharedspacePrivate(
@@ -363,44 +342,32 @@ export class SharedspacesService {
     dto: UpdateSharedspacePrivateDTO,
     UserId: number,
   ) {
-    try {
-      const space = await this.getSharedspaceByUrl(url);
+    const space = await this.getSharedspaceByUrl(url);
 
-      const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+    const isOwner = await this.rolesService.requireOwner(UserId, space.id);
 
-      if (!isOwner) {
-        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
-      }
-
-      await this.sharedspacesRepository.update({ id: space.id }, { ...dto });
-      await this.invalidateSharedspaceCache(url);
-    } catch (err) {
-      handleError(err);
+    if (!isOwner) {
+      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
-    return true;
+    await this.sharedspacesRepository.update({ id: space.id }, { ...dto });
+    await this.invalidateSharedspaceCache(url);
   }
 
   async deleteSharedspace(
     url: string,
     UserId: number,
   ) {
-    try {
-      const space = await this.getSharedspaceByUrl(url);
+    const space = await this.getSharedspaceByUrl(url);
 
-      const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+    const isOwner = await this.rolesService.requireOwner(UserId, space.id);
 
-      if (!isOwner) {
-        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
-      }
-
-      await this.sharedspacesRepository.softRemove(space);
-      await this.invalidateSharedspaceCache(url);
-    } catch (err) {
-      handleError(err);
+    if (!isOwner) {
+      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
-    return true;
+    await this.sharedspacesRepository.softRemove(space);
+    await this.invalidateSharedspaceCache(url);
   }
 
   async getSharedspaceMembers(
@@ -409,81 +376,77 @@ export class SharedspacesService {
     UserId?: number,
     limit = 10,
   ) {
-    try {
-      const space = await this.getSharedspaceByUrl(url);
+    const space = await this.getSharedspaceByUrl(url);
 
-      if (space.private) {
-        const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
+    if (space.private) {
+      const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
 
-        if (!isParticipant) {
-          throw new ForbiddenException({
-            message: ACCESS_DENIED_MESSAGE,
-            metaData: { spaceUrl: space.url },
-          });
-        }
+      if (!isParticipant) {
+        throw new ForbiddenException({
+          message: ACCESS_DENIED_MESSAGE,
+          metaData: { spaceUrl: space.url },
+        });
       }
-
-      const memberRecords = await this.sharedspaceMembersRepository.find({
-        select: {
-          UserId: true,
-          RoleId: true,
-          createdAt: true,
-        },
-        where: {
-          SharedspaceId: space.id,
-        },
-        order: {
-          createdAt: 'DESC',
-        },
-        skip: (page - 1) * limit,
-        take: limit,
-      });
-
-      const rolesArray = await this.rolesService.getRolesArray();
-      const rolesMap = rolesArray.reduce((map, role) => {
-        map[role.id] = role.name;
-        return map;
-      }, {});
-
-      const userRecords = await this.usersRepository.find({
-        select: {
-          id: true,
-          email: true,
-          profileImage: true,
-        },
-        where: {
-          id: In(memberRecords.map(member => member.UserId)),
-        },
-      });
-      const usersMap = userRecords.reduce((map, user) => {
-        map[user.id] = {
-          email: user.email,
-          profileImage: user.profileImage,
-        };
-        return map;
-      }, {});
-
-      const members = memberRecords.map((member) => {
-        return {
-          ...member,
-          ...usersMap[member.UserId],
-          RoleName: rolesMap[member.RoleId],
-        };
-      });
-
-      const totalCount = await this.sharedspaceMembersRepository.count({
-        where: {
-          SharedspaceId: space.id,
-        },
-      });
-
-      return {
-        items: members,
-        hasMoreData: !Boolean(page * limit >= totalCount),
-      };
-    } catch (err) {
-      handleError(err);
     }
+
+    const memberRecords = await this.sharedspaceMembersRepository.find({
+      select: {
+        UserId: true,
+        RoleId: true,
+        createdAt: true,
+      },
+      where: {
+        SharedspaceId: space.id,
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    const rolesArray = await this.rolesService.getRolesArray();
+    const rolesMap = rolesArray.reduce((map, role) => {
+      map[role.id] = role.name;
+      return map;
+    }, {});
+
+    const userRecords = await this.usersRepository.find({
+      select: {
+        id: true,
+        email: true,
+        profileImage: true,
+      },
+      where: {
+        id: In(memberRecords.map(member => member.UserId)),
+      },
+    });
+    const usersMap = userRecords.reduce((map, user) => {
+      map[user.id] = {
+        email: user.email,
+        profileImage: user.profileImage,
+      };
+      return map;
+    }, {});
+
+    const members = memberRecords.map((member) => {
+      return {
+        ...member,
+        ...usersMap[member.UserId],
+        RoleName: rolesMap[member.RoleId],
+      };
+    });
+
+    const totalCount = await this.sharedspaceMembersRepository.count({
+      where: {
+        SharedspaceId: space.id,
+      },
+    });
+
+    return {
+      items: members,
+      hasMoreData: !Boolean(page * limit >= totalCount),
+    };
   }
 
   async createSharedspaceMembers(
@@ -493,59 +456,53 @@ export class SharedspacesService {
   ) {
     const { UserId: targetUserId, RoleName } = dto;
 
-    try {
-      const targetUser = await this.usersRepository.find({
-        select: {
-          id: true,
-        },
-        where: {
-          id: targetUserId,
-        },
-      });
+    const targetUser = await this.usersRepository.find({
+      select: {
+        id: true,
+      },
+      where: {
+        id: targetUserId,
+      },
+    });
 
-      if (!targetUser) {
-        throw new BadRequestException(BAD_REQUEST_MESSAGE);
-      }
-
-      const space = await this.getSharedspaceByUrl(url);
-
-      const isOwner = await this.rolesService.requireOwner(UserId, space.id);
-
-      if (!isOwner) {
-        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
-      }
-
-      const rolesArray = await this.rolesService.getRolesArray();
-      const role = rolesArray.find(role => role.name === RoleName);
-
-      if (!role || role.name === SharedspaceMembersRoles.OWNER) {
-        throw new BadRequestException(BAD_REQUEST_MESSAGE);
-      }
-
-      const isMember = await this.sharedspaceMembersRepository.findOne({
-        select: {
-          RoleId: true,
-        },
-        where: {
-          UserId: targetUserId,
-          SharedspaceId: space.id,
-        },
-      });
-
-      if (isMember) {
-        throw new ConflictException(CONFLICT_MESSAGE);
-      }
-
-      await this.sharedspaceMembersRepository.save({
-        UserId: targetUserId,
-        SharedspaceId: space.id,
-        RoleId: role.id,
-      });
-    } catch (err) {
-      handleError(err);
+    if (!targetUser) {
+      throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
-    return true;
+    const space = await this.getSharedspaceByUrl(url);
+
+    const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+
+    if (!isOwner) {
+      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+    }
+
+    const rolesArray = await this.rolesService.getRolesArray();
+    const role = rolesArray.find(role => role.name === RoleName);
+
+    if (!role || role.name === SharedspaceMembersRoles.OWNER) {
+      throw new BadRequestException(BAD_REQUEST_MESSAGE);
+    }
+
+    const isMember = await this.sharedspaceMembersRepository.findOne({
+      select: {
+        RoleId: true,
+      },
+      where: {
+        UserId: targetUserId,
+        SharedspaceId: space.id,
+      },
+    });
+
+    if (isMember) {
+      throw new ConflictException(CONFLICT_MESSAGE);
+    }
+
+    await this.sharedspaceMembersRepository.save({
+      UserId: targetUserId,
+      SharedspaceId: space.id,
+      RoleId: role.id,
+    });
   }
 
   async updateSharedspaceMembers(
@@ -555,49 +512,43 @@ export class SharedspacesService {
   ) {
     const { UserId: targetUserId, RoleName } = dto;
 
-    try {
-      const space = await this.getSharedspaceByUrl(url);
+    const space = await this.getSharedspaceByUrl(url);
 
-      const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+    const isOwner = await this.rolesService.requireOwner(UserId, space.id);
 
-      if (!isOwner) {
-        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
-      }
-
-      const rolesArray = await this.rolesService.getRolesArray();
-      const role = rolesArray.find(role => role.name === RoleName);
-
-      if (!role || role.name === SharedspaceMembersRoles.OWNER) {
-        throw new BadRequestException(BAD_REQUEST_MESSAGE);
-      }
-
-      const isMember = await this.sharedspaceMembersRepository.findOne({
-        select: {
-          RoleId: true,
-        },
-        where: {
-          UserId: targetUserId,
-          SharedspaceId: space.id,
-        }
-      });
-
-      if (!isMember) {
-        throw new NotFoundException(NOT_FOUND_RESOURCE);
-      }
-
-      await this.sharedspaceMembersRepository.update({
-        UserId: targetUserId,
-        SharedspaceId: space.id,
-      },{
-        RoleId: role.id,
-      });
-
-      await this.rolesService.invalidateUserRoleCache(targetUserId, space.id);
-    } catch (err) {
-      handleError(err);
+    if (!isOwner) {
+      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
-    return true;
+    const rolesArray = await this.rolesService.getRolesArray();
+    const role = rolesArray.find(role => role.name === RoleName);
+
+    if (!role || role.name === SharedspaceMembersRoles.OWNER) {
+      throw new BadRequestException(BAD_REQUEST_MESSAGE);
+    }
+
+    const isMember = await this.sharedspaceMembersRepository.findOne({
+      select: {
+        RoleId: true,
+      },
+      where: {
+        UserId: targetUserId,
+        SharedspaceId: space.id,
+      }
+    });
+
+    if (!isMember) {
+      throw new NotFoundException(NOT_FOUND_RESOURCE);
+    }
+
+    await this.sharedspaceMembersRepository.update({
+      UserId: targetUserId,
+      SharedspaceId: space.id,
+    },{
+      RoleId: role.id,
+    });
+
+    await this.rolesService.invalidateUserRoleCache(targetUserId, space.id);
   }
 
   async deleteSharedspaceMembers(
@@ -605,42 +556,36 @@ export class SharedspacesService {
     targetUserId: number,
     UserId: number,
   ) {
-    try {
-      const space = await this.getSharedspaceByUrl(url);
+    const space = await this.getSharedspaceByUrl(url);
 
-      const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+    const isOwner = await this.rolesService.requireOwner(UserId, space.id);
 
-      if (!isOwner) {
-        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
-      }
-
-      const isMember = await this.sharedspaceMembersRepository.findOne({
-        select: {
-          RoleId: true
-        },
-        where: {
-          UserId: targetUserId,
-          SharedspaceId: space?.id,
-        }
-      });
-
-      const rolesArray = await this.rolesService.getRolesArray();
-      const role = rolesArray.find(role => role.id === isMember.RoleId);
-
-      if (!isMember || role.name === SharedspaceMembersRoles.OWNER) {
-        throw new NotFoundException(NOT_FOUND_RESOURCE);
-      }
-
-      await this.sharedspaceMembersRepository.delete({
-        UserId: targetUserId,
-        SharedspaceId: space.id,
-      });
-
-      await this.rolesService.invalidateUserRoleCache(targetUserId, space.id);
-    } catch (err) {
-      handleError(err);
+    if (!isOwner) {
+      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
-    return true;
+    const isMember = await this.sharedspaceMembersRepository.findOne({
+      select: {
+        RoleId: true
+      },
+      where: {
+        UserId: targetUserId,
+        SharedspaceId: space?.id,
+      }
+    });
+
+    const rolesArray = await this.rolesService.getRolesArray();
+    const role = rolesArray.find(role => role.id === isMember.RoleId);
+
+    if (!isMember || role.name === SharedspaceMembersRoles.OWNER) {
+      throw new NotFoundException(NOT_FOUND_RESOURCE);
+    }
+
+    await this.sharedspaceMembersRepository.delete({
+      UserId: targetUserId,
+      SharedspaceId: space.id,
+    });
+
+    await this.rolesService.invalidateUserRoleCache(targetUserId, space.id);
   }
 }
