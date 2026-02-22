@@ -153,18 +153,17 @@ export class AuthService {
   }
 
   async logout(response: Response, user: Users) {
-    await this.refreshTokensRepository.delete({ UserId: user.id })
-      .then(() => {
-        const cookieOption = {
-          httpOnly: true,
-          sameSite: 'strict',
-          secure: process.env.NODE_ENV === 'production',
-        } as const;
+    await this.refreshTokensRepository.delete({ UserId: user.id });
+    
+    const cookieOption = {
+      httpOnly: true,
+      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production',
+    } as const;
 
-        response.clearCookie(ACCESS_TOKEN_COOKIE_NAME, { ...cookieOption });
-        response.clearCookie(REFRESH_TOKEN_COOKIE_NAME, { ...cookieOption });
-        response.clearCookie(CSRF_TOKEN_COOKIE_NAME, { ...cookieOption });
-      });
+    response.clearCookie(ACCESS_TOKEN_COOKIE_NAME, { ...cookieOption });
+    response.clearCookie(REFRESH_TOKEN_COOKIE_NAME, { ...cookieOption });
+    response.clearCookie(CSRF_TOKEN_COOKIE_NAME, { ...cookieOption });
   }
 
   getCsrfToken(response: Response) {
