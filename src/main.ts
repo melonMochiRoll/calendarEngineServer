@@ -28,12 +28,6 @@ async function bootstrap() {
   });
 
   app.use(helmet({
-    contentSecurityPolicy: {
-      directives: {
-        'default-src': ["'self'", 'https://calendar-engine.space', 'ws://calendar-engine.space'],
-        'img-src': ["'self'", process.env.AWS_S3_BUCKET_URL, 'https://lh3.googleusercontent.com', 'https://phinf.pstatic.net', ],
-      },
-    },
     crossOriginResourcePolicy: {
       policy: isDevelopment ? "same-site" : "same-origin",
     },
