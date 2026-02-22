@@ -3,7 +3,6 @@ import bcrypt from 'bcrypt';
 import { InjectRepository } from "@nestjs/typeorm";
 import { Users } from "src/entities/Users";
 import { DataSource, Repository } from "typeorm";
-import handleError from "src/common/function/handleError";
 import { nanoid } from "nanoid";
 import { Response } from "express";
 import { RefreshTokens } from "src/entities/RefreshTokens";
@@ -74,7 +73,7 @@ export class AuthService {
       response.clearCookie(ACCESS_TOKEN_COOKIE_NAME, { ...cookieOption });
       response.clearCookie(REFRESH_TOKEN_COOKIE_NAME, { ...cookieOption });
 
-      handleError(err);
+      throw err;
     } finally {
       await qr.release();
     }
@@ -131,49 +130,41 @@ export class AuthService {
     email: string,
     password: string,
   ) {
-    try {
-      const user = await this.usersRepository.findOne({
-        select: {
-          id: true,
-          email: true,
-          password: true,
-          profileImage: true,
-        },
-        where: {
-          email,
-        },
-      });
+    const user = await this.usersRepository.findOne({
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        profileImage: true,
+      },
+      where: {
+        email,
+      },
+    });
 
-      const compare = await bcrypt.compare(password, user?.password || '');
-  
-      if (!user || !compare) {
-        return false;
-      }
-  
-      const { password: _, ...withoutPassword } = user;
-      return withoutPassword;
-    } catch (err) {
-      handleError(err);
+    const compare = await bcrypt.compare(password, user?.password || '');
+
+    if (!user || !compare) {
+      return false;
     }
+
+    const { password: _, ...withoutPassword } = user;
+    return withoutPassword;
   }
 
   async logout(response: Response, user: Users) {
-    try {
-      await this.refreshTokensRepository.delete({ UserId: user.id })
-        .then(() => {
-          const cookieOption = {
-            httpOnly: true,
-            sameSite: 'strict',
-            secure: process.env.NODE_ENV === 'production',
-          } as const;
+    await this.refreshTokensRepository.delete({ UserId: user.id })
+      .then(() => {
+        const cookieOption = {
+          httpOnly: true,
+          sameSite: 'strict',
+          secure: process.env.NODE_ENV === 'production',
+        } as const;
 
-          response.clearCookie(ACCESS_TOKEN_COOKIE_NAME, { ...cookieOption });
-          response.clearCookie(REFRESH_TOKEN_COOKIE_NAME, { ...cookieOption });
-          response.clearCookie(CSRF_TOKEN_COOKIE_NAME, { ...cookieOption });
-        });
-    } catch (err) {
-      handleError(err);
-    }
+        response.clearCookie(ACCESS_TOKEN_COOKIE_NAME, { ...cookieOption });
+        response.clearCookie(REFRESH_TOKEN_COOKIE_NAME, { ...cookieOption });
+        response.clearCookie(CSRF_TOKEN_COOKIE_NAME, { ...cookieOption });
+      });
   }
 
   getCsrfToken(response: Response) {
