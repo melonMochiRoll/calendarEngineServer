@@ -21,6 +21,12 @@ export class AuthService {
     private refreshTokensRepository: Repository<RefreshTokens>,
   ) {}
 
+  private readonly tokenCookieOption = {
+    httpOnly: true,
+    sameSite: 'none',
+    secure: process.env.NODE_ENV === 'production',
+  } as const;
+
   async jwtLogin(response: Response, UserId: number) {
     const qr = this.dataSource.createQueryRunner();
 
@@ -39,12 +45,6 @@ export class AuthService {
       exp: refreshTokenExpires.unix(),
     });
 
-    const cookieOption = {
-      httpOnly: true,
-      sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production',
-    } as const;
-
     await qr.connect();
     await qr.startTransaction();
 
@@ -58,11 +58,11 @@ export class AuthService {
       });
 
       response.cookie(ACCESS_TOKEN_COOKIE_NAME, accessToken, {
-        ...cookieOption,
+        ...this.tokenCookieOption,
         expires: accessTokenExpires.toDate(),
       });
       response.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
-        ...cookieOption,
+        ...this.tokenCookieOption,
         expires: refreshTokenExpires.toDate(),
       });
 
@@ -70,8 +70,8 @@ export class AuthService {
     } catch (err) {
       await qr.rollbackTransaction();
 
-      response.clearCookie(ACCESS_TOKEN_COOKIE_NAME, { ...cookieOption });
-      response.clearCookie(REFRESH_TOKEN_COOKIE_NAME, { ...cookieOption });
+      response.clearCookie(ACCESS_TOKEN_COOKIE_NAME, this.tokenCookieOption);
+      response.clearCookie(REFRESH_TOKEN_COOKIE_NAME, this.tokenCookieOption);
 
       throw err;
     } finally {
@@ -154,27 +154,21 @@ export class AuthService {
 
   async logout(response: Response, user: Users) {
     await this.refreshTokensRepository.delete({ UserId: user.id });
-    
-    const cookieOption = {
-      httpOnly: true,
-      sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production',
-    } as const;
-
-    response.clearCookie(ACCESS_TOKEN_COOKIE_NAME, { ...cookieOption });
-    response.clearCookie(REFRESH_TOKEN_COOKIE_NAME, { ...cookieOption });
-    response.clearCookie(CSRF_TOKEN_COOKIE_NAME, { ...cookieOption });
+  
+    response.clearCookie(ACCESS_TOKEN_COOKIE_NAME, this.tokenCookieOption);
+    response.clearCookie(REFRESH_TOKEN_COOKIE_NAME, this.tokenCookieOption);
+    response.clearCookie(CSRF_TOKEN_COOKIE_NAME, this.tokenCookieOption);
   }
 
   getCsrfToken(response: Response) {
     const csrfToken = nanoid(+process.env.CSRF_TOKEN_SIZE);
 
     response
-      .cookie(CSRF_TOKEN_COOKIE_NAME, csrfToken, {
-        httpOnly: true,
-        sameSite: 'strict',
-        secure: process.env.NODE_ENV === 'production',
-      })
+      .cookie(
+        CSRF_TOKEN_COOKIE_NAME,
+        csrfToken,
+        this.tokenCookieOption
+      )
       .json({ csrfToken });
   }
 }
