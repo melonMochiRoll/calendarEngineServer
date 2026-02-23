@@ -9,7 +9,6 @@ import { HttpExceptionFilter } from './common/exception/http-exception.filter';
 import { RedirectingExceptionFilter } from './common/exception/redirecting-exception.filter';
 import helmet from 'helmet';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import cookieParser from 'cookie-parser';
 import { RedisIoAdapter } from './events/redis.io.adapter';
 import dayjs from 'dayjs';
@@ -57,7 +56,7 @@ async function bootstrap() {
     new RedirectingExceptionFilter(),
   );
 
-  const sessionOption: SessionOptions = {
+  app.use(session({
     secret: process.env.COOKIE_SECRET,
     resave: false,
     saveUninitialized: false,
@@ -67,8 +66,7 @@ async function bootstrap() {
       sameSite: isDevelopment ? 'strict' : 'none',
     },
     proxy: !isDevelopment,
-  };
-  app.use(session(sessionOption));
+  }));
   app.use(passport.initialize());
   app.use(passport.session());
   app.use(cookieParser());
