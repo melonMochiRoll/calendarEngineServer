@@ -10,6 +10,8 @@ import dayjs from "dayjs";
 import { JwtService } from "@nestjs/jwt";
 import { ACCESS_TOKEN_COOKIE_NAME, CSRF_TOKEN_COOKIE_NAME, OAUTH2_CSRF_STATE_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } from "src/common/constant/auth.constants";
 
+const isDevelopment = process.env.NODE_ENV === 'development';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -23,8 +25,8 @@ export class AuthService {
 
   private readonly tokenCookieOption = {
     httpOnly: true,
-    sameSite: 'none',
-    secure: process.env.NODE_ENV === 'production',
+    sameSite: isDevelopment ? 'strict' : 'none',
+    secure: !isDevelopment,
   } as const;
 
   async jwtLogin(response: Response, UserId: number) {
