@@ -64,7 +64,7 @@ async function bootstrap() {
     cookie: {
       httpOnly: true,
       secure: !isDevelopment,
-      sameSite: 'strict',
+      sameSite: isDevelopment ? 'strict' : 'none',
     },
     proxy: !isDevelopment,
   };
