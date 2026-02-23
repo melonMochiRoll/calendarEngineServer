@@ -37,15 +37,12 @@ async function bootstrap() {
 
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
 
-  if (isDevelopment) {
-    const devCorsOption: CorsOptions = {
-      origin: process.env.FRONT_SERVER_ORIGIN,
-      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-      optionsSuccessStatus: 204,
-      credentials: true,
-    };
-    app.enableCors(devCorsOption);
-  }
+  app.enableCors({
+    origin: process.env.FRONT_SERVER_ORIGIN,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    optionsSuccessStatus: 204,
+    credentials: true,
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({
