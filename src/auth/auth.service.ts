@@ -102,8 +102,8 @@ export class AuthService {
     response
       .cookie(OAUTH2_CSRF_STATE_COOKIE_NAME, state, {
         httpOnly: true,
-        sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production',
+        sameSite: isDevelopment ? 'lax' : 'none',
+        secure: !isDevelopment,
       })
       .json(`${request_url}?${params}`);
   }
@@ -122,8 +122,8 @@ export class AuthService {
     response
       .cookie(OAUTH2_CSRF_STATE_COOKIE_NAME, state, {
         httpOnly: true,
-        sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production',
+        sameSite: isDevelopment ? 'lax' : 'none',
+        secure: !isDevelopment,
       })
       .json(`${request_url}?${params}`);
   }
