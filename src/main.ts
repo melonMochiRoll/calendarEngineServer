@@ -28,7 +28,7 @@ async function bootstrap() {
 
   app.use(helmet({
     crossOriginResourcePolicy: {
-      policy: 'cross-origin',
+      policy: isDevelopment ? 'same-site' : 'same-origin',
     },
   }));
 
