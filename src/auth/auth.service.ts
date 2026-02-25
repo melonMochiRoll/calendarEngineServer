@@ -102,7 +102,7 @@ export class AuthService {
     response
       .cookie(OAUTH2_CSRF_STATE_COOKIE_NAME, state, {
         httpOnly: true,
-        sameSite: isDevelopment ? 'lax' : 'none',
+        sameSite: 'lax',
         secure: !isDevelopment,
       })
       .json(`${request_url}?${params}`);
@@ -122,7 +122,7 @@ export class AuthService {
     response
       .cookie(OAUTH2_CSRF_STATE_COOKIE_NAME, state, {
         httpOnly: true,
-        sameSite: isDevelopment ? 'lax' : 'none',
+        sameSite: 'lax',
         secure: !isDevelopment,
       })
       .json(`${request_url}?${params}`);
