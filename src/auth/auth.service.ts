@@ -25,7 +25,7 @@ export class AuthService {
 
   private readonly tokenCookieOption = {
     httpOnly: true,
-    sameSite: isDevelopment ? 'strict' : 'none',
+    sameSite: 'strict',
     secure: !isDevelopment,
   } as const;
 
