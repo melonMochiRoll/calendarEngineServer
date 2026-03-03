@@ -7,13 +7,14 @@ import { EventsGateway } from "src/events/events.gateway";
 import { RolesService } from "src/roles/roles.service";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { DataSource, In, LessThan, Repository } from "typeorm";
-import { ChatsCommandList, IStorageService, STORAGE_SERVICE } from "src/typings/types";
+import { ChatsCommandList } from "src/typings/types";
 import { CreateSharedspaceChatDTO } from "./dto/create.sharedspace.chat.dto";
 import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import dayjs from "dayjs";
 import { GeneratePresignedPutUrlDTO } from "./dto/generate.presigned.put.url.dto";
 import { IMAGE_STATUS } from "src/common/constant/constants";
+import { StorageR2Service } from "src/storage/storage.r2.service";
 
 @Injectable()
 export class ChatsService {
@@ -25,8 +26,7 @@ export class ChatsService {
     private imagesRepository: Repository<Images>,
     private readonly eventsGateway: EventsGateway,
     private rolesService: RolesService,
-    @Inject(STORAGE_SERVICE)
-    private storageService: IStorageService,
+    private storageR2Service: StorageR2Service,
     private sharedspacesService: SharedspacesService,
   ) {}
 
@@ -98,7 +98,7 @@ export class ChatsService {
     });
 
     for (const image of images) {
-      image.path = await this.storageService.generatePresignedGetUrl(image.path);
+      image.path = await this.storageR2Service.generatePresignedGetUrl(image.path);
     }
 
     const imagesMap = images.reduce((acc, image) => {
@@ -205,7 +205,7 @@ export class ChatsService {
       });
 
       for (const image of chatWithUser.Images) {
-        image.path = await this.storageService.generatePresignedGetUrl(image.path);
+        image.path = await this.storageR2Service.generatePresignedGetUrl(image.path);
       }
 
       this.eventsGateway.server
@@ -216,7 +216,7 @@ export class ChatsService {
 
       if (imageKeys.length) {
         for (const key of imageKeys) {
-          await this.storageService.deleteFile(key);
+          await this.storageR2Service.deleteFile(key);
           await this.imagesRepository.delete({ path: key });
         }
       }
@@ -298,7 +298,7 @@ export class ChatsService {
 
         await qr.manager.delete(Images, { id: image.id })
           .then(async () => {
-            await this.storageService.deleteFile(image.path);
+            await this.storageR2Service.deleteFile(image.path);
           });
       }
 
@@ -354,7 +354,7 @@ export class ChatsService {
 
     await this.imagesRepository.delete({ id: ImageId })
       .then(async () => {
-        await this.storageService.deleteFile(targetChat.Images[0].path);
+        await this.storageR2Service.deleteFile(targetChat.Images[0].path);
       });
 
     if (targetChat.Images.length === 1) {
@@ -379,8 +379,8 @@ export class ChatsService {
 
     const keyAndUrls = await Promise.all(
       fileNames.map(async (fileName) => {
-        const key = this.storageService.generateStorageKey(url, fileName);
-        const presignedUrl = await this.storageService.generatePresignedPutUrl(key);
+        const key = this.storageR2Service.generateStorageKey(url, fileName);
+        const presignedUrl = await this.storageR2Service.generatePresignedPutUrl(key);
         return {
           key,
           presignedUrl,

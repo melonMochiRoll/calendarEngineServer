@@ -2,10 +2,9 @@ import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client, wait
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Injectable } from "@nestjs/common";
 import path from "path";
-import { IStorageService } from "src/typings/types";
 
 @Injectable()
-export class StorageR2Service implements IStorageService {
+export class StorageR2Service {
   r2Client: S3Client;
   
   constructor() {
