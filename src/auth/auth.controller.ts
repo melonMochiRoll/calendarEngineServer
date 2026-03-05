@@ -1,5 +1,4 @@
 import { Controller, Get, Post, Redirect, Res, UseGuards } from "@nestjs/common";
-import { LocalAuthGuard } from "./authGuard/local.auth.guard";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
 import { Response } from "express";
@@ -8,7 +7,7 @@ import { GoogleAuthGuard } from "./authGuard/google.auth.guard";
 import { AuthService } from "./auth.service";
 import { OAuth2CSRFGuard } from "./authGuard/oauth2.csrf.guard";
 import { JwtLoginAuthGuard } from "./authGuard/jwt.local.auth.guard";
-import { IsNotJwtAuthenicatedGuard, JwtAuthGuard } from "./authGuard/jwt.auth.guard";
+import { IsNotJwtAuthenicatedGuard, JwtAuthGuard, PublicAuthGuard } from "./authGuard/jwt.auth.guard";
 import { getOrigin } from "src/common/function/getOrigin";
 
 @Controller('api/auth')
@@ -17,19 +16,13 @@ export class AuthController {
     private authService: AuthService,
   ) {}
 
-  @UseGuards(LocalAuthGuard)
-  @Post('login')
-  login(@User() user: Users) {
-    return user;
-  }
-
   @UseGuards(IsNotJwtAuthenicatedGuard, JwtLoginAuthGuard)
   @Post('login/jwt')
   async jwtLogin(
     @Res() res: Response,
     @User() user: Users,
   ) {
-    await this.authService.jwtLogin(res, user.email, user.id);
+    await this.authService.jwtLogin(res, user.id);
 
     res.status(201).send(user);
   }
@@ -47,7 +40,7 @@ export class AuthController {
     @Res() res: Response,
     @User() user: Users,
   ) {
-    await this.authService.jwtLogin(res, user.email, user.id);
+    await this.authService.jwtLogin(res, user.id);
 
     res.status(201).send(user);
   }
@@ -65,7 +58,7 @@ export class AuthController {
     @Res() res: Response,
     @User() user: Users,
   ) {
-    await this.authService.jwtLogin(res, user.email, user.id);
+    await this.authService.jwtLogin(res, user.id);
 
     res.status(201).send(user);
   }
@@ -78,7 +71,7 @@ export class AuthController {
     res.send('ok');
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(PublicAuthGuard)
   @Get('csrf-token')
   getCsrfToken(@Res() res: Response) {
     this.authService.getCsrfToken(res);

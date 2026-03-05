@@ -9,7 +9,7 @@ export class JwtLocalStrategy extends PassportStrategy(Strategy, 'jwt-local') {
   constructor(
     private authService: AuthService,
   ) {
-    super({ userNameField: 'email', passwordField: 'password' });
+    super({ usernameField: 'email', passwordField: 'password' });
   }
 
   async validate(

@@ -13,7 +13,11 @@ import { EventsModule } from './events/events.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import path from 'path';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { AwsModule } from './aws/aws.module';
+import { StorageModule } from './storage/storage.module';
+import { AppService } from './app.service';
+import { Roles } from 'src/entities/Roles';
+import { ChatsModule } from './chats/chats.module';
+import { InvitesModule } from './invites/invites.module';
 
 @Module({
   imports: [
@@ -29,6 +33,9 @@ import { AwsModule } from './aws/aws.module';
         limit: 20,
       },
     ]),
+    TypeOrmModule.forFeature([
+      Roles,
+    ]),
     CacheManagerModule,
     AuthModule,
     UsersModule,
@@ -37,10 +44,14 @@ import { AwsModule } from './aws/aws.module';
     JoinRequestsModule,
     RolesModule,
     EventsModule,
-    AwsModule,
+    StorageModule,
+    ChatsModule,
+    InvitesModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    AppService,
+  ],
 })
 
 export class AppModule {

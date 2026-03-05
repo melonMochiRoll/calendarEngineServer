@@ -9,9 +9,6 @@ export class RefreshTokens {
   @Column({ type: 'varchar', unique: true })
   jti: string;
 
-  @Column({ type: 'varchar', unique: true })
-  token: string;
-
   @Column({ type: 'int', name: 'UserId' })
   UserId: number;
 

@@ -3,7 +3,6 @@ import { AuthService } from './auth.service';
 import { PassportModule } from '@nestjs/passport';
 import { UsersModule } from 'src/users/users.module';
 import { AuthController } from './auth.controller';
-import { LocalStrategy } from './strategy/local.strategy';
 import { SessionSerializer } from './session.serializer';
 import { CacheManagerModule } from 'src/cacheManager/cacheManager.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -14,7 +13,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtLocalStrategy } from './strategy/jwt.local.strategy';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { RefreshTokens } from 'src/entities/RefreshTokens';
-import { JwtRefreshStrategy } from './strategy/jwt.refresh.strategy';
 
 @Module({
   imports: [
@@ -33,10 +31,8 @@ import { JwtRefreshStrategy } from './strategy/jwt.refresh.strategy';
   controllers: [ AuthController ],
   providers: [
     AuthService,
-    LocalStrategy,
     JwtLocalStrategy,
     JwtStrategy,
-    JwtRefreshStrategy,
     GoogleStrategy,
     NaverStrategy,
     SessionSerializer,

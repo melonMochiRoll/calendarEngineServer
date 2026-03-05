@@ -1,9 +1,8 @@
-import { IsExistRole } from "src/common/validator/IsExistRole";
+import { IsNotEmpty, IsString } from "class-validator";
 
 export class ResolveJoinRequestDTO {
   
-  @IsExistRole({
-    message: '$property는 유효하지 않는 등급입니다.'
-  })
+  @IsNotEmpty()
+  @IsString()
   RoleName: string;
 }

@@ -1,6 +1,5 @@
-import { ForbiddenException, Injectable } from "@nestjs/common";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
 import dayjs from "dayjs";
-import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import { PassportStrategy } from "@nestjs/passport";
 import { InjectRepository } from "@nestjs/typeorm";
 import { ExtractJwt, Strategy } from "passport-jwt";
@@ -28,7 +27,6 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
       ignoreExpiration: false,
       secretOrKey: process.env.JWT_SECRET,
     });
-    dayjs.extend(isSameOrAfter);
   }
 
   async validate(payload: TRefreshTokenPayload) {
@@ -40,36 +38,25 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
     });
 
     if (!refreshTokenData || dayjs().isSameOrAfter(dayjs(refreshTokenData.revokedAt))) {
-      throw new ForbiddenException(TOKEN_EXPIRED);
+      throw new UnauthorizedException(TOKEN_EXPIRED);
     }
 
-    const userData = await this.usersRepository.findOne({
+    const user = await this.usersRepository.findOne({
       select: {
         id: true,
         email: true,
+        provider: true,
         profileImage: true,
-        Sharedspacemembers: {
-          SharedspaceId: true,
-          Sharedspace: {
-            url: true,
-            private: true,
-          },
-          Role: {
-            name: true,
-          },
-        },
-      },
-      relations: {
-        Sharedspacemembers: {
-          Sharedspace: true,
-          Role: true,
-        },
       },
       where: {
         id: payload.UserId,
       },
     });
 
-    return userData;
+    if (!user) {
+      throw new UnauthorizedException(TOKEN_EXPIRED);
+    }
+
+    return user;
   }
 }

@@ -1,18 +1,19 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Todos } from "./Todos";
 import { Sharedspaces } from "./Sharedspaces";
 import { SharedspaceMembers } from "./SharedspaceMembers";
 import { JoinRequests } from "./JoinRequests";
 import { Chats } from "./Chats";
 import { RefreshTokens } from "./RefreshTokens";
+import { Invites } from "./Invites";
 
-@Unique('users_email_idx', ['email'])
+@Index('users_createdAt_idx', ['createdAt'])
 @Entity({ name: 'users' })
 export class Users {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
   id: number;
 
-  @Column({ type: 'varchar', name: 'email', length: 30 })
+  @Column({ type: 'varchar', name: 'email', length: 30, unique: true })
   email: string;
 
   @Column({ type: 'varchar', length: 100, select: false, nullable: true })
@@ -53,6 +54,12 @@ export class Users {
 
   @OneToMany(() => RefreshTokens, refreshTokens => refreshTokens.User)
   RefreshTokens: RefreshTokens[];
+
+  @OneToMany(() => Invites, invites => invites.Inviter)
+  SentInvites: Invites[];
+
+  @OneToMany(() => Invites, invites => invites.Invitee)
+  ReceivedInvites: Invites[];
 
   @ManyToMany(() => Sharedspaces, sharedspaces => sharedspaces.Members)
   @JoinTable({

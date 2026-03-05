@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from "@nestjs/common";
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { CSRF_TOKEN_COOKIE_NAME, CSRF_TOKEN_HEADER_NAME } from "src/common/constant/auth.constants";
 import { TOKEN_EXPIRED } from "src/common/constant/error.message";
 
@@ -10,7 +10,7 @@ export class CSRFAuthGuard implements CanActivate {
     const headerToken = request.headers[CSRF_TOKEN_HEADER_NAME];
 
     if (!cookieToken || !headerToken || cookieToken !== headerToken) {
-      throw new ForbiddenException(TOKEN_EXPIRED);                             
+      throw new UnauthorizedException(TOKEN_EXPIRED);
     }
 
     return true;

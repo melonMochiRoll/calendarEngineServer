@@ -4,9 +4,9 @@ import { Todos } from "./Todos";
 import { SharedspaceMembers } from "./SharedspaceMembers";
 import { JoinRequests } from "./JoinRequests";
 import { Chats } from "./Chats";
+import { Invites } from "./Invites";
 
-@Index('sharedspaces_OwnerId_idx', ['OwnerId'])
-@Unique('sharedspaces_url_idx', ['url'])
+@Index('sharedspaces_createdAt_idx', ['createdAt'])
 @Entity({ name: 'sharedspaces' })
 export class Sharedspaces {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
@@ -15,7 +15,7 @@ export class Sharedspaces {
   @Column({ type: 'varchar', name: 'name', length: 30, default: '새 스페이스' })
   name: string;
 
-  @Column({ type: 'varchar', name: 'url', length: 5 })
+  @Column({ type: 'varchar', name: 'url', length: 255, unique: true })
   url: string;
 
   @Column({ type: 'boolean', default: 1 })
@@ -61,6 +61,9 @@ export class Sharedspaces {
     cascade: true,
   })
   Chats: Chats[];
+
+  @OneToMany(() => Invites, invites => invites.Sharedspace)
+  Invites: Invites[];
 
   @ManyToMany(() => Users, users => users.Sharedspaces)
   Members: Users[];

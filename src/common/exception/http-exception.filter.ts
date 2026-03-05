@@ -1,17 +1,12 @@
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException } from '@nestjs/common';
+import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { Request, Response } from 'express';
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
 import { INTERNAL_SERVER_MESSAGE } from '../constant/error.message';
 import { IErrorResponse } from 'src/typings/types';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
-  constructor() {
-    dayjs.extend(utc);
-    dayjs.extend(timezone);
-  }
+  constructor() {}
 
   catch(exception: HttpException, host: ArgumentsHost) {
     console.error(exception);
@@ -22,24 +17,21 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const status = exception.getStatus();
     const exceptionResponse = exception.getResponse();
 
-    const message = this.isExceptionResponse(exceptionResponse) ?
-      exceptionResponse.message :
-      INTERNAL_SERVER_MESSAGE;
+    const responseJson = {
+      code: `${status}-${request.url}`,
+      message: exception.message,
+      timestamp: dayjs.utc().tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss'),
+      path: request.url,
+      metaData: this.hasMetaData(exceptionResponse) ? exceptionResponse.metaData : {},
+    };
 
     response
       .status(status)
-      .json({
-        code: `${status}-${request.url}`,
-        message,
-        timestamp: dayjs.utc().tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss'),
-        path: request.url,
-      });
+      .json(responseJson);
   }
 
-  private isExceptionResponse(value: string | object): value is IErrorResponse {
-    return (value as IErrorResponse).message !== undefined &&
-      (value as IErrorResponse).error !== undefined &&
-      (value as IErrorResponse).statusCode !== undefined;
+  private hasMetaData(value: string | object): value is IErrorResponse {
+    return typeof value === 'object' && value.hasOwnProperty('metaData');
   }
 }
 

@@ -1,171 +1,246 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
-import { CreateSharedspaceDTO } from "./dto/create.sharedspace.dto";
+import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { DataSource, Equal, IsNull, Or, Repository } from "typeorm";
+import { DataSource, In, Repository } from "typeorm";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import { nanoid } from "nanoid";
 import { UpdateSharedspaceNameDTO } from "./dto/update.sharedspace.name.dto";
 import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
-import { ChatsCommandList, SharedspaceMembersRoles, SubscribedspacesFilter, TSubscribedspacesFilter } from "src/typings/types";
+import { CacheItem, SharedspaceMembersRoles, SharedspaceReturnMap, SubscribedspacesSorts } from "src/typings/types";
 import { Users } from "src/entities/Users";
-import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, INTERNAL_SERVER_MESSAGE, NOT_FOUND_RESOURCE, NOT_FOUND_SPACE_MESSAGE } from "src/common/constant/error.message";
+import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, CONFLICT_OWNER_MESSAGE, NOT_FOUND_RESOURCE, NOT_FOUND_SPACE_MESSAGE, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
 import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dto";
-import handleError from "src/common/function/handleError";
 import { UpdateSharedspacePrivateDTO } from "./dto/update.sharedspace.private.dto";
-import { Roles } from "src/entities/Roles";
 import { Chats } from "src/entities/Chats";
-import { CreateSharedspaceChatDTO } from "./dto/create.sharedspace.chat.dto";
-import { EventsGateway } from "src/events/events.gateway";
-import { Images } from "src/entities/Images";
-import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
-import { AwsService } from "src/aws/aws.service";
-import path from "path";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { Cache } from 'cache-manager';
+import { RolesService } from "src/roles/roles.service";
+import dayjs from "dayjs";
+import { NANOID_SHAREDSPACE_URL_LENGTH } from "src/common/constant/constants";
 
 @Injectable()
 export class SharedspacesService {
   constructor(
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
     private dataSource: DataSource,
+    @InjectRepository(Users)
+    private usersRepository: Repository<Users>,
     @InjectRepository(Sharedspaces)
     private sharedspacesRepository: Repository<Sharedspaces>,
     @InjectRepository(SharedspaceMembers)
     private sharedspaceMembersRepository: Repository<SharedspaceMembers>,
-    @InjectRepository(Roles)
-    private rolesRepository: Repository<Roles>,
-    @InjectRepository(Chats)
-    private chatsRepository: Repository<Chats>,
-    @InjectRepository(Images)
-    private imagesRepository: Repository<Images>,
-    private readonly eventsGateway: EventsGateway,
-    private awsService: AwsService,
+    private rolesService: RolesService,
   ) {}
+  private refreshLock = new Set<String>();
 
-  async getSharedspace(url: string) {
-    try {
-      return await this.sharedspacesRepository.findOne({
-        select: {
+  async getSharedspaceByUrl<T extends 'full' | 'standard' = 'standard'>(
+    url: string,
+    columnGroup: T = 'standard' as T,
+    beta = 1,
+  ): Promise<SharedspaceReturnMap<T>> {
+    const cacheKey = `sharedspace:${url}:${columnGroup}`;
+
+    const cachedItem = await this.cacheManager.get<CacheItem<SharedspaceReturnMap<T>>>(cacheKey);
+
+    const fetchSharedspaceAndWrite = async (cacheKey: string) => {
+      const selectClause = columnGroup === 'full' ?
+        {} :
+        {
           id: true,
           name: true,
           url: true,
           private: true,
-          Owner: {
-            id: true,
-            email: true,
-          },
-          Sharedspacemembers: {
-            UserId: true,
-            createdAt: true,
-            Role: {
-              name: true,
-            },
-            User: {
-              email: true,
-              profileImage: true,
-            }
-          },
-        },
-        relations: {
-          Owner: true,
-          Sharedspacemembers: {
-            User: true,
-            Role: true,
-          },
-        },
+          createdAt: true,
+          OwnerId: true,
+        };
+
+      const start = dayjs();
+      const space = await this.sharedspacesRepository.findOne({
+        select: selectClause,
         where: {
           url,
         },
-        order: {
-          Sharedspacemembers: {
-            createdAt: 'ASC',
-          },
-        }
-      });
-    } catch (err) {
-      handleError(err);
+      }) as SharedspaceReturnMap<T>;
+      const delta = dayjs().diff(start);
+
+      if (!space) {
+        throw new NotFoundException(NOT_FOUND_SPACE_MESSAGE);
+      }
+
+      const minute = 60000;
+      const ttl = 0.1 * minute;
+
+      await this.cacheManager.set(cacheKey, {
+        value: space,
+        duration: delta,
+        expireTime: dayjs().valueOf() + ttl,
+      }, ttl);
+
+      return space;
     }
+
+    if (cachedItem) {
+      const random = Math.log(Math.random());
+      const threshold = dayjs().valueOf() - (cachedItem.duration * beta * random);
+      const isRefresher = threshold >= cachedItem.expireTime;
+
+      if (isRefresher && !this.refreshLock.has(cacheKey)) {
+        this.refreshLock.add(cacheKey);
+
+        fetchSharedspaceAndWrite(cacheKey)
+          .finally(() => {
+            this.refreshLock.delete(cacheKey);
+          });
+      }
+
+      return cachedItem.value;
+    }
+
+    const space = await fetchSharedspaceAndWrite(cacheKey);
+    return space;
+  }
+
+  async invalidateSharedspaceCache(url: string) {
+    await this.cacheManager.del(`sharedspace:${url}:full`);
+    await this.cacheManager.del(`sharedspace:${url}:standard`);
+  }
+
+  async getSharedspace(
+    url: string,
+    UserId?: number,
+  ) {
+    const space = await this.getSharedspaceByUrl(url);
+
+    if (!UserId && space.private) {
+      throw new UnauthorizedException(UNAUTHORIZED_MESSAGE);
+    }
+
+    const userRole = await this.rolesService.requireParticipant(UserId, space.id);
+
+    if (!userRole && space.private) {
+      throw new ForbiddenException({
+        message: ACCESS_DENIED_MESSAGE,
+        metaData: { spaceUrl: space.url },
+      });
+    }
+
+    const isOwner = space.OwnerId === UserId;
+    const isMember = isOwner || userRole?.name === SharedspaceMembersRoles.MEMBER;
+    const isViewer = isOwner || isMember || userRole?.name === SharedspaceMembersRoles.VIEWER;
+
+    return {
+      ...space,
+      permission: {
+        isOwner,
+        isMember,
+        isViewer,
+      },
+    };
   }
 
   async getSubscribedspaces(
-    filter: TSubscribedspacesFilter,
-    user: Users,
+    sort: string,
+    UserId: number,
+    page = 1,
+    limit = 7,
   ) {
     const whereCondition = {
-      UserId: user.id,
+      UserId,
     };
 
-    if (filter === SubscribedspacesFilter.OWNED) {
-      Object.assign(whereCondition, { Role: { name: SharedspaceMembersRoles.OWNER } });
+    if (sort === SubscribedspacesSorts.OWNED) {
+      const rolesArray = await this.rolesService.getRolesArray();
+      const ownerRole = rolesArray.find(role => role.name === SharedspaceMembersRoles.OWNER);
+
+      Object.assign(whereCondition, { RoleId: ownerRole.id });
     }
 
-    if (filter === SubscribedspacesFilter.UNOWNED) {
-      const result =
-        Object
-          .values(SharedspaceMembersRoles)
-          .filter(RoleName => RoleName !== SharedspaceMembersRoles.OWNER)
-          .map(RoleName => Equal(RoleName));
-
-      Object.assign(whereCondition, { Role: { name: Or(...result) } });
+    if (sort === SubscribedspacesSorts.UNOWNED) {
+      const rolesArray = await this.rolesService.getRolesArray();
+      const roleIdsWithoutOwner = rolesArray
+        .filter(role => role.name !== SharedspaceMembersRoles.OWNER)
+        .map(role => role.id);
+      
+      Object.assign(whereCondition, { RoleId: In(roleIdsWithoutOwner) });
     }
 
-    try {
-      return await this.sharedspaceMembersRepository.find({
-        select: {
-          UserId: true,
-          SharedspaceId: true,
-          RoleId: true,
-          createdAt: true,
-          Sharedspace: {
-            name: true,
-            url: true,
-            private: true,
-            Owner: {
-              email: true,
-            },
-          },
-          Role: {
-            name: true,
-          },
+    const user_roles = await this.sharedspaceMembersRepository.find({
+      select: {
+        SharedspaceId: true,
+      },
+      where: whereCondition,
+      order: {
+        createdAt: 'DESC',
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    const subscribedspaces = await this.sharedspacesRepository.find({
+      select: {
+        name: true,
+        url: true,
+        private: true,
+        OwnerId: true,
+      },
+      where: {
+        id: In(user_roles.map((role) => role.SharedspaceId)),
+      },
+    });
+
+    const owners = await this.usersRepository.find({
+      select: {
+        id: true,
+        email: true,
+      },
+      where: {
+        id: In(subscribedspaces.map((space) => space.OwnerId)),
+      },
+    });
+
+    const owners_map = owners.reduce((obj, owner) => {
+      obj[owner.id] = owner.email;
+      return obj;
+    }, {});
+
+    const spaces = subscribedspaces.map((space) => {
+      const { OwnerId, ...rest } = space;
+      return {
+        ...rest,
+        owner: owners_map[space.OwnerId],
+        permission: {
+          isOwner: UserId === space.OwnerId,
         },
-        relations: {
-          Sharedspace: {
-            Owner: true,
-          },
-          Role: true,
-        },
-        where: whereCondition,
-        order: {
-          createdAt: 'DESC',
-        },
-      });
-    } catch (err) {
-      handleError(err);
-    }
+      };
+    });
+
+    const totalCount = await this.sharedspaceMembersRepository.count({
+      where: whereCondition,
+    });
+
+    return { spaces, totalCount };
   }
 
-  async createSharedspace(dto: CreateSharedspaceDTO) {
-    const { OwnerId } = dto;
-
+  async createSharedspace(UserId: number) {
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
 
     try {
       const created = await qr.manager.save(Sharedspaces, {
-        url: nanoid(5),
-        ...dto,
+        url: nanoid(NANOID_SHAREDSPACE_URL_LENGTH),
+        OwnerId: UserId,
       });
 
-      const owner = await this.rolesRepository.findOneBy({ name: SharedspaceMembersRoles.OWNER });
-
-      if (!owner) {
-        throw new InternalServerErrorException(INTERNAL_SERVER_MESSAGE);
-      }
+      const rolesArray = await this.rolesService.getRolesArray();
+      const ownerRole = rolesArray.find(role => role.name === SharedspaceMembersRoles.OWNER);
       
       await qr.manager.save(SharedspaceMembers, {
-        UserId: OwnerId,
+        UserId,
         SharedspaceId: created.id,
-        RoleId: owner.id,
+        RoleId: ownerRole.id,
       });
 
       await qr.commitTransaction();
@@ -174,472 +249,343 @@ export class SharedspacesService {
     } catch (err) {
       await qr.rollbackTransaction();
 
-      handleError(err);
+      throw err;
     } finally {
       await qr.release();
     }
   }
 
   async updateSharedspaceName(
-    targetSpace: Sharedspaces,
+    url: string,
     dto: UpdateSharedspaceNameDTO,
+    UserId: number,
   ) {
     const { name } = dto;
     
-    try {
-      if (targetSpace.name === name) {
-        throw new ConflictException('동일한 이름으로 바꿀수 없습니다.');
-      }
+    const space = await this.getSharedspaceByUrl(url);
 
-      await this.sharedspacesRepository.update({ id: targetSpace.id }, { name });
-    } catch (err) {
-      handleError(err);
+    const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+
+    if (!isOwner) {
+      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
-    return true;
+    if (space.name === name) {
+      throw new ConflictException('동일한 이름으로 바꿀수 없습니다.');
+    }
+
+    await this.sharedspacesRepository.update({ id: space.id }, { name });
+    await this.invalidateSharedspaceCache(url);
   }
 
   async updateSharedspaceOwner(
-    targetSpace: Sharedspaces,
+    url: string,
     dto: UpdateSharedspaceOwnerDTO,
+    UserId: number,
   ) {
-    const { OwnerId, newOwnerId } = dto;
+    const { newOwnerId } = dto;
 
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
 
     try {
-      if (targetSpace.OwnerId === newOwnerId) {
-        throw new ConflictException('동일한 유저로 바꿀수 없습니다.');
+      const space = await this.getSharedspaceByUrl(url);
+
+      const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+
+      if (!isOwner) {
+        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
       }
 
-      const owner = await this.rolesRepository.findOneBy({ name: SharedspaceMembersRoles.OWNER });
-      const member = await this.rolesRepository.findOneBy({ name: SharedspaceMembersRoles.MEMBER });
+      if (space.OwnerId !== UserId) {
+        throw new BadRequestException(BAD_REQUEST_MESSAGE);
+      }
 
-      await qr.manager.update(Sharedspaces, { id: targetSpace.id }, { OwnerId: newOwnerId });
-      await qr.manager.update(SharedspaceMembers, { UserId: OwnerId, SharedspaceId: targetSpace.id }, { RoleId: member.id });
-      await qr.manager.save(SharedspaceMembers, { UserId: newOwnerId, SharedspaceId: targetSpace.id, RoleId: owner.id });
+      if (space.OwnerId === newOwnerId) {
+        throw new ConflictException(CONFLICT_OWNER_MESSAGE);
+      }
+
+      const rolesArray = await this.rolesService.getRolesArray();
+
+      const { ownerRoleId, memberRoleId } = rolesArray.reduce((acc, role) => {
+        if (role.name === SharedspaceMembersRoles.OWNER) {
+          acc.ownerRoleId = role.id;
+        }
+        if (role.name === SharedspaceMembersRoles.MEMBER) {
+          acc.memberRoleId = role.id;
+        }
+
+        return acc;
+      }, { ownerRoleId: 0, memberRoleId: 0 });
+
+      await qr.manager.update(Sharedspaces, { id: space.id }, { OwnerId: newOwnerId });
+      await qr.manager.update(SharedspaceMembers, { UserId: space.OwnerId, SharedspaceId: space.id }, { RoleId: memberRoleId });
+      await qr.manager.save(SharedspaceMembers, { UserId: newOwnerId, SharedspaceId: space.id, RoleId: ownerRoleId });
 
       await qr.commitTransaction();
+
+      await this.invalidateSharedspaceCache(url);
+      await this.rolesService.invalidateUserRoleCache(space.OwnerId, space.id);
+      await this.rolesService.invalidateUserRoleCache(newOwnerId, space.id);
     } catch (err) {
       await qr.rollbackTransaction();
 
-      handleError(err);
+      throw err;
     } finally {
       await qr.release();
     }
-
-    return true;
   }
 
   async updateSharedspacePrivate(
-    targetSpace: Sharedspaces,
+    url: string,
     dto: UpdateSharedspacePrivateDTO,
+    UserId: number,
   ) {
-    try {
-      await this.sharedspacesRepository.update({ id: targetSpace.id }, { ...dto });
-    } catch (err) {
-      handleError(err);
+    const space = await this.getSharedspaceByUrl(url);
+
+    const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+
+    if (!isOwner) {
+      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
-    return true;
+    await this.sharedspacesRepository.update({ id: space.id }, { ...dto });
+    await this.invalidateSharedspaceCache(url);
   }
 
-  async deleteSharedspace(targetSpace: Sharedspaces) {
-    try {
-      await this.sharedspacesRepository.softRemove(targetSpace);
-    } catch (err) {
-      handleError(err);
+  async deleteSharedspace(
+    url: string,
+    UserId: number,
+  ) {
+    const space = await this.getSharedspaceByUrl(url);
+
+    const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+
+    if (!isOwner) {
+      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
-    return true;
+    await this.sharedspacesRepository.softRemove(space);
+    await this.invalidateSharedspaceCache(url);
+  }
+
+  async getSharedspaceMembers(
+    url: string,
+    page = 1,
+    UserId?: number,
+    limit = 10,
+  ) {
+    const space = await this.getSharedspaceByUrl(url);
+
+    if (space.private) {
+      const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
+
+      if (!isParticipant) {
+        throw new ForbiddenException({
+          message: ACCESS_DENIED_MESSAGE,
+          metaData: { spaceUrl: space.url },
+        });
+      }
+    }
+
+    const memberRecords = await this.sharedspaceMembersRepository.find({
+      select: {
+        UserId: true,
+        RoleId: true,
+        createdAt: true,
+      },
+      where: {
+        SharedspaceId: space.id,
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    const rolesArray = await this.rolesService.getRolesArray();
+    const rolesMap = rolesArray.reduce((map, role) => {
+      map[role.id] = role.name;
+      return map;
+    }, {});
+
+    const userRecords = await this.usersRepository.find({
+      select: {
+        id: true,
+        email: true,
+        profileImage: true,
+      },
+      where: {
+        id: In(memberRecords.map(member => member.UserId)),
+      },
+    });
+    const usersMap = userRecords.reduce((map, user) => {
+      map[user.id] = {
+        email: user.email,
+        profileImage: user.profileImage,
+      };
+      return map;
+    }, {});
+
+    const members = memberRecords.map((member) => {
+      return {
+        ...member,
+        ...usersMap[member.UserId],
+        RoleName: rolesMap[member.RoleId],
+      };
+    });
+
+    const totalCount = await this.sharedspaceMembersRepository.count({
+      where: {
+        SharedspaceId: space.id,
+      },
+    });
+
+    return {
+      items: members,
+      hasMoreData: !Boolean(page * limit >= totalCount),
+    };
   }
 
   async createSharedspaceMembers(
-    targetSpace: Sharedspaces,
+    url: string,
     dto: CreateSharedspaceMembersDTO,
+    UserId: number,
   ) {
-    const { UserId, RoleName } = dto;
+    const { UserId: targetUserId, RoleName } = dto;
 
-    try {
-      const role = await this.rolesRepository.findOneBy({ name: RoleName });
+    const targetUser = await this.usersRepository.find({
+      select: {
+        id: true,
+      },
+      where: {
+        id: targetUserId,
+      },
+    });
 
-      if (!role) {
-        throw new BadRequestException(BAD_REQUEST_MESSAGE);
-      }
-
-      const isMember = await this.sharedspaceMembersRepository.findOneBy({
-        UserId,
-        SharedspaceId: targetSpace.id,
-      });
-
-      if (isMember) {
-        throw new ConflictException(CONFLICT_MESSAGE);
-      }
-
-      await this.sharedspaceMembersRepository.save({
-        UserId,
-        SharedspaceId: targetSpace.id,
-        RoleId: role.id,
-      });
-    } catch (err) {
-      handleError(err);
+    if (!targetUser) {
+      throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
-    return true;
+    const space = await this.getSharedspaceByUrl(url);
+
+    const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+
+    if (!isOwner) {
+      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+    }
+
+    const rolesArray = await this.rolesService.getRolesArray();
+    const role = rolesArray.find(role => role.name === RoleName);
+
+    if (!role || role.name === SharedspaceMembersRoles.OWNER) {
+      throw new BadRequestException(BAD_REQUEST_MESSAGE);
+    }
+
+    const isMember = await this.sharedspaceMembersRepository.findOne({
+      select: {
+        RoleId: true,
+      },
+      where: {
+        UserId: targetUserId,
+        SharedspaceId: space.id,
+      },
+    });
+
+    if (isMember) {
+      throw new ConflictException(CONFLICT_MESSAGE);
+    }
+
+    await this.sharedspaceMembersRepository.save({
+      UserId: targetUserId,
+      SharedspaceId: space.id,
+      RoleId: role.id,
+    });
   }
 
   async updateSharedspaceMembers(
-    targetSpace: Sharedspaces,
+    url: string,
     dto: UpdateSharedspaceMembersDTO,
+    UserId: number,
   ) {
-    const { UserId, RoleName } = dto;
+    const { UserId: targetUserId, RoleName } = dto;
 
-    try {
-      if (RoleName === SharedspaceMembersRoles.OWNER) {
-        throw new ConflictException(CONFLICT_MESSAGE);
-      }
+    const space = await this.getSharedspaceByUrl(url);
 
-      const role = await this.rolesRepository.findOneBy({ name: RoleName });
+    const isOwner = await this.rolesService.requireOwner(UserId, space.id);
 
-      if (!role) {
-        throw new BadRequestException(BAD_REQUEST_MESSAGE);
-      }
-
-      const isMember = await this.sharedspaceMembersRepository.findOneBy({
-        UserId,
-        SharedspaceId: targetSpace.id,
-      });
-
-      if (!isMember) {
-        throw new NotFoundException(NOT_FOUND_RESOURCE);
-      }
-
-      await this.sharedspaceMembersRepository.update({
-        UserId,
-        SharedspaceId: targetSpace.id,
-      },{
-        RoleId: role.id,
-      });
-    } catch (err) {
-      handleError(err);
+    if (!isOwner) {
+      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
-    return true;
+    const rolesArray = await this.rolesService.getRolesArray();
+    const role = rolesArray.find(role => role.name === RoleName);
+
+    if (!role || role.name === SharedspaceMembersRoles.OWNER) {
+      throw new BadRequestException(BAD_REQUEST_MESSAGE);
+    }
+
+    const isMember = await this.sharedspaceMembersRepository.findOne({
+      select: {
+        RoleId: true,
+      },
+      where: {
+        UserId: targetUserId,
+        SharedspaceId: space.id,
+      }
+    });
+
+    if (!isMember) {
+      throw new NotFoundException(NOT_FOUND_RESOURCE);
+    }
+
+    await this.sharedspaceMembersRepository.update({
+      UserId: targetUserId,
+      SharedspaceId: space.id,
+    },{
+      RoleId: role.id,
+    });
+
+    await this.rolesService.invalidateUserRoleCache(targetUserId, space.id);
   }
 
   async deleteSharedspaceMembers(
-    targetSpace: Sharedspaces,
+    url: string,
+    targetUserId: number,
     UserId: number,
   ) {
-    try {
+    const space = await this.getSharedspaceByUrl(url);
 
-      const isMember = await this.sharedspaceMembersRepository.findOneBy({
-        UserId,
-        SharedspaceId: targetSpace?.id,
-      });
+    const isOwner = await this.rolesService.requireOwner(UserId, space.id);
 
-      if (!isMember) {
-        throw new NotFoundException(NOT_FOUND_RESOURCE);
-      }
-
-      await this.sharedspaceMembersRepository.delete({
-        UserId,
-        SharedspaceId: targetSpace.id,
-      });
-    } catch (err) {
-      handleError(err);
+    if (!isOwner) {
+      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
-    return true;
-  }
-
-  async getSharedspaceChats(
-    targetSpace: Sharedspaces,
-    offset: number,
-    limit: number,
-  ) {
-    try {
-      const result = await this.chatsRepository.find({
-        select: {
-          id: true,
-          content: true,
-          SenderId: true,
-          SharedspaceId: true,
-          createdAt: true,
-          updatedAt: true,
-          Sender: {
-            email: true,
-            profileImage: true,
-          },
-          Images: {
-            id: true,
-            path: true,
-          },
-        },
-        relations: {
-          Sender: true,
-          Images: true,
-        },
-        where: {
-          SharedspaceId: targetSpace.id,
-        },
-        order: {
-          createdAt: 'DESC',
-        },
-        skip: (offset - 1) * limit,
-        take: limit,
-      });
-
-      if (result.length < limit) {
-        return {
-          chats: result,
-          hasMoreData: false,
-        };
+    const isMember = await this.sharedspaceMembersRepository.findOne({
+      select: {
+        RoleId: true
+      },
+      where: {
+        UserId: targetUserId,
+        SharedspaceId: space?.id,
       }
+    });
 
-      const count = await this.chatsRepository.count({
-        where: {
-          SharedspaceId: targetSpace.id,
-        },
-      });
+    const rolesArray = await this.rolesService.getRolesArray();
+    const role = rolesArray.find(role => role.id === isMember.RoleId);
 
-      return {
-        chats: result,
-        hasMoreData: !Boolean((offset - 1) * limit >= count),
-      };
-    } catch (err) {
-      handleError(err);
-    }
-  }
-
-  async createSharedspaceChat(
-    targetSpace: Sharedspaces,
-    dto: CreateSharedspaceChatDTO,
-    files: Express.Multer.File[],
-    user: Users,
-  ) {
-    const { content } = dto;
-
-    const qr = this.dataSource.createQueryRunner();
-    await qr.connect();
-    await qr.startTransaction();
-
-    const s3Keys = files.map((file) => `${process.env.AWS_S3_FOLDER_NAME}/${Date.now()}${path.extname(file.originalname)}`);
-
-    try {
-      const chat = await qr.manager.save(Chats, {
-        content,
-        SenderId: user.id,
-        SharedspaceId: targetSpace.id,
-      });
-
-      for (let i=0; i<files.length; i++) {
-        const key = s3Keys[i];
-
-        await qr.manager.save(Images, { path: key, ChatId: chat.id })
-          .then(async () => {
-            await this.awsService.uploadImageToS3(files[i], key);
-          });
-      }
-
-      await qr.commitTransaction();
-      await qr.release();
-
-      const chatWithUser = await this.chatsRepository.findOne({
-        select: {
-          id: true,
-          content: true,
-          SenderId: true,
-          SharedspaceId: true,
-          createdAt: true,
-          updatedAt: true,
-          Sender: {
-            email: true,
-            profileImage: true,
-          },
-          Images: {
-            id: true,
-            path: true,
-          },
-        },
-        relations: {
-          Sender: true,
-          Images: true,
-        },
-        where: {
-          id: chat.id,
-        },
-      });
-
-      this.eventsGateway.server
-        .to(`/sharedspace-${targetSpace.url}`)
-        .emit(`publicChats:${ChatsCommandList.CHAT_CREATED}`, chatWithUser);
-    } catch (err) {
-      if (!qr.isReleased) {
-        await qr.rollbackTransaction();
-        await qr.release();
-      }
-
-      for (let i=0; i<s3Keys.length; i++) {
-        await this.awsService.deleteImageFromS3(s3Keys[i]);
-      }
-
-      handleError(err);
+    if (!isMember || role.name === SharedspaceMembersRoles.OWNER) {
+      throw new NotFoundException(NOT_FOUND_RESOURCE);
     }
 
-    return true;
-  }
+    await this.sharedspaceMembersRepository.delete({
+      UserId: targetUserId,
+      SharedspaceId: space.id,
+    });
 
-  async updateSharedspaceChat(
-    targetSpace: Sharedspaces,
-    dto: UpdateSharedspaceChatDTO,
-    user: Users,
-  ) {
-    const { ChatId, content } = dto;
-
-    try {
-      const targetChat = await this.chatsRepository.findOneBy({ id: ChatId });
-
-      if (targetChat.SenderId !== user.id || targetChat.SharedspaceId !== targetSpace.id) {
-        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
-      }
-
-      await this.chatsRepository.update({ id: ChatId }, { content });
-
-      const chatWithUser = await this.chatsRepository.findOne({
-        select: {
-          id: true,
-          content: true,
-          SenderId: true,
-          SharedspaceId: true,
-          createdAt: true,
-          updatedAt: true,
-          Sender: {
-            email: true,
-            profileImage: true,
-          },
-          Images: {
-            id: true,
-            path: true,
-          },
-        },
-        relations: {
-          Sender: true,
-          Images: true,
-        },
-        where: {
-          id: ChatId,
-        },
-      });
-
-      this.eventsGateway.server
-        .to(`/sharedspace-${targetSpace.url}`)
-        .emit(`publicChats:${ChatsCommandList.CHAT_UPDATED}`, chatWithUser);
-    } catch (err) {
-      handleError(err);
-    }
-  };
-
-  async deleteSharedspaceChat(
-    targetSpace: Sharedspaces,
-    ChatId: number,
-    user: Users,
-  ) {
-    const qr = this.dataSource.createQueryRunner();
-    await qr.connect();
-    await qr.startTransaction();
-
-    try {
-      const targetChat = await this.chatsRepository.findOne({
-        select: {
-          id: true,
-          SenderId: true,
-          SharedspaceId: true,
-          Images: true,
-        },
-        relations: {
-          Images: true,
-        },
-        where: {
-          id: ChatId,
-        },
-      });
-
-      if (targetChat.SenderId !== user.id || targetChat.SharedspaceId !== targetSpace.id) {
-        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
-      }
-
-      for (let i=0; i<targetChat.Images.length; i++) {
-        const image = targetChat.Images[i];
-
-        await qr.manager.delete(Images, { id: image.id })
-          .then(async () => {
-            await this.awsService.deleteImageFromS3(image.path);
-          });
-      }
-
-      await qr.manager.delete(Chats, { id: ChatId });
-
-      await qr.commitTransaction();
-      await qr.release();
-
-      this.eventsGateway.server
-        .to(`/sharedspace-${targetSpace.url}`)
-        .emit(`publicChats:${ChatsCommandList.CHAT_DELETED}`, ChatId);
-    } catch (err) {
-      if (!qr.isReleased) {
-        await qr.rollbackTransaction();
-        await qr.release();
-      }
-
-      handleError(err);
-    }
-  }
-
-  async deleteSharedspaceChatImage(
-    targetSpace: Sharedspaces,
-    ChatId: number,
-    ImageId: number,
-    user: Users,
-  ) {
-    try {
-      const targetChat = await this.chatsRepository.findOne({
-        select: {
-          id: true,
-          SenderId: true,
-          SharedspaceId: true,
-          Images: {
-            id: true,
-            path: true,
-          },
-        },
-        relations: {
-          Images: true,
-        },
-        where: {
-          id: ChatId,
-          Images: {
-            id: ImageId,
-          },
-        },
-      });
-
-      if (targetChat.SenderId !== user.id || targetChat.SharedspaceId !== targetSpace.id) {
-        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
-      }
-
-      await this.imagesRepository.delete({ id: ImageId })
-        .then(async () => {
-          await this.awsService.deleteImageFromS3(targetChat.Images[0].path);
-        });
-
-      this.eventsGateway.server
-        .to(`/sharedspace-${targetSpace.url}`)
-        .emit(`publicChats:${ChatsCommandList.CHAT_IMAGE_DELETED}`, ChatId, ImageId);
-    } catch (err) {
-      handleError(err);
-    }
+    await this.rolesService.invalidateUserRoleCache(targetUserId, space.id);
   }
 }

@@ -9,6 +9,7 @@ import { SharedspaceMembers } from './src/entities/SharedspaceMembers';
 import { Chats } from './src/entities/Chats';
 import { Images } from './src/entities/Images';
 import { RefreshTokens } from 'src/entities/RefreshTokens';
+import { Invites } from 'src/entities/Invites';
 
 const dbconfig: DataSourceOptions = {
   type: "mysql",
@@ -35,6 +36,7 @@ export const ormconfig = {
     Chats,
     Images,
     RefreshTokens,
+    Invites,
   ],
 };
 

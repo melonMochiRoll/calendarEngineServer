@@ -3,13 +3,14 @@ import bcrypt from 'bcrypt';
 import { InjectRepository } from "@nestjs/typeorm";
 import { Users } from "src/entities/Users";
 import { DataSource, Repository } from "typeorm";
-import handleError from "src/common/function/handleError";
 import { nanoid } from "nanoid";
 import { Response } from "express";
 import { RefreshTokens } from "src/entities/RefreshTokens";
 import dayjs from "dayjs";
 import { JwtService } from "@nestjs/jwt";
 import { ACCESS_TOKEN_COOKIE_NAME, CSRF_TOKEN_COOKIE_NAME, OAUTH2_CSRF_STATE_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } from "src/common/constant/auth.constants";
+
+const isDevelopment = process.env.NODE_ENV === 'development';
 
 @Injectable()
 export class AuthService {
@@ -22,7 +23,13 @@ export class AuthService {
     private refreshTokensRepository: Repository<RefreshTokens>,
   ) {}
 
-  async jwtLogin(response: Response, email: string, UserId: number) {
+  private readonly tokenCookieOption = {
+    httpOnly: true,
+    sameSite: 'strict',
+    secure: !isDevelopment,
+  } as const;
+
+  async jwtLogin(response: Response, UserId: number) {
     const qr = this.dataSource.createQueryRunner();
 
     const accessTokenExpires = dayjs().add(15, 'minute');
@@ -30,23 +37,15 @@ export class AuthService {
     const jti = nanoid(+process.env.REFRESH_TOKEN_JTI_SIZE);
 
     const accessToken = this.jwtService.sign({
-      email,
       UserId,
       exp: accessTokenExpires.unix(),
     });
 
     const refreshToken = this.jwtService.sign({
       jti,
-      email,
       UserId,
       exp: refreshTokenExpires.unix(),
     });
-
-    const cookieOption = {
-      httpOnly: true,
-      sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production',
-    } as const;
 
     await qr.connect();
     await qr.startTransaction();
@@ -56,17 +55,16 @@ export class AuthService {
 
       await qr.manager.save(RefreshTokens, {
         jti,
-        token: refreshToken,
         UserId,
         expiresAt: refreshTokenExpires.toDate(),
       });
 
       response.cookie(ACCESS_TOKEN_COOKIE_NAME, accessToken, {
-        ...cookieOption,
+        ...this.tokenCookieOption,
         expires: accessTokenExpires.toDate(),
       });
       response.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
-        ...cookieOption,
+        ...this.tokenCookieOption,
         expires: refreshTokenExpires.toDate(),
       });
 
@@ -74,10 +72,10 @@ export class AuthService {
     } catch (err) {
       await qr.rollbackTransaction();
 
-      response.clearCookie(ACCESS_TOKEN_COOKIE_NAME, { ...cookieOption });
-      response.clearCookie(REFRESH_TOKEN_COOKIE_NAME, { ...cookieOption });
+      response.clearCookie(ACCESS_TOKEN_COOKIE_NAME, this.tokenCookieOption);
+      response.clearCookie(REFRESH_TOKEN_COOKIE_NAME, this.tokenCookieOption);
 
-      handleError(err);
+      throw err;
     } finally {
       await qr.release();
     }
@@ -105,7 +103,7 @@ export class AuthService {
       .cookie(OAUTH2_CSRF_STATE_COOKIE_NAME, state, {
         httpOnly: true,
         sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production',
+        secure: !isDevelopment,
       })
       .json(`${request_url}?${params}`);
   }
@@ -125,7 +123,7 @@ export class AuthService {
       .cookie(OAUTH2_CSRF_STATE_COOKIE_NAME, state, {
         httpOnly: true,
         sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production',
+        secure: !isDevelopment,
       })
       .json(`${request_url}?${params}`);
   }
@@ -134,76 +132,45 @@ export class AuthService {
     email: string,
     password: string,
   ) {
-    try {
-      const user = await this.usersRepository.findOne({
-        select: {
-          id: true,
-          email: true,
-          password: true,
-          profileImage: true,
-          Sharedspacemembers: {
-            SharedspaceId: true,
-            Sharedspace: {
-              url: true,
-              private: true,
-            },
-            Role: {
-              name: true,
-            },
-          },
-        },
-        relations: {
-          Sharedspacemembers: {
-            Sharedspace: true,
-            Role: true,
-          },
-        },
-        where: {
-          email,
-        },
-      });
+    const user = await this.usersRepository.findOne({
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        profileImage: true,
+      },
+      where: {
+        email,
+      },
+    });
 
-      const compare = await bcrypt.compare(password, user?.password || '');
-  
-      if (!user || !compare) {
-        return null;
-      }
-  
-      const { password: _, ...rest } = user;
-      return rest;
-    } catch (err) {
-      handleError(err);
+    const compare = await bcrypt.compare(password, user?.password || '');
+
+    if (!user || !compare) {
+      return false;
     }
+
+    const { password: _, ...withoutPassword } = user;
+    return withoutPassword;
   }
 
   async logout(response: Response, user: Users) {
-    try {
-      await this.refreshTokensRepository.delete({ UserId: user.id })
-        .then(() => {
-          const cookieOption = {
-            httpOnly: true,
-            sameSite: 'strict',
-            secure: process.env.NODE_ENV === 'production',
-          } as const;
-
-          response.clearCookie(ACCESS_TOKEN_COOKIE_NAME, { ...cookieOption });
-          response.clearCookie(REFRESH_TOKEN_COOKIE_NAME, { ...cookieOption });
-          response.clearCookie(CSRF_TOKEN_COOKIE_NAME, { ...cookieOption });
-        });
-    } catch (err) {
-      handleError(err);
-    }
+    await this.refreshTokensRepository.delete({ UserId: user.id });
+  
+    response.clearCookie(ACCESS_TOKEN_COOKIE_NAME, this.tokenCookieOption);
+    response.clearCookie(REFRESH_TOKEN_COOKIE_NAME, this.tokenCookieOption);
+    response.clearCookie(CSRF_TOKEN_COOKIE_NAME, this.tokenCookieOption);
   }
 
   getCsrfToken(response: Response) {
     const csrfToken = nanoid(+process.env.CSRF_TOKEN_SIZE);
 
     response
-      .cookie(CSRF_TOKEN_COOKIE_NAME, csrfToken, {
-        httpOnly: true,
-        sameSite: 'strict',
-        secure: process.env.NODE_ENV === 'production',
-      })
+      .cookie(
+        CSRF_TOKEN_COOKIE_NAME,
+        csrfToken,
+        this.tokenCookieOption
+      )
       .json({ csrfToken });
   }
 }

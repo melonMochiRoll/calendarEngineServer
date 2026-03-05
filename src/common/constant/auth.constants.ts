@@ -7,3 +7,7 @@ export const CSRF_TOKEN_COOKIE_NAME = 'csrfToken';
 export const CSRF_TOKEN_HEADER_NAME = 'x-csrf-token';
 
 export const OAUTH2_CSRF_STATE_COOKIE_NAME = 'oauth2CsrfToken';
+
+export const ROLES_ARRAY_KEY = 'roles_array';
+
+export const DATA_NOT_FOUND = 'data_not_found';

@@ -3,23 +3,28 @@ import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { Users } from 'src/entities/Users';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { IsExistUserConstraint } from 'src/common/validator/IsExistUser';
-import { IsNotExistEmailConstraint } from 'src/common/validator/IsNotExistEmail';
 import { RefreshTokens } from 'src/entities/RefreshTokens';
+import { SharedspaceMembers } from 'src/entities/SharedspaceMembers';
+import { SharedspacesModule } from 'src/sharedspaces/sharedspaces.module';
+import { SharedspacesUsersContoller } from './sharedspaces.users.controller';
+import { RolesModule } from 'src/roles/roles.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       Users,
       RefreshTokens,
+      SharedspaceMembers,
     ]),
+    SharedspacesModule,
+    RolesModule,
   ],
-  controllers: [ UsersController ],
+  controllers: [
+    UsersController,
+    SharedspacesUsersContoller,
+  ],
   providers: [
     UsersService,
-    IsExistUserConstraint,
-    IsExistUserConstraint,
-    IsNotExistEmailConstraint,
   ],
   exports: [ UsersService ],
 })

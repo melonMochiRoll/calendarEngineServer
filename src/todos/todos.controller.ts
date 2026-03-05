@@ -2,14 +2,11 @@ import { Body, Controller, Delete, Get, HttpCode, Param, ParseIntPipe, Post, Put
 import { TodosService } from './todos.service';
 import { CreateTodoDTO } from './dto/create.todo.dto';
 import { UpdateTodoDto } from './dto/update.todo.dto';
-import { AboveMemberRoles } from 'src/common/decorator/above.member.decorator';
-import { PublicSpaceGuard } from 'src/common/guard/public.space.guard';
 import { DateValidationPipe } from 'src/common/pipe/date.validation.pipe';
-import { TransformSpacePipe } from 'src/common/pipe/transform.space.pipe';
-import { Sharedspaces } from 'src/entities/Sharedspaces';
-import { JwtAuthGuard } from 'src/auth/authGuard/jwt.auth.guard';
+import { JwtAuthGuard, PublicAuthGuard } from 'src/auth/authGuard/jwt.auth.guard';
 import { CSRFAuthGuard } from 'src/auth/authGuard/csrf.auth.guard';
-import { RolesGuard } from 'src/common/guard/roles.guard';
+import { Users } from 'src/entities/Users';
+import { User } from 'src/common/decorator/user.decorator';
 
 @Controller('api/sharedspaces')
 export class TodosController {
@@ -17,77 +14,64 @@ export class TodosController {
     private todosService: TodosService,
   ) {}
 
-  @UseGuards(JwtAuthGuard, PublicSpaceGuard)
+  @UseGuards(PublicAuthGuard)
   @Get(':url/todos')
-  getTodosByDate(
-    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
+  getTodosByMonth(
+    @Param('url') url: string,
     @Query('date', DateValidationPipe) date: string,
+    @User() user: Users,
   ) {
-    return this.todosService.getTodosByDate(
-      targetSpace,
+    return this.todosService.getTodosByMonth(
+      url,
       date,
+      user?.id,
     );
   }
 
-  @UseGuards(JwtAuthGuard, PublicSpaceGuard)
-  @Get(':url/todos/count')
-  getTodosCount(
-    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
-    @Query('date', DateValidationPipe) date: string,
-  ) {
-    return this.todosService.getTodosCount(
-      targetSpace,
-      date,
-    );
-  }
-
-  @UseGuards(JwtAuthGuard, CSRFAuthGuard, RolesGuard)
-  @AboveMemberRoles()
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post(':url/todos')
   createTodo(
-    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
+    @Param('url') url: string,
     @Body() dto: CreateTodoDTO,
+    @User() user: Users,
   ) {
-    return this.todosService.createTodo(targetSpace, dto);
+    return this.todosService.createTodo(url, dto, user.id);
   }
 
-  @UseGuards(JwtAuthGuard, CSRFAuthGuard, RolesGuard)
-  @AboveMemberRoles()
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Put(':url/todos')
   updateTodo(
-    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
+    @Param('url') url: string,
     @Body() dto: UpdateTodoDto,
+    @User() user: Users,
   ) {
-    return this.todosService.updateTodo(
-      targetSpace,
-      dto,
-    );
+    return this.todosService.updateTodo(url, dto, user.id);
   }
 
-  @UseGuards(JwtAuthGuard, CSRFAuthGuard, RolesGuard)
-  @AboveMemberRoles()
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @HttpCode(204)
   @Delete(':url/todos/:id')
   deleteTodo(
-    @Param('url', TransformSpacePipe) targetSpace: Sharedspaces,
+    @Param('url') url: string,
     @Param('id', ParseIntPipe) todoId: number,
+    @User() user: Users,
   ) {
-    return this.todosService.deleteTodo(targetSpace, todoId);
+    return this.todosService.deleteTodo(url, todoId, user.id);
   }
 
-  @UseGuards(JwtAuthGuard, PublicSpaceGuard)
+  @UseGuards(PublicAuthGuard)
   @Get(':url/todos/search')
   searchTodos(
     @Param('url') url: string,
     @Query('query') query: string,
-    @Query('offset', ParseIntPipe) offset: number,
-    @Query('limit', ParseIntPipe) limit: number,
+    @Query('page', ParseIntPipe) page: number,
+    @User() user: Users,
   ) {
     return this.todosService.searchTodos(
       url,
       query,
-      offset,
-      limit,
+      page,
+      user?.id,
     );
   }
 }

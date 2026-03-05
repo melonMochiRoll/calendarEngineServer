@@ -22,18 +22,17 @@ export const SharedspaceMembersRoles = {
 
 export type TSharedspaceMembersRole = typeof SharedspaceMembersRoles[keyof typeof SharedspaceMembersRoles];
 
-export const SubscribedspacesFilter = {
+export const SubscribedspacesSorts = {
   ALL: 'all',
   OWNED: 'owned',
   UNOWNED: 'unowned',
 } as const;
 
-export type TSubscribedspacesFilter = typeof SubscribedspacesFilter[keyof typeof SubscribedspacesFilter];
-
 export interface IErrorResponse {
   message: string,
-  error: string,
-  statusCode: number,
+  metaData?: {
+    spaceUrl?: string,
+  },
 };
 
 export type TGoogleProfile = {
@@ -75,13 +74,11 @@ export type TNaverProfile = {
 
 export type TAccessTokenPayload = {
   UserId: number,
-  email: string,
   exp: number,
 };
 
 export type TRefreshTokenPayload = {
   jti: string,
-  email: string,
   UserId: number,
   exp: number,
 };
@@ -98,3 +95,17 @@ export const ChatsCommandList = {
   CHAT_DELETED: 'chat_deleted',
   CHAT_IMAGE_DELETED: 'chat_image_deleted',
 } as const;
+
+export type SharedspaceReturnMap<T> = T extends 'full' ? Sharedspaces :
+  T extends 'standard' ? Pick<Sharedspaces, 'id' | 'name' | 'url' | 'private' | 'createdAt' | 'OwnerId'> :
+  never;
+
+export type UserReturnMap<T> = T extends 'full' ? Users :
+  T extends 'standard' ? Pick<Users, 'id' | 'email' | 'provider' | 'profileImage'> :
+  never;
+
+export type CacheItem<T> = {
+  value: T,
+  duration: number,
+  expireTime: number,
+};

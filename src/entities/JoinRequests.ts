@@ -1,7 +1,8 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Users } from "./Users";
 import { Sharedspaces } from "./Sharedspaces";
 
+@Index('joinrequests_createdAt_idx', ['createdAt'])
 @Entity({ name: 'joinrequests' })
 export class JoinRequests {
   @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
