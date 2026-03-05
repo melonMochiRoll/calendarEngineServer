@@ -14,12 +14,7 @@
     "migration:excute": "npm run typeorm:d migration:run",
     "migration:rollback": "npm run typeorm:d migration:revert",
     "migration:generate": "npm run typeorm:d migration:generate",
-    "pre-build": "rm -r dist/*",
-    "build": "nest build",
-    "pre-release": "ssh -i ~/.ssh/aws1.pem ec2-user@%EC2_HOSTNAME% 'cd server;rm -r dist/*'",
-    "release": "scp -i ~/.ssh/aws1.pem -r dist/* ec2-user@%EC2_HOSTNAME%:/home/ec2-user/server/dist",
-    "post-release": "ssh -i ~/.ssh/aws1.pem ec2-user@%EC2_HOSTNAME% 'sudo service nginx restart;pm2 restart main'",
-    "deploy": "npm run pre-build && npm run build && npm run pre-release && npm run release && npm run post-release"
+    "build": "nest build"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.940.0",
