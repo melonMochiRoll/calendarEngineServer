@@ -23,27 +23,27 @@ jobs:
     - name: ✅ Check out repository code
       uses: actions/checkout@v4
     
-    # - name: 🧾 Use Node.js ${{ matrix.node-version }}
-    #   uses: actions/setup-node@v4
-    #   with:
-    #     node-version: ${{ matrix.node-version }}
-    #     cache: 'npm'
+    - name: 🧾 Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
         
-    # - name: ✨ Install dependencies
-    #   run: npm ci
+    - name: ✨ Install dependencies
+      run: npm ci
     
-    # - name: 🔨 Build Project
-    #   run: npm run build -- --mode production
+    - name: 🔨 Build Project
+      run: npm run build -- --mode production
     
-    # - name: 💻 Get Github Actions IP
-    #   id: ip
-    #   uses: haythem/public-ip@v1.2
+    - name: 💻 Get Github Actions IP
+      id: ip
+      uses: haythem/public-ip@v1.2
 
-    # - name: 🔧 Set Dist Filename
-    #   id: dist
-    #   run: |
-    #     filename="calendar-engine-back-$(date +%Y%m%d_%H%M%S)"
-    #     echo "dist_filename=$filename" >> $GITHUB_OUTPUT
+    - name: 🔧 Set Dist Filename
+      id: dist
+      run: |
+        filename="calendar-engine-back-$(date +%Y%m%d_%H%M%S)"
+        echo "dist_filename=$filename" >> $GITHUB_OUTPUT
 
     - name: 🔧 Authenticate to Google Cloud
       uses: 'google-github-actions/auth@v3'
@@ -54,27 +54,32 @@ jobs:
     - name: 🔧 Set up Cloud SDK
       uses: 'google-github-actions/setup-gcloud@v3'
 
-    # - name: 📦 Compress Build Files
-    #   run: tar cvf ${{ steps.dist.outputs.dist_filename }}.tar -C ./dist .
+    - name: 📦 Compress Build Files
+      run: tar cvf ${{ steps.dist.outputs.dist_filename }}.tar -C ./dist .
 
-    # - name: ⬆️ Upload to R2
-    #   uses: ryand56/r2-upload-action@latest
-    #   with:
-    #     r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
-    #     r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
-    #     r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-    #     r2-bucket: ${{ secrets.R2_BUCKET }}
-    #     source-dir: ./${{ steps.dist.outputs.dist_filename }}.tar
-    #     destination-dir: artifacts
+    - name: ⬆️ Upload to R2
+      uses: ryand56/r2-upload-action@latest
+      with:
+        r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
+        r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
+        r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        r2-bucket: ${{ secrets.R2_BUCKET }}
+        source-dir: ./${{ steps.dist.outputs.dist_filename }}.tar
+        destination-dir: artifacts
 
-    - name: ✅ Test gcloud ssh
+    - name: 🚀 Deploy from R2
       env:
         R2_ENDPOINT_URL: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+        COMPRESS_FILENAME: ${{ steps.dist.outputs.dist_filename }}.tar
       run: |
         gcloud compute ssh ${{ secrets.GOOGLE_VM_NAME }} --zone=${{ secrets.GOOGLE_VM_REGION }} --command="
           export AWS_ACCESS_KEY_ID="${{ secrets.R2_ACCESS_KEY_ID }}"
           export AWS_SECRET_ACCESS_KEY="${{ secrets.R2_SECRET_ACCESS_KEY }}"
 
-          aws s3 ls --endpoint-url $R2_ENDPOINT_URL
+          aws s3 cp s3://${{ secrets.R2_BUCKET }}/artifacts/$COMPRESS_FILENAME /var/www/api/ --endpoint-url $R2_ENDPOINT_URL
+          rm -rf /var/www/api/dist/*
+          tar xvf /var/www/api/$COMPRESS_FILENAME -C /var/www/api/dist
+          rm /var/www/api/$COMPRESS_FILENAME
+          sudo service nginx restart
         "
 
