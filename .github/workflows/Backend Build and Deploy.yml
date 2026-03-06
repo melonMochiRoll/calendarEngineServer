@@ -33,7 +33,7 @@ jobs:
       run: npm ci
     
     - name: 🔨 Build Project
-      run: npm run build
+      run: npm run build -- --mode production
     
     - name: 💻 Get Github Actions IP
       id: ip
