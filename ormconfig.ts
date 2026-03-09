@@ -42,6 +42,6 @@ export const ormconfig = {
 
 export default new DataSource({
   ...ormconfig,
-  migrations: [`./migrations/pending/*.js`],
+  migrations: [`./migrations/pending/*.ts`],
   migrationsTableName: 'migrations',
 });
