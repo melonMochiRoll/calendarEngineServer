@@ -19,6 +19,19 @@ export class RolesService {
     private sharedspaceMembersRepository: Repository<SharedspaceMembers>,
   ) {}
 
+  async initRoles() {
+    await this.rolesRepository
+      .createQueryBuilder()
+      .insert()
+      .values([
+        { id: 1, name: SharedspaceMembersRoles.OWNER },
+        { id: 2, name: SharedspaceMembersRoles.MEMBER },
+        { id: 3, name: SharedspaceMembersRoles.VIEWER },
+      ])
+      .orIgnore()
+      .execute();
+  }
+
   async getRolesArray() {
     const cachedrolesArray = await this.cacheManager.get<Pick<Roles, 'id' | 'name'>[]>(ROLES_ARRAY_KEY);
 
