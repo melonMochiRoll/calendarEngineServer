@@ -11,7 +11,7 @@ export class Invites {
   @Column({ type: 'int', name: 'SharedspaceId' })
   SharedspaceId: number;
 
-  @Column({ type: 'int', name: 'InviterId' })
+  @Column({ type: 'int', name: 'InviterId', nullable: true })
   InviterId: number;
 
   @Column({ type: 'int', name: 'InviteeId' })
@@ -42,7 +42,7 @@ export class Invites {
 
   @ManyToOne(() => Users, users => users.ReceivedInvites, {
     onUpdate: 'CASCADE',
-    onDelete: 'SET NULL',
+    onDelete: 'CASCADE',
   })
   @JoinColumn({
     name: 'InviteeId',
