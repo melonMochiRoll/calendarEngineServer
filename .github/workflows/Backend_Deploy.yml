@@ -81,5 +81,6 @@ jobs:
           tar xzvf /var/www/api/$COMPRESS_FILENAME -C /var/www/api
           rm /var/www/api/$COMPRESS_FILENAME
           sudo service nginx restart
+          pm2 restart calendarengine
         "
 
