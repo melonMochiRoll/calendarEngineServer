@@ -8,6 +8,7 @@ export class AppService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
+    await this.rolesService.initRoles();
     await this.rolesService.getRolesArray();
   }
 }
