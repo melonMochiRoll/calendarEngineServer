@@ -10,6 +10,7 @@ import { Chats } from './src/entities/Chats';
 import { Images } from './src/entities/Images';
 import { RefreshTokens } from 'src/entities/RefreshTokens';
 import { Invites } from 'src/entities/Invites';
+import path from 'path';
 
 const dbconfig: DataSourceOptions = {
   type: "mysql",
@@ -42,6 +43,6 @@ export const ormconfig = {
 
 export default new DataSource({
   ...ormconfig,
-  migrations: [`./migrations/pending/*.ts`],
+  migrations: [path.join(__dirname, '../migrations/*.ts')],
   migrationsTableName: 'migrations',
 });
