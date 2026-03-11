@@ -11,3 +11,5 @@ export const INVITE_STATUS = {
   ACCEPTED: 'accepted',
   REJECTED: 'rejected',
 };
+
+export const CACHE_EMPTY_SYMBOL = '$$EMPTY$$';
