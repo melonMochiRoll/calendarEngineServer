@@ -1,11 +1,11 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { PassportStrategy } from "@nestjs/passport";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Request } from "express";
 import { Strategy } from "passport-custom";
 import { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } from "src/common/constant/auth.constants";
-import { TOKEN_EXPIRED } from "src/common/constant/error.message";
+import { NOT_FOUND_USER, TOKEN_EXPIRED } from "src/common/constant/error.message";
 import { RefreshTokens } from "src/entities/RefreshTokens";
 import { TAccessTokenPayload, TRefreshTokenPayload } from "src/typings/types";
 import { UsersService } from "src/users/users.service";
@@ -36,6 +36,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 
       const user = await this.usersService.getUserById(accessTokenPayload.UserId);
 
+      if (!user) {
+        throw new BadRequestException(NOT_FOUND_USER);
+      }
+
       return user;
     } catch (err) {
       const refreshToken = request?.cookies[REFRESH_TOKEN_COOKIE_NAME];
@@ -57,8 +61,12 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       }
 
       const user = await this.usersService.getUserById(refreshTokenPayload.UserId);
-      await this.authService.jwtLogin(request.res, user.id);
 
+      if (!user) {
+        throw new BadRequestException(NOT_FOUND_USER);
+      }
+
+      await this.authService.jwtLogin(request.res, user.id);
       return user;
     }
   }
