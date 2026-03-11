@@ -5,7 +5,7 @@ import { DataSource, MoreThan, Repository } from "typeorm";
 import dayjs from "dayjs";
 import { INVITE_STATUS } from "src/common/constant/constants";
 import { SendInviteDTO } from "./dto/send.invite.dto";
-import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_REQUEST_MESSAGE, CONFLICT_USER_MESSAGE } from "src/common/constant/error.message";
+import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_REQUEST_MESSAGE, CONFLICT_USER_MESSAGE, NOT_FOUND_USER } from "src/common/constant/error.message";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { RolesService } from "src/roles/roles.service";
 import { UsersService } from "src/users/users.service";
@@ -98,6 +98,10 @@ export class InvitesService {
     }
 
     const invitee = await this.usersService.getUserByEmail(inviteeEmail);
+
+    if (!invitee) {
+      throw new BadRequestException(NOT_FOUND_USER);
+    }
 
     const isParticipant = await this.rolesService.requireParticipant(invitee.id, space.id);
 
