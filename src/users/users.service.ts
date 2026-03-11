@@ -106,9 +106,8 @@ export class UsersService {
   }
 
   async isUser(email: string) {
-    return await this.usersRepository.findOneByOrFail({ email })
-      .then(() => true)
-      .catch(() => false);
+    const user = await this.getUserByEmail(email);
+    return user ? true : false;
   }
 
   async searchUsers(
