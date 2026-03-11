@@ -12,6 +12,7 @@ import { CONFLICT_ACCOUNT_MESSAGE, NOT_FOUND_USER } from "src/common/constant/er
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { RolesService } from "src/roles/roles.service";
+import { CACHE_EMPTY_SYMBOL } from "src/common/constant/constants";
 
 @Injectable()
 export class UsersService {
@@ -29,13 +30,13 @@ export class UsersService {
   async getUserById<T extends 'full' | 'standard' = 'standard'>(
     id: number,
     columnGroup: T = 'standard' as T,
-  ): Promise<UserReturnMap<T>> {
+  ): Promise<UserReturnMap<T> | null> {
     const cacheKey = `user:${id}:${columnGroup}`;
 
-    const cachedUser = await this.cacheManager.get<UserReturnMap<T>>(cacheKey);
+    const cachedItem = await this.cacheManager.get<UserReturnMap<T> | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
-    if (cachedUser) {
-      return cachedUser;
+    if (cachedItem) {
+      return cachedItem === CACHE_EMPTY_SYMBOL ? null : cachedItem;
     }
 
     const selectClause = columnGroup === 'full' ?
@@ -54,26 +55,27 @@ export class UsersService {
       },
     }) as UserReturnMap<T>;
 
+    const minute = 60000;
+
     if (!user) {
-      throw new NotFoundException(NOT_FOUND_USER);
+      await this.cacheManager.set(cacheKey, CACHE_EMPTY_SYMBOL, 1 * minute);
+      return null;
     }
 
-    const minute = 60000;
     await this.cacheManager.set(cacheKey, user, 10 * minute);
-
     return user;
   }
 
   async getUserByEmail<T extends 'full' | 'standard' = 'standard'>(
     email: string,
     columnGroup?: T,
-  ): Promise<UserReturnMap<T>> {
+  ): Promise<UserReturnMap<T> | null> {
     const cacheKey = `user:${email}:${columnGroup}`;
 
-    const cachedUser = await this.cacheManager.get<UserReturnMap<T>>(cacheKey);
+    const cachedItem = await this.cacheManager.get<UserReturnMap<T> | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
-    if (cachedUser) {
-      return cachedUser;
+    if (cachedItem) {
+      return cachedItem === CACHE_EMPTY_SYMBOL ? null : cachedItem;
     }
 
     const selectClause = columnGroup === 'full' ?
@@ -92,13 +94,14 @@ export class UsersService {
       },
     }) as UserReturnMap<T>;
 
+    const minute = 60000;
+
     if (!user) {
-      throw new NotFoundException(NOT_FOUND_USER);
+      await this.cacheManager.set(cacheKey, CACHE_EMPTY_SYMBOL, 1 * minute);
+      return null;
     }
 
-    const minute = 60000;
     await this.cacheManager.set(cacheKey, user, 10 * minute);
-
     return user;
   }
 
