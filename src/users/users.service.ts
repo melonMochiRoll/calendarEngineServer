@@ -183,5 +183,7 @@ export class UsersService {
       password: hash,
       provider: ProviderList.LOCAL,
     });
+    await this.cacheManager.del(`user:${email}:standard`);
+    await this.cacheManager.del(`user:${email}:full`);
   }
 }
