@@ -27,9 +27,7 @@ export class Chats {
   @DeleteDateColumn()
   deletedAt: Date | null;
 
-  @OneToMany(() => Images, images => images.Chat, {
-    cascade: true,
-  })
+  @OneToMany(() => Images, images => images.Chat)
   Images: Images[];
 
   @ManyToOne(() => Users, users => users.Todos, {

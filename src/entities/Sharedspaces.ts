@@ -47,19 +47,13 @@ export class Sharedspaces {
   @OneToMany(() => Todos, todos => todos.Sharedspace)
   Todos: Todos[];
 
-  @OneToMany(() => SharedspaceMembers, sharedspaceMembers => sharedspaceMembers.Sharedspace, {
-    cascade: true,
-  })
+  @OneToMany(() => SharedspaceMembers, sharedspaceMembers => sharedspaceMembers.Sharedspace)
   Sharedspacemembers: SharedspaceMembers[];
 
-  @OneToMany(() => JoinRequests, joinRequests => joinRequests.Sharedspace, {
-    cascade: true,
-  })
+  @OneToMany(() => JoinRequests, joinRequests => joinRequests.Sharedspace)
   JoinRequests: JoinRequests[];
 
-  @OneToMany(() => Chats, chats => chats.Sharedspace, {
-    cascade: true,
-  })
+  @OneToMany(() => Chats, chats => chats.Sharedspace)
   Chats: Chats[];
 
   @OneToMany(() => Invites, invites => invites.Sharedspace)
