@@ -20,7 +20,7 @@ export class RolesService {
   ) {}
 
   async initRoles() {
-    await this.rolesRepository
+    const result = await this.rolesRepository
       .createQueryBuilder()
       .insert()
       .values([
@@ -30,6 +30,7 @@ export class RolesService {
       ])
       .orIgnore()
       .execute();
+    console.log(result);
   }
 
   async getRolesArray() {
