@@ -1,24 +1,29 @@
-import { ConflictException, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { ConflictException, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Users } from "src/entities/Users";
-import { Like, Repository } from "typeorm";
-import 'dotenv/config';
+import { DataSource, In, Like, Or, Repository } from "typeorm";
 import bcrypt from 'bcrypt';
 import { CreateUserDTO } from "./dto/create.user.dto";
-import { ProviderList, UserReturnMap } from "src/typings/types";
+import { ProviderList, SharedspaceMembersRoles, UserReturnMap } from "src/typings/types";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
-import { CONFLICT_ACCOUNT_MESSAGE, NOT_FOUND_USER } from "src/common/constant/error.message";
+import { CONFLICT_ACCOUNT_MESSAGE } from "src/common/constant/error.message";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { RolesService } from "src/roles/roles.service";
 import { CACHE_EMPTY_SYMBOL } from "src/common/constant/constants";
+import { RefreshTokens } from "src/entities/RefreshTokens";
+import dayjs from "dayjs";
+import { JoinRequests } from "src/entities/JoinRequests";
+import { Invites } from "src/entities/Invites";
+import { Sharedspaces } from "src/entities/Sharedspaces";
 
 @Injectable()
 export class UsersService {
   constructor(
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
+    private dataSource: DataSource,
     @InjectRepository(Users)
     private usersRepository: Repository<Users>,
     @InjectRepository(SharedspaceMembers)
@@ -185,5 +190,69 @@ export class UsersService {
     });
     await this.cacheManager.del(`user:${email}:standard`);
     await this.cacheManager.del(`user:${email}:full`);
+  }
+
+  async deleteUser(UserId: number) {
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+
+    try {
+      const now = dayjs().toDate();
+
+      const rolesArray = await this.rolesService.getRolesArray();
+      const ownerRole = rolesArray.find(role => role.name === SharedspaceMembersRoles.OWNER);
+
+      await qr.manager.update(Users, { id: UserId }, { deletedAt: now });
+      await qr.manager.update(RefreshTokens, { UserId }, { revokedAt: now });
+      await qr.manager.update(JoinRequests, { RequestorId: UserId }, { deletedAt: now });
+      await qr.manager.update(SharedspaceMembers, { UserId }, { deletedAt: now });
+      await qr.manager.update(Invites, [{ InviterId: UserId }, { InviteeId: UserId }], { deletedAt: now });
+
+      const mySpaces = await qr.manager.find(Sharedspaces, {
+        select: {
+          id: true,
+        },
+        where: {
+          OwnerId: UserId,
+        },
+      });
+
+      const ownersToUpdateMembers = await qr.manager.query<{ UserId: number, SharedspaceId: number, ROW_NUM: string}[]>(`
+        SELECT *
+        FROM (
+          SELECT UserId, SharedspaceId, ROW_NUMBER() OVER(PARTITION BY SharedspaceId ORDER BY RoleId ASC, createdAt ASC) AS ROW_NUM
+          FROM sharedspacemembers
+          WHERE deletedAt IS NULL AND SharedspaceId IN (${mySpaces.map((space) => space.id).join(',')})
+        ) AS oldest_members
+        WHERE ROW_NUM = '1'
+      `);
+
+      const ownerUpdateSpacesMap = ownersToUpdateMembers.reduce((acc, member) => {
+        acc[member.SharedspaceId] = member.UserId;
+        return acc;
+      }, {});
+
+      const deleteSpaces = mySpaces.filter(space => !ownerUpdateSpacesMap[space.id]);
+
+      await qr.manager
+        .createQueryBuilder()
+        .update(Sharedspaces)
+        .set({
+          OwnerId: () => `CASE id ${ownersToUpdateMembers.map(({UserId, SharedspaceId}) => `WHEN ${SharedspaceId} THEN ${UserId}`).join(' ')} ELSE OwnerId END`,
+        })
+        .where(`id IN (:...ids)`, { ids: ownersToUpdateMembers.map(({SharedspaceId}) => SharedspaceId) })
+        .execute();
+      await qr.manager.update(SharedspaceMembers, ownersToUpdateMembers.map(({UserId, SharedspaceId}) => {return { UserId, SharedspaceId }}), { RoleId: ownerRole.id });
+      await qr.manager.update(Sharedspaces, { id: In(deleteSpaces.map(space => space.id)) }, { deletedAt: now });
+
+      await qr.commitTransaction();
+    } catch (err) {
+      await qr.rollbackTransaction();
+
+      throw err;
+    } finally {
+      await qr.release();
+    }
   }
 }
