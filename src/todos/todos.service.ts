@@ -153,34 +153,6 @@ export class TodosService {
       }, {});
   }
 
-  async getTodosByQuery(
-    url: string,
-    query: string,
-    offset: number,
-    limit: number,
-  ) {
-    return await this.todosRepository.find({
-      select: {
-        id: true,
-        description: true,
-        date: true,
-        startTime: true,
-        endTime: true,
-      },
-      where: {
-        Sharedspace: {
-          url,
-        },
-        description: Like(`%${query}%`),
-      },
-      order: {
-        date: 'DESC',
-      },
-      skip: (offset - 1) * limit,
-      take: limit,
-    });
-  }
-
   async createTodo(
     url: string,
     dto: CreateTodoDTO,
