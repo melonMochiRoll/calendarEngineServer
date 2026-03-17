@@ -22,13 +22,7 @@ export class StorageR2Service {
     url: string,
     fileName: string,
   ) {
-    const folderNameMap = {
-      's3': process.env.AWS_S3_FOLDER_NAME,
-      'oci': process.env.OCI_FOLDER_NAME,
-      'r2': process.env.R2_FOLDER_NAME,
-    };
-
-    return `${folderNameMap[process.env.STORAGE_PROVIDER]}/${url}/${performance.now()}${path.extname(fileName)}`
+    return `${process.env.R2_FOLDER_NAME}/${url}/${performance.now()}${path.extname(fileName)}`;
   }
   
   async uploadFile(
