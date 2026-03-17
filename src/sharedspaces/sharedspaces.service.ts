@@ -18,6 +18,9 @@ import { Cache } from 'cache-manager';
 import { RolesService } from "src/roles/roles.service";
 import dayjs from "dayjs";
 import { NANOID_SHAREDSPACE_URL_LENGTH } from "src/common/constant/constants";
+import { Todos } from "src/entities/Todos";
+import { JoinRequests } from "src/entities/JoinRequests";
+import { Invites } from "src/entities/Invites";
 
 @Injectable()
 export class SharedspacesService {
@@ -340,16 +343,36 @@ export class SharedspacesService {
     url: string,
     UserId: number,
   ) {
-    const space = await this.getSharedspaceByUrl(url);
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+    
+    try {
+      const now = dayjs().toDate();
+      const space = await this.getSharedspaceByUrl(url);
 
-    const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+      const isOwner = await this.rolesService.requireOwner(UserId, space.id);
 
-    if (!isOwner) {
-      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+      if (!isOwner) {
+        throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+      }
+
+      await qr.manager.update(Sharedspaces, { id: space.id }, { deletedAt: now });
+      await qr.manager.update(Todos, { SharedspaceId: space.id }, { deletedAt: now });
+      await qr.manager.update(SharedspaceMembers, { SharedspaceId: space.id }, { deletedAt: now });
+      await qr.manager.update(JoinRequests, { SharedspaceId: space.id }, { deletedAt: now });
+      await qr.manager.update(Chats, { SharedspaceId: space.id }, { deletedAt: now });
+      await qr.manager.update(Invites, { SharedspaceId: space.id }, { deletedAt: now });
+      
+      await qr.commitTransaction();
+      await this.invalidateSharedspaceCache(url);
+    } catch (err) {
+      await qr.rollbackTransaction();
+
+      throw err;
+    } finally {
+      await qr.release();
     }
-
-    await this.sharedspacesRepository.softRemove(space);
-    await this.invalidateSharedspaceCache(url);
   }
 
   async getSharedspaceMembers(
