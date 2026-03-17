@@ -255,14 +255,14 @@ export class SharedspacesService {
     
     const space = await this.getSharedspaceByUrl(url);
 
+    if (space.name === name) {
+      throw new ConflictException('동일한 이름으로 바꿀수 없습니다.');
+    }
+
     const isOwner = await this.rolesService.requireOwner(UserId, space.id);
 
     if (!isOwner) {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
-    }
-
-    if (space.name === name) {
-      throw new ConflictException('동일한 이름으로 바꿀수 없습니다.');
     }
 
     await this.sharedspacesRepository.update({ id: space.id }, { name });
