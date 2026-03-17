@@ -4,9 +4,10 @@ import { Roles } from "src/entities/Roles";
 import { Repository } from "typeorm";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
-import { DATA_NOT_FOUND, ROLES_ARRAY_KEY } from "src/common/constant/auth.constants";
+import { ROLES_ARRAY_KEY } from "src/common/constant/auth.constants";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { SharedspaceMembersRoles, TSharedspaceMembersRole } from "src/typings/types";
+import { CACHE_EMPTY_SYMBOL } from "src/common/constant/constants";
 
 @Injectable()
 export class RolesService {
@@ -64,14 +65,10 @@ export class RolesService {
     SharedspaceId: number,
   ) {
     const cacheKey = `user:role:${UserId}:${SharedspaceId}`;
-    const cachedUserRole = await this.cacheManager.get<Pick<SharedspaceMembers, 'RoleId'> | typeof DATA_NOT_FOUND>(cacheKey);
+    const cachedUserRole = await this.cacheManager.get<Pick<SharedspaceMembers, 'RoleId'> | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
     if (cachedUserRole) {
-      if (cachedUserRole === DATA_NOT_FOUND) {
-        return null;
-      }
-
-      return cachedUserRole;
+      return cachedUserRole === CACHE_EMPTY_SYMBOL ? null : cachedUserRole;
     }
 
     const userRole = await this.sharedspaceMembersRepository.findOne({
@@ -85,12 +82,13 @@ export class RolesService {
     });
 
     const minute = 60000;
-    await this.cacheManager.set(
-      cacheKey,
-      userRole ? userRole : DATA_NOT_FOUND,
-      5 * minute,
-    );
 
+    if (!userRole) {
+      await this.cacheManager.set(cacheKey, CACHE_EMPTY_SYMBOL, 1 * minute);
+      return null;
+    }
+
+    await this.cacheManager.set(cacheKey, userRole, 5 * minute);
     return userRole;
   }
 
