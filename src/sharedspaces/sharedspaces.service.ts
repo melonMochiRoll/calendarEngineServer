@@ -298,21 +298,12 @@ export class SharedspacesService {
       }
 
       const rolesArray = await this.rolesService.getRolesArray();
-
-      const { ownerRoleId, memberRoleId } = rolesArray.reduce((acc, role) => {
-        if (role.name === SharedspaceMembersRoles.OWNER) {
-          acc.ownerRoleId = role.id;
-        }
-        if (role.name === SharedspaceMembersRoles.MEMBER) {
-          acc.memberRoleId = role.id;
-        }
-
-        return acc;
-      }, { ownerRoleId: 0, memberRoleId: 0 });
+      const ownerRole = rolesArray.find(role => role.name === SharedspaceMembersRoles.OWNER);
+      const memberRole = rolesArray.find(role => role.name === SharedspaceMembersRoles.MEMBER);
 
       await qr.manager.update(Sharedspaces, { id: space.id }, { OwnerId: newOwnerId });
-      await qr.manager.update(SharedspaceMembers, { UserId: space.OwnerId, SharedspaceId: space.id }, { RoleId: memberRoleId });
-      await qr.manager.save(SharedspaceMembers, { UserId: newOwnerId, SharedspaceId: space.id, RoleId: ownerRoleId });
+      await qr.manager.update(SharedspaceMembers, { UserId: newOwnerId, SharedspaceId: space.id }, { RoleId: ownerRole.id });
+      await qr.manager.update(SharedspaceMembers, { UserId: space.OwnerId, SharedspaceId: space.id }, { RoleId: memberRole.id });
 
       await qr.commitTransaction();
 
