@@ -184,34 +184,25 @@ export class SharedspacesService {
         url: true,
         private: true,
         OwnerId: true,
+        Owner: {
+          email: true,
+        },
+      },
+      relations: {
+        Owner: true,
       },
       where: {
         id: In(user_roles.map((role) => role.SharedspaceId)),
       },
     });
 
-    const owners = await this.usersRepository.find({
-      select: {
-        id: true,
-        email: true,
-      },
-      where: {
-        id: In(subscribedspaces.map((space) => space.OwnerId)),
-      },
-    });
-
-    const owners_map = owners.reduce((obj, owner) => {
-      obj[owner.id] = owner.email;
-      return obj;
-    }, {});
-
     const spaces = subscribedspaces.map((space) => {
-      const { OwnerId, ...rest } = space;
+      const { OwnerId, Owner, ...rest } = space;
       return {
         ...rest,
-        owner: owners_map[space.OwnerId],
+        owner: Owner.email,
         permission: {
-          isOwner: UserId === space.OwnerId,
+          isOwner: UserId === OwnerId,
         },
       };
     });
