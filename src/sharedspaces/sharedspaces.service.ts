@@ -397,11 +397,22 @@ export class SharedspacesService {
     const memberRecords = await this.sharedspaceMembersRepository.find({
       select: {
         UserId: true,
-        RoleId: true,
+        SharedspaceId: true,
         createdAt: true,
+        User: {
+          email: true,
+          profileImage: true,
+        },
+        Role: {
+          name: true,
+        },
       },
       where: {
         SharedspaceId: space.id,
+      },
+      relations: {
+        User: true,
+        Role: true,
       },
       order: {
         createdAt: 'DESC',
@@ -410,35 +421,13 @@ export class SharedspacesService {
       take: limit,
     });
 
-    const rolesArray = await this.rolesService.getRolesArray();
-    const rolesMap = rolesArray.reduce((map, role) => {
-      map[role.id] = role.name;
-      return map;
-    }, {});
-
-    const userRecords = await this.usersRepository.find({
-      select: {
-        id: true,
-        email: true,
-        profileImage: true,
-      },
-      where: {
-        id: In(memberRecords.map(member => member.UserId)),
-      },
-    });
-    const usersMap = userRecords.reduce((map, user) => {
-      map[user.id] = {
-        email: user.email,
-        profileImage: user.profileImage,
-      };
-      return map;
-    }, {});
-
     const members = memberRecords.map((member) => {
+      const { User, Role, ...rest } = member;
       return {
-        ...member,
-        ...usersMap[member.UserId],
-        RoleName: rolesMap[member.RoleId],
+        ...rest,
+        email: User.email,
+        profileImage: User.profileImage,
+        RoleName: Role.name,
       };
     });
 
