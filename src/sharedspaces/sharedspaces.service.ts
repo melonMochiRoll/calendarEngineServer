@@ -492,7 +492,7 @@ export class SharedspacesService {
       throw new ConflictException(CONFLICT_MESSAGE);
     }
 
-    await this.sharedspaceMembersRepository.save({
+    await this.sharedspaceMembersRepository.insert({
       UserId: targetUserId,
       SharedspaceId: space.id,
       RoleId: role.id,
