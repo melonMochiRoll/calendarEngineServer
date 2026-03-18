@@ -1,6 +1,8 @@
 
 export const BAD_REQUEST_MESSAGE = '요청이 잘못되었습니다. 입력한 내용이 올바른 형식인지 확인해 주세요.';
 
+export const CHAT_IMAGE_TOO_LARGE_MESSAGE = '채팅 첨부 이미지 용량은 5MB를 넘을수 없습니다.';
+
 export const UNAUTHORIZED_MESSAGE = '로그인이 필요합니다.';
 
 export const INCORRECT_CREDENTIALS_MESSAGE = '이메일 혹은 비밀번호를 확인해주세요';
