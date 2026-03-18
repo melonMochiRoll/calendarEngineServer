@@ -231,7 +231,7 @@ export class SharedspacesService {
       const rolesArray = await this.rolesService.getRolesArray();
       const ownerRole = rolesArray.find(role => role.name === SharedspaceMembersRoles.OWNER);
       
-      await qr.manager.save(SharedspaceMembers, {
+      await qr.manager.insert(SharedspaceMembers, {
         UserId,
         SharedspaceId: created.id,
         RoleId: ownerRole.id,
