@@ -78,6 +78,8 @@ export class StorageR2Service {
       CacheControl: 'public, max-age=31536000, immutable',
     });
 
-    return await getSignedUrl(this.r2Client, command);
+    return await getSignedUrl(this.r2Client, command, {
+      expiresIn: 60 * 5,
+    });
   }
 }
