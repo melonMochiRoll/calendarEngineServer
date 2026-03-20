@@ -166,15 +166,17 @@ export class ChatsService {
       });
 
       if (imageKeys.length) {
-        for (const key of imageKeys) {
-          await qr.manager.update(
-            Images,
-            { path: key },
-            {
-              status: IMAGE_STATUS.ACTIVE,
-              ChatId: chatRecord.id,
-            });
-        }
+        await Promise.all(
+          imageKeys.map(imageKey =>
+            qr.manager.update(
+              Images,
+              { path: imageKey },
+              {
+                status: IMAGE_STATUS.ACTIVE,
+                ChatId: chatRecord.id,
+              })
+          )
+        );
       }
 
       await qr.commitTransaction();
@@ -204,8 +206,12 @@ export class ChatsService {
         },
       });
 
-      for (const image of chatWithUser.Images) {
-        image.path = await this.storageR2Service.generatePresignedGetUrl(image.path);
+      if (chatWithUser.Images.length) {
+        await Promise.all(
+          chatWithUser.Images.map(async (image) => {
+            image.path = await this.storageR2Service.generatePresignedGetUrl(image.path);
+          })
+        );
       }
 
       this.eventsGateway.server
@@ -213,13 +219,6 @@ export class ChatsService {
         .emit(`publicChats:${ChatsCommandList.CHAT_CREATED}`, chatWithUser);
     } catch (err) {
       await qr.rollbackTransaction();
-
-      if (imageKeys.length) {
-        for (const key of imageKeys) {
-          await this.storageR2Service.deleteFile(key);
-          await this.imagesRepository.delete({ path: key });
-        }
-      }
 
       throw err;
     } finally {
