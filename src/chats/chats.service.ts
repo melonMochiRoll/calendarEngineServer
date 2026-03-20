@@ -352,23 +352,35 @@ export class ChatsService {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
-    await this.imagesRepository.delete({ id: ImageId })
-      .then(async () => {
-        await this.storageR2Service.deleteFile(targetChat.Images[0].path);
-      });
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
 
-    if (targetChat.Images.length === 1) {
-      await this.chatsRepository.delete({ id: targetChat.id });
+    const now = dayjs().toDate();
+
+    try {
+      if (targetChat.Images.length === 1) {
+        await qr.manager.update(Images, { id: ImageId }, { status: IMAGE_STATUS.DELETED, deletedAt: now });
+        await qr.manager.update(Chats, { id: targetChat.id }, { deletedAt: now });
+
+        this.eventsGateway.server
+          .to(`/sharedspace-${space.url}`)
+          .emit(`publicChats:${ChatsCommandList.CHAT_DELETED}`, ChatId);
+        return;
+      }
+
+      await qr.manager.update(Images, { id: ImageId }, { status: IMAGE_STATUS.DELETED, deletedAt: now });
 
       this.eventsGateway.server
         .to(`/sharedspace-${space.url}`)
-        .emit(`publicChats:${ChatsCommandList.CHAT_DELETED}`, ChatId);
-      return true;
-    }
+        .emit(`publicChats:${ChatsCommandList.CHAT_IMAGE_DELETED}`, ChatId, ImageId);
+    } catch (err) {
+      await qr.rollbackTransaction();
 
-    this.eventsGateway.server
-      .to(`/sharedspace-${space.url}`)
-      .emit(`publicChats:${ChatsCommandList.CHAT_IMAGE_DELETED}`, ChatId, ImageId);
+      throw err;
+    } finally {
+      await qr.release();
+    }
   }
 
   async generatePresignedPutUrl(
