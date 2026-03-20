@@ -3,7 +3,7 @@ import { Server, Socket } from "socket.io";
 
 @WebSocketGateway({
   cors: process.env.NODE_ENV === 'development' && {
-    origin: process.env.DEV_FRONT_SERVER_ORIGIN,
+    origin: process.env.FRONT_SERVER_ORIGIN,
     credentials: true,
   },
   namespace: /\/sharedspace-.+/,
