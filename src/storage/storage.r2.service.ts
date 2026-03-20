@@ -71,11 +71,15 @@ export class StorageR2Service {
     });
   }
   
-  async generatePresignedPutUrl(key: string) {
+  async generatePresignedPutUrl(
+    key: string,
+    contentType: string,
+  ) {
     const command = new PutObjectCommand({
       Bucket: process.env.R2_BUCKET_NAME,
       Key: key,
       CacheControl: 'public, max-age=31536000, immutable',
+      ContentType: contentType,
     });
 
     return await getSignedUrl(this.r2Client, command, {

@@ -1,4 +1,4 @@
 
 export class GeneratePresignedPutUrlDTO {
-  fileNames: string[];
+  metaDatas: Array<{ fileName: string, fileSize: number, contentType: string }>;
 }

@@ -1,6 +1,6 @@
 import { BadRequestException, ForbiddenException, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE } from "src/common/constant/error.message";
+import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CHAT_IMAGE_TOO_LARGE_MESSAGE, CHAT_IMAGE_TOO_MANY_MESSAGE } from "src/common/constant/error.message";
 import { Chats } from "src/entities/Chats";
 import { Images } from "src/entities/Images";
 import { EventsGateway } from "src/events/events.gateway";
@@ -375,21 +375,33 @@ export class ChatsService {
     url: string,
     dto: GeneratePresignedPutUrlDTO,
   ) {
-    const { fileNames } = dto;
+    const { metaDatas } = dto;
+
+    if (metaDatas.length > 6) {
+      throw new BadRequestException(CHAT_IMAGE_TOO_MANY_MESSAGE);
+    }
 
     const keyAndUrls = await Promise.all(
-      fileNames.map(async (fileName) => {
+      metaDatas.map(async (metaData) => {
+        const { fileName, fileSize, contentType } = metaData;
+
+        if (fileSize >= 5 * 1024 * 1024) {
+          throw new BadRequestException(CHAT_IMAGE_TOO_LARGE_MESSAGE);
+        }
+        
         const key = this.storageR2Service.generateStorageKey(url, fileName);
-        const presignedUrl = await this.storageR2Service.generatePresignedPutUrl(key);
+        const presignedUrl = await this.storageR2Service.generatePresignedPutUrl(key, contentType);
+
         return {
           key,
           presignedUrl,
+          contentType,
         };
       })
     );
 
     for (const { key } of keyAndUrls) {
-      await this.imagesRepository.save({ path: key });
+      await this.imagesRepository.save({ status: IMAGE_STATUS.PENDING, path: key });
     }
 
     return keyAndUrls;
