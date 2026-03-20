@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CHAT_IMAGE_TOO_LARGE_MESSAGE, CHAT_IMAGE_TOO_MANY_MESSAGE } from "src/common/constant/error.message";
 import { Chats } from "src/entities/Chats";
@@ -293,16 +293,15 @@ export class ChatsService {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
-      for (let i=0; i<targetChat.Images.length; i++) {
-        const image = targetChat.Images[i];
+      const now = dayjs().toDate();
 
-        await qr.manager.delete(Images, { id: image.id })
-          .then(async () => {
-            await this.storageR2Service.deleteFile(image.path);
-          });
-      }
+      await Promise.all(
+        targetChat.Images.map(
+          image => qr.manager.update(Images, { id: image.id }, { status: IMAGE_STATUS.DELETED, deletedAt: now })
+        )
+      );
 
-      await qr.manager.delete(Chats, { id: ChatId });
+      await qr.manager.update(Chats, { id: targetChat.id }, { deletedAt: now });
 
       await qr.commitTransaction();
 
