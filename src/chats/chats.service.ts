@@ -331,6 +331,7 @@ export class ChatsService {
         id: true,
         SenderId: true,
         SharedspaceId: true,
+        content: true,
         Images: {
           id: true,
           path: true,
@@ -359,7 +360,7 @@ export class ChatsService {
     const now = dayjs().toDate();
 
     try {
-      if (targetChat.Images.length === 1) {
+      if (targetChat.Images.length === 1 && !targetChat.content) {
         await qr.manager.update(Images, { id: ImageId }, { status: IMAGE_STATUS.DELETED, deletedAt: now });
         await qr.manager.update(Chats, { id: targetChat.id }, { deletedAt: now });
 
