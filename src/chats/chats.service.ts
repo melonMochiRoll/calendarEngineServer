@@ -414,7 +414,7 @@ export class ChatsService {
     );
 
     for (const { key } of keyAndUrls) {
-      await this.imagesRepository.save({ status: IMAGE_STATUS.PENDING, path: key });
+      await this.imagesRepository.insert({ status: IMAGE_STATUS.PENDING, path: key });
     }
 
     return keyAndUrls;
