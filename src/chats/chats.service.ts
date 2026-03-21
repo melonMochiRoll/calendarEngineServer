@@ -89,6 +89,7 @@ export class ChatsService {
 
     const images = await this.imagesRepository.find({
       select: {
+        id: true,
         path: true,
         ChatId: true,
       },
