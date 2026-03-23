@@ -365,6 +365,8 @@ export class ChatsService {
         await qr.manager.update(Images, { id: ImageId }, { status: IMAGE_STATUS.DELETED, deletedAt: now });
         await qr.manager.update(Chats, { id: targetChat.id }, { deletedAt: now });
 
+        await qr.commitTransaction();
+
         this.eventsGateway.server
           .to(`/sharedspace-${space.url}`)
           .emit(`publicChats:${ChatsCommandList.CHAT_DELETED}`, ChatId);
