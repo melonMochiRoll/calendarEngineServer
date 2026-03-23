@@ -246,7 +246,7 @@ export class ChatsService {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
-    const updatedAt = dayjs.utc();
+    const updatedAt = dayjs().toDate();
 
     await this.chatsRepository.update(
       { id: ChatId },
