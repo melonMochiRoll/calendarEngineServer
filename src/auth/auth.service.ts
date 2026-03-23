@@ -136,6 +136,7 @@ export class AuthService {
       select: {
         id: true,
         email: true,
+        nickname: true,
         password: true,
         profileImage: true,
       },
@@ -144,9 +145,13 @@ export class AuthService {
       },
     });
 
-    const compare = await bcrypt.compare(password, user?.password || '');
+    if (!user) {
+      return false;
+    }
 
-    if (!user || !compare) {
+    const compare = await bcrypt.compare(password, user.password);
+
+    if (!compare) {
       return false;
     }
 
