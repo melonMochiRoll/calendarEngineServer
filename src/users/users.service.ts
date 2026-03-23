@@ -49,6 +49,7 @@ export class UsersService {
       {
         id: true,
         email: true,
+        nickname: true,
         provider: true,
         profileImage: true,
       };
@@ -88,6 +89,7 @@ export class UsersService {
       {
         id: true,
         email: true,
+        nickname: true,
         provider: true,
         profileImage: true,
       };
