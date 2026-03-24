@@ -173,6 +173,11 @@ export class UsersService {
     return user ? true : false;
   }
 
+  async existsByNickname(nickname: string) {
+    const user = await this.getUserByNickname(nickname);
+    return user ? true : false;
+  }
+
   async searchUsers(
     url: string,
     query: string,
