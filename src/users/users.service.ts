@@ -1,7 +1,7 @@
 import { ConflictException, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Users } from "src/entities/Users";
-import { DataSource, In, Like, Or, Repository } from "typeorm";
+import { DataSource, In, Like, Repository } from "typeorm";
 import bcrypt from 'bcrypt';
 import { CreateUserDTO } from "./dto/create.user.dto";
 import { ProviderList, SharedspaceMembersRoles, UserReturnMap } from "src/typings/types";
@@ -235,24 +235,25 @@ export class UsersService {
   }
 
   async createUser(dto: CreateUserDTO) {
-    const { email, password } = dto;
+    const { email, nickname, password } = dto;
 
-    const exUser = await this.getUserByEmail(email);
-
-    if (exUser) {
+    if (
+      await this.existsByEmail(email) ||
+      await this.existsByNickname(nickname)
+    ) {
       throw new ConflictException(CONFLICT_ACCOUNT_MESSAGE);
     }
 
-    const SALT_OR_ROUNDS = Number(process.env.SALT_OR_ROUNDS);
-    const hash = await bcrypt.hash(password, SALT_OR_ROUNDS);
-
-    await this.usersRepository.save({
+    await this.usersRepository.insert({
       email,
-      password: hash,
+      nickname,
+      password: await bcrypt.hash(password, Number(process.env.SALT_OR_ROUNDS)),
       provider: ProviderList.LOCAL,
     });
     await this.cacheManager.del(`user:${email}:standard`);
     await this.cacheManager.del(`user:${email}:full`);
+    await this.cacheManager.del(`user:${nickname}:standard`);
+    await this.cacheManager.del(`user:${nickname}:full`);
   }
 
   async deleteUser(UserId: number) {
