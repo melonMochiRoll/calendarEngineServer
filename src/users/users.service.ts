@@ -128,6 +128,46 @@ export class UsersService {
     return user;
   }
 
+  async getUserByNickname<T extends 'full' | 'standard' = 'standard'>(
+    nickname: string,
+    columnGroup?: T,
+  ): Promise<UserReturnMap<T> | null> {
+    const cacheKey = `user:${nickname}:${columnGroup}`;
+
+    const cachedItem = await this.cacheManager.get<UserReturnMap<T> | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
+
+    if (cachedItem) {
+      return cachedItem === CACHE_EMPTY_SYMBOL ? null : cachedItem;
+    }
+
+    const selectClause = columnGroup === 'full' ?
+      {} :
+      {
+        id: true,
+        email: true,
+        nickname: true,
+        provider: true,
+        profileImage: true,
+      };
+
+    const user = await this.usersRepository.findOne({
+      select: selectClause,
+      where: {
+        nickname,
+      },
+    }) as UserReturnMap<T>;
+
+    const minute = 60000;
+
+    if (!user) {
+      await this.cacheManager.set(cacheKey, CACHE_EMPTY_SYMBOL, 1 * minute);
+      return null;
+    }
+
+    await this.cacheManager.set(cacheKey, user, 10 * minute);
+    return user;
+  }
+
   async isUser(email: string) {
     const user = await this.getUserByEmail(email);
     return user ? true : false;
