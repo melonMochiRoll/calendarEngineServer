@@ -23,6 +23,11 @@ export class UsersController {
     return this.usersService.existsByEmail(email);
   }
 
+  @Get('nickname')
+  existsByNickname(@Query('n') nickname: string) {
+    return this.usersService.existsByNickname(nickname);
+  }
+
   @UseGuards(IsNotJwtAuthenicatedGuard)
   @Post()
   createUser(@Body() dto: CreateUserDTO) {
