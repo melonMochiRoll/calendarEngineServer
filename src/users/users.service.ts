@@ -32,6 +32,22 @@ export class UsersService {
     private rolesService: RolesService,
   ) {}
 
+  async initGhostUser() {
+    const result = await this.usersRepository
+      .createQueryBuilder()
+      .insert()
+      .values({
+        id: 0,
+        email: 'ghostUser@internal.system',
+        nickname: '탈퇴한 사용자',
+        password: null,
+        provider: 'system',
+      })
+      .orIgnore()
+      .execute();
+    console.log(result);
+  }
+
   async getUserById<T extends 'full' | 'standard' = 'standard'>(
     id: number,
     columnGroup: T = 'standard' as T,
