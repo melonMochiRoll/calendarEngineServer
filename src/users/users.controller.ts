@@ -19,8 +19,8 @@ export class UsersController {
   }
 
   @Get('email')
-  isUser(@Query('e') email: string) {
-    return this.usersService.isUser(email);
+  existsByEmail(@Query('e') email: string) {
+    return this.usersService.existsByEmail(email);
   }
 
   @UseGuards(IsNotJwtAuthenicatedGuard)

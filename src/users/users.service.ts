@@ -168,7 +168,7 @@ export class UsersService {
     return user;
   }
 
-  async isUser(email: string) {
+  async existsByEmail(email: string) {
     const user = await this.getUserByEmail(email);
     return user ? true : false;
   }
