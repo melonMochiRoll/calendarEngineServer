@@ -189,6 +189,8 @@ export class SharedspacesService {
         OwnerId: true,
         Owner: {
           email: true,
+          nickname: true,
+          profileImage: true,
         },
       },
       relations: {
@@ -200,10 +202,9 @@ export class SharedspacesService {
     });
 
     const spaces = subscribedspaces.map((space) => {
-      const { OwnerId, Owner, ...rest } = space;
+      const { OwnerId, ...rest } = space;
       return {
         ...rest,
-        owner: Owner.email,
         permission: {
           isOwner: UserId === OwnerId,
         },
