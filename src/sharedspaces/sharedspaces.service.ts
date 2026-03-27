@@ -402,6 +402,7 @@ export class SharedspacesService {
         createdAt: true,
         User: {
           email: true,
+          nickname: true,
           profileImage: true,
         },
         Role: {
@@ -427,6 +428,7 @@ export class SharedspacesService {
       return {
         ...rest,
         email: User.email,
+        nickname: User.nickname,
         profileImage: User.profileImage,
         RoleName: Role.name,
       };
