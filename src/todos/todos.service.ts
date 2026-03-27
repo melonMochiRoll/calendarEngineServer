@@ -50,10 +50,10 @@ export class TodosService {
         createdAt: true,
         updatedAt: true,
         Author: {
-          email: true,
+          nickname: true,
         },
         Editor: {
-          email: true,
+          nickname: true,
         },
       },
       relations: {
@@ -74,11 +74,7 @@ export class TodosService {
       if (!map[String(todo.date)]) {
         map[String(todo.date)] = [];
       }
-      map[String(todo.date)].push({
-        ...todo,
-        Author: todo.Author.email,
-        Editor: todo?.Editor?.email || '',
-      });
+      map[String(todo.date)].push(todo);
       return map;
     }, {});
 
