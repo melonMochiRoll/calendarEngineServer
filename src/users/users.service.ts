@@ -190,11 +190,17 @@ export class UsersService {
       select: {
         id: true,
         email: true,
+        nickname: true,
         profileImage: true,
       },
-      where: {
-        email: Like(`${query}%`),
-      },
+      where: [
+        {
+          email: Like(`${query}%`)
+        },
+        {
+          nickname: Like(`${query}%`)
+        },
+      ],
       skip: (page - 1) * limit,
       take: limit,
     });
