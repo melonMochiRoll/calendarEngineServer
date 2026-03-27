@@ -39,6 +39,8 @@ export class InvitesService {
           url: true,
           Owner: {
             email: true,
+            nickname: true,
+            profileImage: true,
           },
         },
       },
@@ -73,7 +75,6 @@ export class InvitesService {
         ...rest,
         SharedspaceName: Sharedspace.name,
         url: Sharedspace.url,
-        OwnerEmail: Sharedspace.Owner.email,
       };
     });
 
