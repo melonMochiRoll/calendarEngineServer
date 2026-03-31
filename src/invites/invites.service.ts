@@ -74,6 +74,7 @@ export class InvitesService {
       return {
         ...rest,
         SharedspaceName: Sharedspace.name,
+        Owner: Sharedspace.Owner,
         url: Sharedspace.url,
       };
     });
@@ -116,6 +117,7 @@ export class InvitesService {
       },
       where: {
         SharedspaceId: space.id,
+        InviteeId: invitee.id,
         status: INVITE_STATUS.PENDING,
         expiredAt: MoreThan(dayjs().toDate()),
       },
