@@ -93,7 +93,7 @@ export class UsersService {
 
   async getUserByEmail<T extends 'full' | 'standard' = 'standard'>(
     email: string,
-    columnGroup?: T,
+    columnGroup: T = 'standard' as T,
   ): Promise<UserReturnMap<T> | null> {
     const cacheKey = `user:${email}:${columnGroup}`;
 
@@ -133,7 +133,7 @@ export class UsersService {
 
   async getUserByNickname<T extends 'full' | 'standard' = 'standard'>(
     nickname: string,
-    columnGroup?: T,
+    columnGroup: T = 'standard' as T,
   ): Promise<UserReturnMap<T> | null> {
     const cacheKey = `user:${nickname}:${columnGroup}`;
 
