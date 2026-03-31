@@ -96,3 +96,9 @@ export type CacheItem<T> = {
   duration: number,
   expireTime: number,
 };
+
+export const UserStatus = {
+  ACTIVE: 'active',
+  DELETING_PENDING: 'deleting_pending',
+  DELETED: 'deleted',
+} as const;
