@@ -17,6 +17,8 @@ import dayjs from "dayjs";
 import { JoinRequests } from "src/entities/JoinRequests";
 import { Invites } from "src/entities/Invites";
 import { Sharedspaces } from "src/entities/Sharedspaces";
+import { Todos } from "src/entities/Todos";
+import { Chats } from "src/entities/Chats";
 
 @Injectable()
 export class UsersService {
@@ -275,11 +277,16 @@ export class UsersService {
       const rolesArray = await this.rolesService.getRolesArray();
       const ownerRole = rolesArray.find(role => role.name === SharedspaceMembersRoles.OWNER);
 
-      await qr.manager.update(Users, { id: UserId }, { deletedAt: now });
+      await qr.manager.update(Users, { id: UserId }, { deletedAt: now, status: UserStatus.DELETED });
       await qr.manager.update(RefreshTokens, { UserId }, { revokedAt: now });
       await qr.manager.update(JoinRequests, { RequestorId: UserId }, { deletedAt: now });
       await qr.manager.update(SharedspaceMembers, { UserId }, { deletedAt: now });
       await qr.manager.update(Invites, [{ InviterId: UserId }, { InviteeId: UserId }], { deletedAt: now });
+      
+      await qr.manager.update(Todos, { AuthorId: UserId }, { AuthorId: 1 });
+      await qr.manager.update(Todos, { EditorId: UserId }, { EditorId: 1 });
+
+      await qr.manager.update(Chats, { SenderId: UserId }, { SenderId: 1 });
 
       const mySpaces = await qr.manager.find(Sharedspaces, {
         select: {
@@ -290,33 +297,35 @@ export class UsersService {
         },
       });
 
-      const ownersToUpdateMembers = await qr.manager.query<{ UserId: number, SharedspaceId: number, ROW_NUM: string}[]>(`
-        SELECT *
-        FROM (
-          SELECT UserId, SharedspaceId, ROW_NUMBER() OVER(PARTITION BY SharedspaceId ORDER BY RoleId ASC, createdAt ASC) AS ROW_NUM
-          FROM sharedspacemembers
-          WHERE deletedAt IS NULL AND SharedspaceId IN (${mySpaces.map((space) => space.id).join(',')})
-        ) AS oldest_members
-        WHERE ROW_NUM = '1'
-      `);
+      if (mySpaces.length) {
+        const ownersToUpdateMembers = await qr.manager.query<{ UserId: number, SharedspaceId: number, ROW_NUM: string}[]>(`
+          SELECT *
+          FROM (
+            SELECT UserId, SharedspaceId, ROW_NUMBER() OVER(PARTITION BY SharedspaceId ORDER BY RoleId ASC, createdAt ASC) AS ROW_NUM
+            FROM sharedspacemembers
+            WHERE deletedAt IS NULL AND SharedspaceId IN (${mySpaces.map((space) => space.id).join(',')})
+          ) AS oldest_members
+          WHERE ROW_NUM = '1'
+        `);
 
-      const ownerUpdateSpacesMap = ownersToUpdateMembers.reduce((acc, member) => {
-        acc[member.SharedspaceId] = member.UserId;
-        return acc;
-      }, {});
+        const ownerUpdateSpacesMap = ownersToUpdateMembers.reduce((acc, member) => {
+          acc[member.SharedspaceId] = member.UserId;
+          return acc;
+        }, {});
 
-      const deleteSpaces = mySpaces.filter(space => !ownerUpdateSpacesMap[space.id]);
+        const deleteSpaces = mySpaces.filter(space => !ownerUpdateSpacesMap[space.id]);
 
-      await qr.manager
-        .createQueryBuilder()
-        .update(Sharedspaces)
-        .set({
-          OwnerId: () => `CASE id ${ownersToUpdateMembers.map(({UserId, SharedspaceId}) => `WHEN ${SharedspaceId} THEN ${UserId}`).join(' ')} ELSE OwnerId END`,
-        })
-        .where(`id IN (:...ids)`, { ids: ownersToUpdateMembers.map(({SharedspaceId}) => SharedspaceId) })
-        .execute();
-      await qr.manager.update(SharedspaceMembers, ownersToUpdateMembers.map(({UserId, SharedspaceId}) => {return { UserId, SharedspaceId }}), { RoleId: ownerRole.id });
-      await qr.manager.update(Sharedspaces, { id: In(deleteSpaces.map(space => space.id)) }, { deletedAt: now });
+        await qr.manager
+          .createQueryBuilder()
+          .update(Sharedspaces)
+          .set({
+            OwnerId: () => `CASE id ${ownersToUpdateMembers.map(({UserId, SharedspaceId}) => `WHEN ${SharedspaceId} THEN ${UserId}`).join(' ')} ELSE OwnerId END`,
+          })
+          .where(`id IN (:...ids)`, { ids: ownersToUpdateMembers.map(({SharedspaceId}) => SharedspaceId) })
+          .execute();
+        await qr.manager.update(SharedspaceMembers, ownersToUpdateMembers.map(({UserId, SharedspaceId}) => {return { UserId, SharedspaceId }}), { RoleId: ownerRole.id });
+        await qr.manager.update(Sharedspaces, { id: In(deleteSpaces.map(space => space.id)) }, { deletedAt: now });
+      }
 
       await qr.commitTransaction();
     } catch (err) {
