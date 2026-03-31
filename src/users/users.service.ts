@@ -266,6 +266,10 @@ export class UsersService {
     await this.cacheManager.del(`user:${nickname}:full`);
   }
 
+  async softDeleteUser(UserId: number) {
+    await this.usersRepository.update({ id: UserId }, { status: UserStatus.DELETING_PENDING });
+  }
+
   async softDeleteRelations(UserId: number) {
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
