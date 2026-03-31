@@ -42,6 +42,7 @@ export class UsersService {
         nickname: '탈퇴한 사용자',
         password: null,
         provider: 'system',
+        status: UserStatus.ACTIVE,
       })
       .orIgnore()
       .execute();
