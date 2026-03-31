@@ -28,6 +28,9 @@ export class Users {
   @Column({ type: 'text', nullable: true })
   profileImage: string;
 
+  @Column({ type: 'varchar', length: 20 })
+  status: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

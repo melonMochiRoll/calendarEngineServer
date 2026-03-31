@@ -4,7 +4,7 @@ import { Users } from "src/entities/Users";
 import { DataSource, In, Like, Repository } from "typeorm";
 import bcrypt from 'bcrypt';
 import { CreateUserDTO } from "./dto/create.user.dto";
-import { ProviderList, SharedspaceMembersRoles, UserReturnMap } from "src/typings/types";
+import { ProviderList, SharedspaceMembersRoles, UserReturnMap, UserStatus } from "src/typings/types";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { CONFLICT_ACCOUNT_MESSAGE } from "src/common/constant/error.message";
@@ -255,6 +255,7 @@ export class UsersService {
       nickname,
       password: await bcrypt.hash(password, Number(process.env.SALT_OR_ROUNDS)),
       provider: ProviderList.LOCAL,
+      status: UserStatus.ACTIVE,
     });
     await this.cacheManager.del(`user:${email}:standard`);
     await this.cacheManager.del(`user:${email}:full`);
