@@ -23,6 +23,11 @@ const dbconfig: DataSourceOptions = {
   charset: 'utf8mb4',
   logging: false,
   timezone: '+00:00',
+  extra: {
+    connectionLimit: 5,
+    waitForConnections: true,
+    idleTimeout: 60000,
+  },
 };
 
 export const ormconfig = {
