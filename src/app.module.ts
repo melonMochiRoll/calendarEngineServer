@@ -18,6 +18,7 @@ import { AppService } from './app.service';
 import { Roles } from 'src/entities/Roles';
 import { ChatsModule } from './chats/chats.module';
 import { InvitesModule } from './invites/invites.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { InvitesModule } from './invites/invites.module';
     TypeOrmModule.forFeature([
       Roles,
     ]),
+    ScheduleModule.forRoot(),
     CacheManagerModule,
     AuthModule,
     UsersModule,
