@@ -19,6 +19,7 @@ import { Invites } from "src/entities/Invites";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import { Todos } from "src/entities/Todos";
 import { Chats } from "src/entities/Chats";
+import { nanoid } from "nanoid";
 
 @Injectable()
 export class UsersService {
@@ -270,22 +271,20 @@ export class UsersService {
     await this.usersRepository.update({ id: UserId }, { status: UserStatus.DELETING_PENDING });
   }
 
-  async softDeleteRelations(UserId: number) {
+  async deleteRelations(UserId: number) {
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
 
     try {
-      const now = dayjs().toDate();
-
       const rolesArray = await this.rolesService.getRolesArray();
       const ownerRole = rolesArray.find(role => role.name === SharedspaceMembersRoles.OWNER);
 
-      await qr.manager.update(Users, { id: UserId }, { deletedAt: now, status: UserStatus.DELETED });
-      await qr.manager.update(RefreshTokens, { UserId }, { revokedAt: now });
-      await qr.manager.update(JoinRequests, { RequestorId: UserId }, { deletedAt: now });
-      await qr.manager.update(SharedspaceMembers, { UserId }, { deletedAt: now });
-      await qr.manager.update(Invites, [{ InviterId: UserId }, { InviteeId: UserId }], { deletedAt: now });
+      await qr.manager.delete(Users, { id: UserId });
+      await qr.manager.delete(RefreshTokens, { UserId });
+      await qr.manager.delete(JoinRequests, { RequestorId: UserId });
+      await qr.manager.delete(SharedspaceMembers, { UserId });
+      await qr.manager.delete(Invites, [{ InviterId: UserId }, { InviteeId: UserId }]);
       
       await qr.manager.update(Todos, { AuthorId: UserId }, { AuthorId: 1 });
       await qr.manager.update(Todos, { EditorId: UserId }, { EditorId: 1 });
@@ -312,13 +311,6 @@ export class UsersService {
           WHERE ROW_NUM = '1'
         `);
 
-        const ownerUpdateSpacesMap = ownersToUpdateMembers.reduce((acc, member) => {
-          acc[member.SharedspaceId] = member.UserId;
-          return acc;
-        }, {});
-
-        const deleteSpaces = mySpaces.filter(space => !ownerUpdateSpacesMap[space.id]);
-
         await qr.manager
           .createQueryBuilder()
           .update(Sharedspaces)
@@ -328,7 +320,14 @@ export class UsersService {
           .where(`id IN (:...ids)`, { ids: ownersToUpdateMembers.map(({SharedspaceId}) => SharedspaceId) })
           .execute();
         await qr.manager.update(SharedspaceMembers, ownersToUpdateMembers.map(({UserId, SharedspaceId}) => {return { UserId, SharedspaceId }}), { RoleId: ownerRole.id });
-        await qr.manager.update(Sharedspaces, { id: In(deleteSpaces.map(space => space.id)) }, { deletedAt: now });
+
+        const ownerUpdateSpacesMap = ownersToUpdateMembers.reduce((acc, member) => {
+          acc[member.SharedspaceId] = member.UserId;
+          return acc;
+        }, {});
+
+        const deleteSpaces = mySpaces.filter(space => !ownerUpdateSpacesMap[space.id]);
+        await qr.manager.delete(Sharedspaces, { id: In(deleteSpaces.map(space => space.id)) });
       }
 
       await qr.commitTransaction();
