@@ -267,7 +267,7 @@ export class UsersService {
     await this.cacheManager.del(`user:${nickname}:full`);
   }
 
-  async softDeleteUser(UserId: number) {
+  async pendingDelete(UserId: number) {
     await this.usersRepository.update({ id: UserId }, { status: UserStatus.DELETING_PENDING });
   }
 

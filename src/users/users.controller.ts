@@ -36,7 +36,7 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Delete()
-  softDeleteUser(@User() user: Users) {
-    return this.usersService.softDeleteUser(user.id);
+  pendingDelete(@User() user: Users) {
+    return this.usersService.pendingDelete(user.id);
   }
 }
