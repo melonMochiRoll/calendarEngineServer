@@ -194,6 +194,7 @@ export class ChatsService {
           updatedAt: true,
           Sender: {
             email: true,
+            nickname: true,
             profileImage: true,
           },
           Images: {
