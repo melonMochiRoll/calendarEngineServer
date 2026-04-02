@@ -19,6 +19,7 @@ import { Roles } from 'src/entities/Roles';
 import { ChatsModule } from './chats/chats.module';
 import { InvitesModule } from './invites/invites.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { TaskModule } from './task/task.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     StorageModule,
     ChatsModule,
     InvitesModule,
+    TaskModule,
   ],
   controllers: [],
   providers: [
