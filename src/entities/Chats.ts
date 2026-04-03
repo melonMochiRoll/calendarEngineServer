@@ -12,8 +12,8 @@ export class Chats {
   @Column({ type: 'text' })
   content: string;
 
-  @Column({ type: 'int', name: 'SenderId', nullable: true })
-  SenderId: number | null;
+  @Column({ type: 'int', name: 'SenderId' })
+  SenderId: number;
 
   @Column({ type: 'int', name: 'SharedspaceId' })
   SharedspaceId: number;
@@ -32,7 +32,6 @@ export class Chats {
 
   @ManyToOne(() => Users, users => users.Todos, {
     onUpdate: 'CASCADE',
-    onDelete: 'SET NULL',
   })
   @JoinColumn({
     name: 'SenderId',
