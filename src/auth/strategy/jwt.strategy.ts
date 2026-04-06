@@ -56,7 +56,13 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         },
       });
 
-      if (!refreshTokenData || dayjs().isSameOrAfter(dayjs(refreshTokenData.revokedAt))) {
+      const now = dayjs();
+
+      if (
+        !refreshTokenData ||
+        now.isSameOrAfter(dayjs(refreshTokenData.expiresAt)) ||
+        now.isSameOrAfter(dayjs(refreshTokenData.revokedAt)
+      )) {
         throw new UnauthorizedException(TOKEN_EXPIRED);
       }
 
