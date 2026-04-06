@@ -132,7 +132,7 @@ export class ChatsService {
 
     return {
       chats,
-      hasMoreData: totalCount,
+      hasMoreData: Boolean(totalCount),
     };
   }
 
