@@ -222,6 +222,8 @@ export class ChatsService {
       this.eventsGateway.server
         .to(`/sharedspace-${space.url}`)
         .emit(`publicChats:${ChatsCommandList.CHAT_CREATED}`, chatWithUser);
+
+      return Object.assign(chatWithUser, { permission: { isSender: true } });
     } catch (err) {
       await qr.rollbackTransaction();
 
