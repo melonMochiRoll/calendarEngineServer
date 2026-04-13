@@ -15,11 +15,11 @@ export class RefreshTokens {
   @CreateDateColumn()
   createdAt: Date;
 
-  @Column({ type: 'timestamp', precision: 6 })
+  @Column({ type: 'datetime', precision: 6 })
   expiresAt: Date;
 
-  @Column({ type: 'timestamp', precision: 6, nullable: true })
-  revokedAt: Date;
+  @Column({ type: 'datetime', precision: 6, nullable: true, default: null })
+  revokedAt: Date | null;
 
   @ManyToOne(() => Users, users => users.RefreshTokens, {
     onUpdate: 'CASCADE',
