@@ -96,6 +96,7 @@ export class ChatsService {
       },
       where: {
         ChatId: In(chatRecords.map((chat) => chat.id)),
+        status: IMAGE_STATUS.ACTIVE,
         removedAt: IsNull(),
       },
     });
