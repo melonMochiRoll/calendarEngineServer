@@ -40,12 +40,12 @@ export class UsersService {
       .createQueryBuilder()
       .insert()
       .values({
-        id: 0,
+        id: 1,
         email: 'ghostUser@internal.system',
         nickname: '탈퇴한 사용자',
         password: null,
         provider: 'system',
-        status: UserStatus.ACTIVE,
+        status: UserStatus.INACTIVE,
       })
       .orIgnore()
       .execute();
@@ -259,7 +259,6 @@ export class UsersService {
       nickname,
       password: await bcrypt.hash(password, Number(process.env.SALT_OR_ROUNDS)),
       provider: ProviderList.LOCAL,
-      status: UserStatus.ACTIVE,
     });
     await this.cacheManager.del(`user:${email}:standard`);
     await this.cacheManager.del(`user:${email}:full`);
@@ -268,7 +267,7 @@ export class UsersService {
   }
 
   async pendingDelete(UserId: number) {
-    await this.usersRepository.update({ id: UserId }, { status: UserStatus.DELETING_PENDING });
+    await this.usersRepository.update({ id: UserId }, { status: UserStatus.INACTIVE });
   }
 
   async deleteRelations(UserId: number) {
