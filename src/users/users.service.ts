@@ -55,6 +55,7 @@ export class UsersService {
         nickname: true,
         provider: true,
         profileImage: true,
+        status: true,
       };
 
     const user = await this.usersRepository.findOne({
@@ -95,6 +96,7 @@ export class UsersService {
         nickname: true,
         provider: true,
         profileImage: true,
+        status: true,
       };
 
     const user = await this.usersRepository.findOne({
@@ -135,6 +137,7 @@ export class UsersService {
         nickname: true,
         provider: true,
         profileImage: true,
+        status: true,
       };
 
     const user = await this.usersRepository.findOne({

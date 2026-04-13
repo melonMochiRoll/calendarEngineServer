@@ -88,7 +88,7 @@ export type SharedspaceReturnMap<T> = T extends 'full' ? Sharedspaces :
   never;
 
 export type UserReturnMap<T> = T extends 'full' ? Users :
-  T extends 'standard' ? Pick<Users, 'id' | 'email' | 'nickname' | 'provider' | 'profileImage'> :
+  T extends 'standard' ? Pick<Users, 'id' | 'email' | 'nickname' | 'provider' | 'profileImage' | 'status'> :
   never;
 
 export type CacheItem<T> = {
