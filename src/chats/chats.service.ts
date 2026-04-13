@@ -6,7 +6,7 @@ import { Images } from "src/entities/Images";
 import { EventsGateway } from "src/events/events.gateway";
 import { RolesService } from "src/roles/roles.service";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
-import { DataSource, In, LessThan, Repository } from "typeorm";
+import { DataSource, In, IsNull, LessThan, Repository } from "typeorm";
 import { ChatsCommandList } from "src/typings/types";
 import { CreateSharedspaceChatDTO } from "./dto/create.sharedspace.chat.dto";
 import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
@@ -96,6 +96,7 @@ export class ChatsService {
       },
       where: {
         ChatId: In(chatRecords.map((chat) => chat.id)),
+        removedAt: IsNull(),
       },
     });
 
@@ -303,11 +304,11 @@ export class ChatsService {
 
       await Promise.all(
         targetChat.Images.map(
-          image => qr.manager.update(Images, { id: image.id }, { status: IMAGE_STATUS.DELETED, deletedAt: now })
+          image => qr.manager.update(Images, { id: image.id }, { status: IMAGE_STATUS.DELETED, removedAt: now })
         )
       );
 
-      await qr.manager.update(Chats, { id: targetChat.id }, { deletedAt: now });
+      await qr.manager.update(Chats, { id: targetChat.id }, { removedAt: now });
 
       await qr.commitTransaction();
 
@@ -366,8 +367,8 @@ export class ChatsService {
 
     try {
       if (targetChat.Images.length === 1 && !targetChat.content) {
-        await qr.manager.update(Images, { id: ImageId }, { status: IMAGE_STATUS.DELETED, deletedAt: now });
-        await qr.manager.update(Chats, { id: targetChat.id }, { deletedAt: now });
+        await qr.manager.update(Images, { id: ImageId }, { status: IMAGE_STATUS.DELETED, removedAt: now });
+        await qr.manager.update(Chats, { id: targetChat.id }, { removedAt: now });
 
         await qr.commitTransaction();
 
@@ -377,7 +378,7 @@ export class ChatsService {
         return;
       }
 
-      await qr.manager.update(Images, { id: ImageId }, { status: IMAGE_STATUS.DELETED, deletedAt: now });
+      await qr.manager.update(Images, { id: ImageId }, { status: IMAGE_STATUS.DELETED, removedAt: now });
 
       await qr.commitTransaction();
 
