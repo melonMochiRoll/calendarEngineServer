@@ -245,6 +245,7 @@ export class UsersService {
       nickname,
       password: await bcrypt.hash(password, Number(process.env.SALT_OR_ROUNDS)),
       provider: ProviderList.LOCAL,
+      status: UserStatus.ACTIVE,
     });
     await this.cacheManager.del(`user:${email}:standard`);
     await this.cacheManager.del(`user:${email}:full`);
