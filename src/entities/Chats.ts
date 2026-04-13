@@ -24,8 +24,8 @@ export class Chats {
   @UpdateDateColumn()
   updatedAt: Date;
   
-  @DeleteDateColumn()
-  deletedAt: Date | null;
+  @Column({ type: 'datetime', precision: 6, nullable: true, default: null })
+  removedAt: Date | null;
 
   @OneToMany(() => Images, images => images.Chat)
   Images: Images[];

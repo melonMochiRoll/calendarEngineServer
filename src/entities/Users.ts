@@ -37,8 +37,8 @@ export class Users {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @DeleteDateColumn()
-  deletedAt: Date | null;
+  @Column({ type: 'datetime', precision: 6, nullable: true, default: null })
+  removedAt: Date | null;
 
   @OneToMany(() => Todos, todos => todos.Author)
   Todos: Todos[];

@@ -22,8 +22,8 @@ export class SharedspaceMembers {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @DeleteDateColumn()
-  deletedAt: Date | null; 
+  @Column({ type: 'datetime', precision: 6, nullable: true, default: null })
+  removedAt: Date | null;
 
   @ManyToOne(() => Users, users => users.Sharedspacemembers, {
     onUpdate: 'CASCADE',

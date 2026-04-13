@@ -19,8 +19,8 @@ export class Images {
   @CreateDateColumn()
   createdAt: Date;
 
-  @DeleteDateColumn()
-  deletedAt: Date | null;
+  @Column({ type: 'datetime', precision: 6, nullable: true, default: null })
+  removedAt: Date | null;
 
   @ManyToOne(() => Chats, chats => chats.Images, {
     onUpdate: 'CASCADE',
