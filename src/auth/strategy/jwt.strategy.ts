@@ -12,6 +12,7 @@ import { UsersService } from "src/users/users.service";
 import { Repository } from "typeorm";
 import dayjs from "dayjs";
 import { AuthService } from "../auth.service";
+import { UserStatus } from "src/common/constant/constants";
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -36,7 +37,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 
       const user = await this.usersService.getUserById(accessTokenPayload.UserId);
 
-      if (!user) {
+      if (!user || user.status !== UserStatus.ACTIVE) {
         throw new BadRequestException(NOT_FOUND_USER);
       }
 
@@ -68,7 +69,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 
       const user = await this.usersService.getUserById(refreshTokenPayload.UserId);
 
-      if (!user) {
+      if (!user || user.status !== UserStatus.ACTIVE) {
         throw new BadRequestException(NOT_FOUND_USER);
       }
 
