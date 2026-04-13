@@ -96,8 +96,3 @@ export type CacheItem<T> = {
   duration: number,
   expireTime: number,
 };
-
-export const UserStatus = {
-  ACTIVE: 'active',
-  INACTIVE: 'inactive',
-} as const;

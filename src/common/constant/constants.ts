@@ -13,4 +13,9 @@ export const INVITE_STATUS = {
   REJECTED: 'rejected',
 };
 
+export const UserStatus = {
+  ACTIVE: 'active',
+  INACTIVE: 'inactive',
+} as const;
+
 export const CACHE_EMPTY_SYMBOL = '$$EMPTY$$';
