@@ -13,7 +13,7 @@ export class Images {
   @Column({ type: 'varchar', name: 'status', length: 255, default: 'pending' })
   status: string;
 
-  @Column({ type: 'int', name: 'ChatId', nullable: true })
+  @Column({ type: 'int', name: 'ChatId' })
   ChatId: number;
 
   @CreateDateColumn()
