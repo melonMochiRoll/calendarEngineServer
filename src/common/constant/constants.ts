@@ -23,4 +23,11 @@ export const JOB_NAMES = {
   SHAREDSPACE_DELETE: 'sharedspace_delete',
 } as const;
 
+export const JOB_STATUS = {
+  PENDING: 'pending',
+  PROCEEDING: 'proceeding',
+  SUCCESS: 'success',
+  FAILED: 'failed',
+} as const;
+
 export const CACHE_EMPTY_SYMBOL = '$$EMPTY$$';
