@@ -253,7 +253,11 @@ export class UsersService {
     await this.cacheManager.del(`user:${nickname}:full`);
   }
 
-  async scheduleUserDeletion(UserId: number) {
+  async scheduleUserDeletion(
+    UserId: number,
+    email: string,
+    nickname: string,
+  ) {
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
@@ -273,7 +277,7 @@ export class UsersService {
         BatchScheduler,
         {
           job_name: JOB_NAMES.USER_DELETE,
-          job_params: JSON.stringify({ UserId }),
+          job_params: JSON.stringify({ UserId, email, nickname }),
           status: JOB_STATUS.PENDING,
         },
       );
