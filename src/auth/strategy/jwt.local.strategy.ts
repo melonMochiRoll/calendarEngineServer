@@ -3,7 +3,7 @@ import { PassportStrategy } from "@nestjs/passport";
 import { Strategy } from "passport-local";
 import { AuthService } from "../auth.service";
 import { INCORRECT_CREDENTIALS_MESSAGE, NOT_FOUND_USER } from "src/common/constant/error.message";
-import { UserStatus } from "src/common/constant/constants";
+import { USER_STATUS } from "src/common/constant/constants";
 
 @Injectable()
 export class JwtLocalStrategy extends PassportStrategy(Strategy, 'jwt-local') {
@@ -23,7 +23,7 @@ export class JwtLocalStrategy extends PassportStrategy(Strategy, 'jwt-local') {
       throw new UnauthorizedException(INCORRECT_CREDENTIALS_MESSAGE);
     }
 
-    if (user.status !== UserStatus.ACTIVE) {
+    if (user.status !== USER_STATUS.ACTIVE) {
       throw new BadRequestException(NOT_FOUND_USER);
     }
 

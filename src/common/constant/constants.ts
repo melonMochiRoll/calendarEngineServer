@@ -13,7 +13,7 @@ export const INVITE_STATUS = {
   REJECTED: 'rejected',
 } as const;
 
-export const UserStatus = {
+export const USER_STATUS = {
   ACTIVE: 'active',
   INACTIVE: 'inactive',
 } as const;
