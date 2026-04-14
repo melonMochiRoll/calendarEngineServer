@@ -7,19 +7,19 @@ import { CreateUserDTO } from "./dto/create.user.dto";
 import { ProviderList, SharedspaceMembersRoles, UserReturnMap } from "src/typings/types";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
-import { CONFLICT_ACCOUNT_MESSAGE } from "src/common/constant/error.message";
+import { CONFLICT_ACCOUNT_MESSAGE, CONFLICT_MESSAGE } from "src/common/constant/error.message";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { RolesService } from "src/roles/roles.service";
-import { CACHE_EMPTY_SYMBOL, UserStatus } from "src/common/constant/constants";
+import { CACHE_EMPTY_SYMBOL, JOB_NAMES, JOB_STATUS, UserStatus } from "src/common/constant/constants";
 import { RefreshTokens } from "src/entities/RefreshTokens";
-import dayjs from "dayjs";
 import { JoinRequests } from "src/entities/JoinRequests";
 import { Invites } from "src/entities/Invites";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import { Todos } from "src/entities/Todos";
 import { Chats } from "src/entities/Chats";
-import { nanoid } from "nanoid";
+import { BatchScheduler } from "src/entities/BatchScheduler";
+import dayjs from "dayjs";
 
 @Injectable()
 export class UsersService {
@@ -253,8 +253,37 @@ export class UsersService {
     await this.cacheManager.del(`user:${nickname}:full`);
   }
 
-  async pendingDelete(UserId: number) {
-    await this.usersRepository.update({ id: UserId }, { status: UserStatus.INACTIVE });
+  async scheduleUserDeletion(UserId: number) {
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+
+    try {
+      const result = await qr.manager.update(
+        Users,
+        { id: UserId, status: UserStatus.ACTIVE },
+        { status: UserStatus.INACTIVE, removedAt: dayjs().toDate(), },
+      );
+
+      if (!result.affected) {
+        throw new ConflictException(CONFLICT_MESSAGE);
+      }
+
+      await qr.manager.insert(
+        BatchScheduler,
+        {
+          job_name: JOB_NAMES.USER_DELETE,
+          job_params: JSON.stringify({ UserId }),
+          status: JOB_STATUS.PENDING,
+        },
+      );
+    } catch (err) {
+      await qr.rollbackTransaction();
+
+      throw err;
+    } finally {
+      await qr.release();
+    }
   }
 
   async deleteRelations(UserId: number) {
