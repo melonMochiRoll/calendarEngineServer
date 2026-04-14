@@ -18,4 +18,9 @@ export const UserStatus = {
   INACTIVE: 'inactive',
 } as const;
 
+export const JOB_NAMES = {
+  USER_DELETE: 'user_delete',
+  SHAREDSPACE_DELETE: 'sharedspace_delete',
+} as const;
+
 export const CACHE_EMPTY_SYMBOL = '$$EMPTY$$';
