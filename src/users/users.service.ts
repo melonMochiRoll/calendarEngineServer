@@ -266,7 +266,7 @@ export class UsersService {
       const result = await qr.manager.update(
         Users,
         { id: UserId, status: USER_STATUS.ACTIVE, },
-        { status: USER_STATUS.INACTIVE, removedAt: dayjs().toDate(), },
+        { status: USER_STATUS.INACTIVE },
       );
 
       if (!result.affected) {
