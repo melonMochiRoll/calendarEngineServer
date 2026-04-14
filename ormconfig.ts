@@ -11,6 +11,7 @@ import { Images } from './src/entities/Images';
 import { RefreshTokens } from 'src/entities/RefreshTokens';
 import { Invites } from 'src/entities/Invites';
 import path from 'path';
+import { BatchScheduler } from 'src/entities/BatchScheduler';
 
 const dbconfig: DataSourceOptions = {
   type: "mysql",
@@ -43,6 +44,7 @@ export const ormconfig = {
     Images,
     RefreshTokens,
     Invites,
+    BatchScheduler,
   ],
 };
 
