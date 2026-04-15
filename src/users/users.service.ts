@@ -290,7 +290,10 @@ export class UsersService {
     }
   }
 
-  async deleteRelations(UserId: number) {
+  async deleteRelations(
+    TaskId: number,
+    UserId: number,
+  ) {
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
@@ -299,16 +302,28 @@ export class UsersService {
       const rolesArray = await this.rolesService.getRolesArray();
       const ownerRole = rolesArray.find(role => role.name === SharedspaceMembersRoles.OWNER);
 
-      await qr.manager.delete(Users, { id: UserId });
+      const result = await qr.manager.update(
+        BatchScheduler,
+        { id: TaskId, status: JOB_STATUS.PENDING },
+        { status: JOB_STATUS.SUCCESS },
+      );
+
+      if (!result.affected) {
+        return;
+      }
+
+      const now = dayjs().unix();
+      
+      await qr.manager.update(
+        Users,
+        { id: UserId },
+        { email: `_user_${now}@deleted.com`, nickname: `탈퇴한 사용자_${now}` },
+      );
+
       await qr.manager.delete(RefreshTokens, { UserId });
       await qr.manager.delete(JoinRequests, { RequestorId: UserId });
       await qr.manager.delete(SharedspaceMembers, { UserId });
       await qr.manager.delete(Invites, [{ InviterId: UserId }, { InviteeId: UserId }]);
-      
-      await qr.manager.update(Todos, { AuthorId: UserId }, { AuthorId: 1 });
-      await qr.manager.update(Todos, { EditorId: UserId }, { EditorId: 1 });
-
-      await qr.manager.update(Chats, { SenderId: UserId }, { SenderId: 1 });
 
       const mySpaces = await qr.manager.find(Sharedspaces, {
         select: {

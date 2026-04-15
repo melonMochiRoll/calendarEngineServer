@@ -1,9 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
+import { JOB_NAMES, JOB_STATUS } from "src/common/constant/constants";
 import { chunking } from "src/common/function/utilFunctions";
+import { BatchScheduler } from "src/entities/BatchScheduler";
 import { Users } from "src/entities/Users";
-import { UserStatus } from "src/typings/types";
 import { UsersService } from "src/users/users.service";
 import { Repository } from "typeorm";
 
@@ -12,21 +13,30 @@ export class TaskService {
   constructor(
     @InjectRepository(Users)
     private usersRepository: Repository<Users>,
+    @InjectRepository(BatchScheduler)
+    private batchSchedulerRepository: Repository<BatchScheduler>,
     private usersService: UsersService,
   ) {}
   
   @Cron('* 30 2 * * *')
   async processUserDeleteBatch() {
-    const targetUsers = await this.usersRepository.find({
+    const targetTasks = await this.batchSchedulerRepository.find({
+      select: {
+        job_params: true,
+      },
       where: {
-        status: UserStatus.DELETING_PENDING,
+        job_name: JOB_NAMES.USER_DELETE,
+        status: JOB_STATUS.PENDING,
       },
     });
 
-    const userChunks = chunking(targetUsers, 2);
+    const taskChunks = chunking(targetTasks, 2);
 
-    for (const chunk of userChunks) {
-      const batch = chunk.map(user => this.usersService.deleteRelations(user.id));
+    for (const chunk of taskChunks) {
+      const batch = chunk.map(task => {
+        const params: { UserId: number } = JSON.parse(task.job_params);
+        return this.usersService.deleteRelations(task.id, params.UserId);
+      });
       await Promise.all(batch);
     }
   }
