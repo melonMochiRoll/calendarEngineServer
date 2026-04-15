@@ -70,15 +70,14 @@ export class SharedspacesController {
   ) {
     return this.sharedspacesService.updateSharedspacePrivate(url, dto, user.id);
   }
-  
+
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @HttpCode(204)
   @Delete(':url')
-  deleteSharedspace(
+  scheduleSharedspaceDeletion(
     @Param('url') url: string,
     @User() user: Users,
   ) {
-    return this.sharedspacesService.deleteSharedspace(url, user.id);
+    return this.sharedspacesService.scheduleSharedspaceDeletion(url, user.id);
   }
 
   @UseGuards(PublicAuthGuard)

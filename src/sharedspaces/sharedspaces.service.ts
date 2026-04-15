@@ -1,6 +1,6 @@
 import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { DataSource, In, Repository } from "typeorm";
+import { DataSource, In, IsNull, Repository } from "typeorm";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import { nanoid } from "nanoid";
 import { UpdateSharedspaceNameDTO } from "./dto/update.sharedspace.name.dto";
@@ -17,10 +17,11 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { RolesService } from "src/roles/roles.service";
 import dayjs from "dayjs";
-import { NANOID_SHAREDSPACE_URL_LENGTH } from "src/common/constant/constants";
+import { JOB_NAMES, JOB_STATUS, NANOID_SHAREDSPACE_URL_LENGTH } from "src/common/constant/constants";
 import { Todos } from "src/entities/Todos";
 import { JoinRequests } from "src/entities/JoinRequests";
 import { Invites } from "src/entities/Invites";
+import { BatchScheduler } from "src/entities/BatchScheduler";
 
 @Injectable()
 export class SharedspacesService {
@@ -340,16 +341,15 @@ export class SharedspacesService {
     await this.invalidateSharedspaceCache(url);
   }
 
-  async deleteSharedspace(
+  async scheduleSharedspaceDeletion(
     url: string,
     UserId: number,
   ) {
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
-    
+
     try {
-      const now = dayjs().toDate();
       const space = await this.getSharedspaceByUrl(url);
 
       const isOwner = await this.rolesService.requireOwner(UserId, space.id);
@@ -358,15 +358,60 @@ export class SharedspacesService {
         throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
       }
 
-      await qr.manager.update(Sharedspaces, { id: space.id }, { deletedAt: now });
-      await qr.manager.update(Todos, { SharedspaceId: space.id }, { deletedAt: now });
-      await qr.manager.update(SharedspaceMembers, { SharedspaceId: space.id }, { deletedAt: now });
-      await qr.manager.update(JoinRequests, { SharedspaceId: space.id }, { deletedAt: now });
-      await qr.manager.update(Chats, { SharedspaceId: space.id }, { deletedAt: now });
-      await qr.manager.update(Invites, { SharedspaceId: space.id }, { deletedAt: now });
+      const result = await qr.manager.update(
+        Sharedspaces,
+        { url, removedAt: IsNull() },
+        { removedAt: dayjs().toDate() },
+      );
+
+      if (!result.affected) {
+        throw new ConflictException(CONFLICT_MESSAGE);
+      }
+
+      await qr.manager.insert(
+        BatchScheduler,
+        {
+          job_name: JOB_NAMES.SHAREDSPACE_DELETE,
+          job_params: JSON.stringify({ SharedspaceId: space.id }),
+          status: JOB_STATUS.PENDING,
+        },
+      );
+    } catch (err) {
+      await qr.rollbackTransaction();
+
+      throw err;
+    } finally {
+      await qr.release();
+    }
+  }
+
+  async deleteSharedspace(
+    TaskId: number,
+    SharedspaceId: number,
+  ) {
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+    
+    try {
+      const result = await qr.manager.update(
+        BatchScheduler,
+        { id: TaskId, status: JOB_STATUS.PENDING },
+        { status: JOB_STATUS.SUCCESS },
+      );
+
+      if (!result.affected) {
+        return;
+      }
+
+      await qr.manager.delete(Invites, { SharedspaceId });
+      await qr.manager.delete(Chats, { SharedspaceId });
+      await qr.manager.delete(Todos, { SharedspaceId });
+      await qr.manager.delete(JoinRequests, { SharedspaceId });
+      await qr.manager.delete(SharedspaceMembers, { SharedspaceId });
+      await qr.manager.delete(Sharedspaces, { SharedspaceId });
       
       await qr.commitTransaction();
-      await this.invalidateSharedspaceCache(url);
     } catch (err) {
       await qr.rollbackTransaction();
 
