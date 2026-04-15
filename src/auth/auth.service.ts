@@ -139,6 +139,7 @@ export class AuthService {
         nickname: true,
         password: true,
         profileImage: true,
+        status: true,
       },
       where: {
         email,
