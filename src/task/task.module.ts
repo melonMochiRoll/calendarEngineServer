@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Users } from 'src/entities/Users';
 import { UsersModule } from 'src/users/users.module';
 import { BatchScheduler } from 'src/entities/BatchScheduler';
+import { SharedspacesModule } from 'src/sharedspaces/sharedspaces.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { BatchScheduler } from 'src/entities/BatchScheduler';
       BatchScheduler,
     ]),
     UsersModule,
+    SharedspacesModule,
   ],
   providers: [ TaskService ],
 })
