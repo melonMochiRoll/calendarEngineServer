@@ -65,6 +65,7 @@ export class SharedspacesService {
         select: selectClause,
         where: {
           url,
+          removedAt: IsNull(),
         },
       }) as SharedspaceReturnMap<T>;
       const delta = dayjs().diff(start);
