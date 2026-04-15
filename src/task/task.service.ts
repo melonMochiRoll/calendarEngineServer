@@ -22,6 +22,7 @@ export class TaskService {
   async processUserDeleteBatch() {
     const targetTasks = await this.batchSchedulerRepository.find({
       select: {
+        id: true,
         job_params: true,
       },
       where: {
