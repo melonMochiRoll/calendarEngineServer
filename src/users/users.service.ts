@@ -185,10 +185,12 @@ export class UsersService {
       },
       where: [
         {
-          email: Like(`${query}%`)
+          email: Like(`${query}%`),
+          status: USER_STATUS.ACTIVE,
         },
         {
-          nickname: Like(`${query}%`)
+          nickname: Like(`${query}%`),
+          status: USER_STATUS.ACTIVE,
         },
       ],
       skip: (page - 1) * limit,
