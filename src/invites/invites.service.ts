@@ -3,14 +3,13 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Invites } from "src/entities/Invites";
 import { DataSource, MoreThan, Repository } from "typeorm";
 import dayjs from "dayjs";
-import { INVITE_STATUS } from "src/common/constant/constants";
+import { INVITE_STATUS, SHAREDSPACE_ROLE } from "src/common/constant/constants";
 import { SendInviteDTO } from "./dto/send.invite.dto";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_REQUEST_MESSAGE, CONFLICT_USER_MESSAGE, NOT_FOUND_USER } from "src/common/constant/error.message";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { RolesService } from "src/roles/roles.service";
 import { UsersService } from "src/users/users.service";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
-import { SharedspaceMembersRoles } from "src/typings/types";
 import { AcceptInviteDTO } from "./dto/accept.invite.dto";
 import { DeclineInviteDTO } from "./dto/decline.invite.dto";
 
@@ -180,7 +179,7 @@ export class InvitesService {
       );
 
       const rolesArray = await this.rolesService.getRolesArray();
-      const role = rolesArray.find(role => role.name === SharedspaceMembersRoles.VIEWER);
+      const role = rolesArray.find(role => role.name === SHAREDSPACE_ROLE.VIEWER);
 
       await qr.manager.save(SharedspaceMembers,
         {

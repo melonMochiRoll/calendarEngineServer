@@ -6,7 +6,7 @@ import { nanoid } from "nanoid";
 import { UpdateSharedspaceNameDTO } from "./dto/update.sharedspace.name.dto";
 import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
-import { CacheItem, SharedspaceMembersRoles, SharedspaceReturnMap } from "src/typings/types";
+import { CacheItem, SharedspaceReturnMap } from "src/typings/types";
 import { Users } from "src/entities/Users";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, CONFLICT_OWNER_MESSAGE, NOT_FOUND_RESOURCE, NOT_FOUND_SPACE_MESSAGE, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
@@ -17,7 +17,7 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { RolesService } from "src/roles/roles.service";
 import dayjs from "dayjs";
-import { JOB_NAMES, JOB_STATUS, NANOID_SHAREDSPACE_URL_LENGTH, SUBSCRIBEDSPACES_SORT, USER_STATUS } from "src/common/constant/constants";
+import { JOB_NAMES, JOB_STATUS, NANOID_SHAREDSPACE_URL_LENGTH, SHAREDSPACE_ROLE, SUBSCRIBEDSPACES_SORT, USER_STATUS } from "src/common/constant/constants";
 import { Todos } from "src/entities/Todos";
 import { JoinRequests } from "src/entities/JoinRequests";
 import { Invites } from "src/entities/Invites";
@@ -132,8 +132,8 @@ export class SharedspacesService {
     }
 
     const isOwner = space.OwnerId === UserId;
-    const isMember = isOwner || userRole?.name === SharedspaceMembersRoles.MEMBER;
-    const isViewer = isOwner || isMember || userRole?.name === SharedspaceMembersRoles.VIEWER;
+    const isMember = isOwner || userRole?.name === SHAREDSPACE_ROLE.MEMBER;
+    const isViewer = isOwner || isMember || userRole?.name === SHAREDSPACE_ROLE.VIEWER;
 
     return {
       ...space,
@@ -157,7 +157,7 @@ export class SharedspacesService {
 
     if (sort === SUBSCRIBEDSPACES_SORT.OWNED) {
       const rolesArray = await this.rolesService.getRolesArray();
-      const ownerRole = rolesArray.find(role => role.name === SharedspaceMembersRoles.OWNER);
+      const ownerRole = rolesArray.find(role => role.name === SHAREDSPACE_ROLE.OWNER);
 
       Object.assign(whereCondition, { RoleId: ownerRole.id });
     }
@@ -165,7 +165,7 @@ export class SharedspacesService {
     if (sort === SUBSCRIBEDSPACES_SORT.UNOWNED) {
       const rolesArray = await this.rolesService.getRolesArray();
       const roleIdsWithoutOwner = rolesArray
-        .filter(role => role.name !== SharedspaceMembersRoles.OWNER)
+        .filter(role => role.name !== SHAREDSPACE_ROLE.OWNER)
         .map(role => role.id);
       
       Object.assign(whereCondition, { RoleId: In(roleIdsWithoutOwner) });
@@ -232,7 +232,7 @@ export class SharedspacesService {
       });
 
       const rolesArray = await this.rolesService.getRolesArray();
-      const ownerRole = rolesArray.find(role => role.name === SharedspaceMembersRoles.OWNER);
+      const ownerRole = rolesArray.find(role => role.name === SHAREDSPACE_ROLE.OWNER);
       
       await qr.manager.insert(SharedspaceMembers, {
         UserId,
@@ -304,8 +304,8 @@ export class SharedspacesService {
       }
 
       const rolesArray = await this.rolesService.getRolesArray();
-      const ownerRole = rolesArray.find(role => role.name === SharedspaceMembersRoles.OWNER);
-      const memberRole = rolesArray.find(role => role.name === SharedspaceMembersRoles.MEMBER);
+      const ownerRole = rolesArray.find(role => role.name === SHAREDSPACE_ROLE.OWNER);
+      const memberRole = rolesArray.find(role => role.name === SHAREDSPACE_ROLE.MEMBER);
 
       await qr.manager.update(Sharedspaces, { id: space.id }, { OwnerId: newOwnerId });
       await qr.manager.update(SharedspaceMembers, { UserId: newOwnerId, SharedspaceId: space.id }, { RoleId: ownerRole.id });
@@ -526,7 +526,7 @@ export class SharedspacesService {
     const rolesArray = await this.rolesService.getRolesArray();
     const role = rolesArray.find(role => role.name === RoleName);
 
-    if (!role || role.name === SharedspaceMembersRoles.OWNER) {
+    if (!role || role.name === SHAREDSPACE_ROLE.OWNER) {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
@@ -569,7 +569,7 @@ export class SharedspacesService {
     const rolesArray = await this.rolesService.getRolesArray();
     const role = rolesArray.find(role => role.name === RoleName);
 
-    if (!role || role.name === SharedspaceMembersRoles.OWNER) {
+    if (!role || role.name === SHAREDSPACE_ROLE.OWNER) {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
@@ -623,7 +623,7 @@ export class SharedspacesService {
     const rolesArray = await this.rolesService.getRolesArray();
     const role = rolesArray.find(role => role.id === isMember.RoleId);
 
-    if (!isMember || role.name === SharedspaceMembersRoles.OWNER) {
+    if (!isMember || role.name === SHAREDSPACE_ROLE.OWNER) {
       throw new NotFoundException(NOT_FOUND_RESOURCE);
     }
 

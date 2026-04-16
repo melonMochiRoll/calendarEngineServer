@@ -1,13 +1,8 @@
+import { SHAREDSPACE_ROLE } from "src/common/constant/constants";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import { Users } from "src/entities/Users";
 
-export const SharedspaceMembersRoles = {
-  OWNER: 'owner',
-  MEMBER: 'member',
-  VIEWER: 'viewer',
-} as const;
-
-export type TSharedspaceMembersRole = typeof SharedspaceMembersRoles[keyof typeof SharedspaceMembersRoles];
+export type TSharedspaceRole = typeof SHAREDSPACE_ROLE[keyof typeof SHAREDSPACE_ROLE];
 
 export interface IErrorResponse {
   message: string,

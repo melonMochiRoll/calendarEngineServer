@@ -6,8 +6,8 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { ROLES_ARRAY_KEY } from "src/common/constant/auth.constants";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
-import { SharedspaceMembersRoles, TSharedspaceMembersRole } from "src/typings/types";
-import { CACHE_EMPTY_SYMBOL } from "src/common/constant/constants";
+import { TSharedspaceRole } from "src/typings/types";
+import { CACHE_EMPTY_SYMBOL, SHAREDSPACE_ROLE } from "src/common/constant/constants";
 
 @Injectable()
 export class RolesService {
@@ -25,9 +25,9 @@ export class RolesService {
       .createQueryBuilder()
       .insert()
       .values([
-        { id: 1, name: SharedspaceMembersRoles.OWNER },
-        { id: 2, name: SharedspaceMembersRoles.MEMBER },
-        { id: 3, name: SharedspaceMembersRoles.VIEWER },
+        { id: 1, name: SHAREDSPACE_ROLE.OWNER },
+        { id: 2, name: SHAREDSPACE_ROLE.MEMBER },
+        { id: 3, name: SHAREDSPACE_ROLE.VIEWER },
       ])
       .orIgnore()
       .execute();
@@ -102,7 +102,7 @@ export class RolesService {
   async requireRole(
     UserId: number,
     SpaceId: number,
-    roles: TSharedspaceMembersRole[],
+    roles: TSharedspaceRole[],
   ) {
     if (!UserId || !SpaceId) {
       return null;
@@ -122,22 +122,22 @@ export class RolesService {
 
   async requireOwner(UserId: number, SpaceId: number) {
     return await this.requireRole(UserId, SpaceId, [
-      SharedspaceMembersRoles.OWNER,
+      SHAREDSPACE_ROLE.OWNER,
     ]);
   }
 
   async requireMember(UserId: number, SpaceId: number) {
     return await this.requireRole(UserId, SpaceId, [
-      SharedspaceMembersRoles.OWNER,
-      SharedspaceMembersRoles.MEMBER,
+      SHAREDSPACE_ROLE.OWNER,
+      SHAREDSPACE_ROLE.MEMBER,
     ]);
   }
 
   async requireParticipant(UserId: number, SpaceId: number) {
     return await this.requireRole(UserId, SpaceId, [
-      SharedspaceMembersRoles.OWNER,
-      SharedspaceMembersRoles.MEMBER,
-      SharedspaceMembersRoles.VIEWER,
+      SHAREDSPACE_ROLE.OWNER,
+      SHAREDSPACE_ROLE.MEMBER,
+      SHAREDSPACE_ROLE.VIEWER,
     ]);
   }
 }

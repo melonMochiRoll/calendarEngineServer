@@ -7,6 +7,12 @@ export const USER_PROVIDER = {
   GOOGLE: 'google',
 } as const;
 
+export const SHAREDSPACE_ROLE = {
+  OWNER: 'owner',
+  MEMBER: 'member',
+  VIEWER: 'viewer',
+} as const;
+
 export const SUBSCRIBEDSPACES_SORT = {
   ALL: 'all',
   OWNED: 'owned',

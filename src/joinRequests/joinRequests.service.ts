@@ -7,9 +7,9 @@ import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_REQUEST_MESSAGE } from "src/common/constant/error.message";
 import { Roles } from "src/entities/Roles";
 import { ResolveJoinRequestDTO } from "./dto/resolve.joinRequest.dto";
-import { SharedspaceMembersRoles } from "src/typings/types";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { RolesService } from "src/roles/roles.service";
+import { SHAREDSPACE_ROLE } from "src/common/constant/constants";
 
 @Injectable()
 export class JoinRequestsService {
@@ -104,7 +104,7 @@ export class JoinRequestsService {
         },
       });
 
-      if (role.name === SharedspaceMembersRoles.OWNER) {
+      if (role.name === SHAREDSPACE_ROLE.OWNER) {
         throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
       }
 

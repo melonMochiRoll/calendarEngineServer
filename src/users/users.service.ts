@@ -4,14 +4,14 @@ import { Users } from "src/entities/Users";
 import { DataSource, In, Like, Repository } from "typeorm";
 import bcrypt from 'bcrypt';
 import { CreateUserDTO } from "./dto/create.user.dto";
-import { SharedspaceMembersRoles, UserReturnMap } from "src/typings/types";
+import { UserReturnMap } from "src/typings/types";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { CONFLICT_ACCOUNT_MESSAGE, CONFLICT_MESSAGE } from "src/common/constant/error.message";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { RolesService } from "src/roles/roles.service";
-import { CACHE_EMPTY_SYMBOL, JOB_NAMES, JOB_STATUS, USER_PROVIDER, USER_STATUS } from "src/common/constant/constants";
+import { CACHE_EMPTY_SYMBOL, JOB_NAMES, JOB_STATUS, SHAREDSPACE_ROLE, USER_PROVIDER, USER_STATUS } from "src/common/constant/constants";
 import { RefreshTokens } from "src/entities/RefreshTokens";
 import { JoinRequests } from "src/entities/JoinRequests";
 import { Invites } from "src/entities/Invites";
@@ -298,7 +298,7 @@ export class UsersService {
 
     try {
       const rolesArray = await this.rolesService.getRolesArray();
-      const ownerRole = rolesArray.find(role => role.name === SharedspaceMembersRoles.OWNER);
+      const ownerRole = rolesArray.find(role => role.name === SHAREDSPACE_ROLE.OWNER);
 
       const result = await qr.manager.update(
         BatchScheduler,
