@@ -9,12 +9,6 @@ export const SharedspaceMembersRoles = {
 
 export type TSharedspaceMembersRole = typeof SharedspaceMembersRoles[keyof typeof SharedspaceMembersRoles];
 
-export const SubscribedspacesSorts = {
-  ALL: 'all',
-  OWNED: 'owned',
-  UNOWNED: 'unowned',
-} as const;
-
 export interface IErrorResponse {
   message: string,
   metaData?: {

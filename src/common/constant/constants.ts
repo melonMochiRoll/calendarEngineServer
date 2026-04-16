@@ -7,6 +7,12 @@ export const USER_PROVIDER = {
   GOOGLE: 'google',
 } as const;
 
+export const SUBSCRIBEDSPACES_SORT = {
+  ALL: 'all',
+  OWNED: 'owned',
+  UNOWNED: 'unowned',
+} as const;
+
 export const IMAGE_STATUS = {
   PENDING: 'pending',
   ACTIVE: 'active',

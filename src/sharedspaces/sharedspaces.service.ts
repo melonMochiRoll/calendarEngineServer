@@ -6,7 +6,7 @@ import { nanoid } from "nanoid";
 import { UpdateSharedspaceNameDTO } from "./dto/update.sharedspace.name.dto";
 import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
-import { CacheItem, SharedspaceMembersRoles, SharedspaceReturnMap, SubscribedspacesSorts } from "src/typings/types";
+import { CacheItem, SharedspaceMembersRoles, SharedspaceReturnMap } from "src/typings/types";
 import { Users } from "src/entities/Users";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, CONFLICT_OWNER_MESSAGE, NOT_FOUND_RESOURCE, NOT_FOUND_SPACE_MESSAGE, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
@@ -17,7 +17,7 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { RolesService } from "src/roles/roles.service";
 import dayjs from "dayjs";
-import { JOB_NAMES, JOB_STATUS, NANOID_SHAREDSPACE_URL_LENGTH, USER_STATUS } from "src/common/constant/constants";
+import { JOB_NAMES, JOB_STATUS, NANOID_SHAREDSPACE_URL_LENGTH, SUBSCRIBEDSPACES_SORT, USER_STATUS } from "src/common/constant/constants";
 import { Todos } from "src/entities/Todos";
 import { JoinRequests } from "src/entities/JoinRequests";
 import { Invites } from "src/entities/Invites";
@@ -155,14 +155,14 @@ export class SharedspacesService {
       UserId,
     };
 
-    if (sort === SubscribedspacesSorts.OWNED) {
+    if (sort === SUBSCRIBEDSPACES_SORT.OWNED) {
       const rolesArray = await this.rolesService.getRolesArray();
       const ownerRole = rolesArray.find(role => role.name === SharedspaceMembersRoles.OWNER);
 
       Object.assign(whereCondition, { RoleId: ownerRole.id });
     }
 
-    if (sort === SubscribedspacesSorts.UNOWNED) {
+    if (sort === SUBSCRIBEDSPACES_SORT.UNOWNED) {
       const rolesArray = await this.rolesService.getRolesArray();
       const roleIdsWithoutOwner = rolesArray
         .filter(role => role.name !== SharedspaceMembersRoles.OWNER)
