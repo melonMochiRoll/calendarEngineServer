@@ -17,7 +17,7 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { RolesService } from "src/roles/roles.service";
 import dayjs from "dayjs";
-import { JOB_NAMES, JOB_STATUS, NANOID_SHAREDSPACE_URL_LENGTH } from "src/common/constant/constants";
+import { JOB_NAMES, JOB_STATUS, NANOID_SHAREDSPACE_URL_LENGTH, USER_STATUS } from "src/common/constant/constants";
 import { Todos } from "src/entities/Todos";
 import { JoinRequests } from "src/entities/JoinRequests";
 import { Invites } from "src/entities/Invites";
@@ -457,6 +457,9 @@ export class SharedspacesService {
       },
       where: {
         SharedspaceId: space.id,
+        User: {
+          status: USER_STATUS.ACTIVE,
+        },
       },
       relations: {
         User: true,
