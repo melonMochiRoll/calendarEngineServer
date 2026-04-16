@@ -140,4 +140,13 @@ export class RolesService {
       SHAREDSPACE_ROLE.VIEWER,
     ]);
   }
+
+  async getRoleInfo(name: TSharedspaceRole) {
+    if (!Object.values(SHAREDSPACE_ROLE).includes(name)) {
+      return;
+    }
+
+    const rolesArray = await this.getRolesArray();
+    return rolesArray.find(role => role.name === name);
+  }
 }
