@@ -4,14 +4,14 @@ import { Users } from "src/entities/Users";
 import { DataSource, In, Like, Repository } from "typeorm";
 import bcrypt from 'bcrypt';
 import { CreateUserDTO } from "./dto/create.user.dto";
-import { ProviderList, SharedspaceMembersRoles, UserReturnMap } from "src/typings/types";
+import { SharedspaceMembersRoles, UserReturnMap } from "src/typings/types";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { CONFLICT_ACCOUNT_MESSAGE, CONFLICT_MESSAGE } from "src/common/constant/error.message";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { RolesService } from "src/roles/roles.service";
-import { CACHE_EMPTY_SYMBOL, JOB_NAMES, JOB_STATUS, USER_STATUS } from "src/common/constant/constants";
+import { CACHE_EMPTY_SYMBOL, JOB_NAMES, JOB_STATUS, USER_PROVIDER, USER_STATUS } from "src/common/constant/constants";
 import { RefreshTokens } from "src/entities/RefreshTokens";
 import { JoinRequests } from "src/entities/JoinRequests";
 import { Invites } from "src/entities/Invites";
@@ -246,7 +246,7 @@ export class UsersService {
       email,
       nickname,
       password: await bcrypt.hash(password, Number(process.env.SALT_OR_ROUNDS)),
-      provider: ProviderList.LOCAL,
+      provider: USER_PROVIDER.LOCAL,
       status: USER_STATUS.ACTIVE,
     });
     await this.cacheManager.del(`user:${email}:standard`);

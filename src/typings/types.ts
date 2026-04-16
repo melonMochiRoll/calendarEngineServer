@@ -70,12 +70,6 @@ export type TRefreshTokenPayload = {
   exp: number,
 };
 
-export const ProviderList = {
-  LOCAL: 'local',
-  NAVER: 'naver',
-  GOOGLE: 'google',
-} as const;
-
 export const ChatsCommandList = {
   CHAT_CREATED: 'chat_created',
   CHAT_UPDATED: 'chat_updated',

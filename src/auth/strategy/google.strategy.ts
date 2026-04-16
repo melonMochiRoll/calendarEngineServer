@@ -3,10 +3,10 @@ import { PassportStrategy } from "@nestjs/passport";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Request } from "express";
 import { Strategy } from "passport-google-oauth20";
+import { USER_PROVIDER } from "src/common/constant/constants";
 import { CONFLICT_ACCOUNT_MESSAGE } from "src/common/constant/error.message";
-import handleError from "src/common/function/handleError";
 import { Users } from "src/entities/Users";
-import { ProviderList, TGoogleProfile } from "src/typings/types";
+import { TGoogleProfile } from "src/typings/types";
 import { UsersService } from "src/users/users.service";
 import { Repository } from "typeorm";
 
@@ -29,7 +29,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google'){
     const exUser = await this.usersService.getUserByEmail(profile.emails[0].value);
 
     if (exUser) {
-      if (exUser.provider !== ProviderList.GOOGLE) {
+      if (exUser.provider !== USER_PROVIDER.GOOGLE) {
         throw new ConflictException(CONFLICT_ACCOUNT_MESSAGE);
       }
 
@@ -39,7 +39,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google'){
     await this.usersRepository.save({
       email: profile.emails[0].value,
       profileImage: profile._json.picture,
-      provider: ProviderList.GOOGLE,
+      provider: USER_PROVIDER.GOOGLE,
     });
 
     const newUser = await this.usersService.getUserByEmail(profile.emails[0].value);

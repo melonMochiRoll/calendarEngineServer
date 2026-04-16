@@ -3,9 +3,10 @@ import { PassportStrategy } from "@nestjs/passport";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Request } from "express";
 import { Strategy } from "passport-naver";
+import { USER_PROVIDER } from "src/common/constant/constants";
 import { CONFLICT_ACCOUNT_MESSAGE } from "src/common/constant/error.message";
 import { Users } from "src/entities/Users";
-import { ProviderList, TNaverProfile } from "src/typings/types";
+import { TNaverProfile } from "src/typings/types";
 import { UsersService } from "src/users/users.service";
 import { Repository } from "typeorm";
 
@@ -30,7 +31,7 @@ export class NaverStrategy extends PassportStrategy(Strategy, 'naver') {
     const exUser = await this.usersService.getUserByEmail(profile.emails[0].value);
 
     if (exUser) {
-      if (exUser.provider !== ProviderList.NAVER) {
+      if (exUser.provider !== USER_PROVIDER.NAVER) {
         throw new ConflictException(CONFLICT_ACCOUNT_MESSAGE);
       }
 
@@ -40,7 +41,7 @@ export class NaverStrategy extends PassportStrategy(Strategy, 'naver') {
     await this.usersRepository.save({
       email: profile.emails[0].value,
       profileImage: profile._json.profile_image,
-      provider: ProviderList.NAVER,
+      provider: USER_PROVIDER.NAVER,
     });
 
     const newUser = await this.usersService.getUserByEmail(profile.emails[0].value);

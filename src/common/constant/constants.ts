@@ -1,6 +1,12 @@
 
 export const NANOID_SHAREDSPACE_URL_LENGTH = 9;
 
+export const USER_PROVIDER = {
+  LOCAL: 'local',
+  NAVER: 'naver',
+  GOOGLE: 'google',
+} as const;
+
 export const IMAGE_STATUS = {
   PENDING: 'pending',
   ACTIVE: 'active',
