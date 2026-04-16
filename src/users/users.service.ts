@@ -297,8 +297,7 @@ export class UsersService {
     await qr.startTransaction();
 
     try {
-      const rolesArray = await this.rolesService.getRolesArray();
-      const ownerRole = rolesArray.find(role => role.name === SHAREDSPACE_ROLE.OWNER);
+      const ownerInfo = await this.rolesService.getRoleInfo(SHAREDSPACE_ROLE.OWNER);
 
       const result = await qr.manager.update(
         BatchScheduler,
@@ -351,7 +350,7 @@ export class UsersService {
           })
           .where(`id IN (:...ids)`, { ids: ownersToUpdateMembers.map(({SharedspaceId}) => SharedspaceId) })
           .execute();
-        await qr.manager.update(SharedspaceMembers, ownersToUpdateMembers.map(({UserId, SharedspaceId}) => {return { UserId, SharedspaceId }}), { RoleId: ownerRole.id });
+        await qr.manager.update(SharedspaceMembers, ownersToUpdateMembers.map(({UserId, SharedspaceId}) => {return { UserId, SharedspaceId }}), { RoleId: ownerInfo.id });
 
         const ownerUpdateSpacesMap = ownersToUpdateMembers.reduce((acc, member) => {
           acc[member.SharedspaceId] = member.UserId;

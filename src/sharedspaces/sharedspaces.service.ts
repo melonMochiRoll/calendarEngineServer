@@ -156,10 +156,9 @@ export class SharedspacesService {
     };
 
     if (sort === SUBSCRIBEDSPACES_SORT.OWNED) {
-      const rolesArray = await this.rolesService.getRolesArray();
-      const ownerRole = rolesArray.find(role => role.name === SHAREDSPACE_ROLE.OWNER);
+      const ownerInfo = await this.rolesService.getRoleInfo(SHAREDSPACE_ROLE.OWNER);
 
-      Object.assign(whereCondition, { RoleId: ownerRole.id });
+      Object.assign(whereCondition, { RoleId: ownerInfo.id });
     }
 
     if (sort === SUBSCRIBEDSPACES_SORT.UNOWNED) {
@@ -231,13 +230,12 @@ export class SharedspacesService {
         OwnerId: UserId,
       });
 
-      const rolesArray = await this.rolesService.getRolesArray();
-      const ownerRole = rolesArray.find(role => role.name === SHAREDSPACE_ROLE.OWNER);
+      const ownerInfo = await this.rolesService.getRoleInfo(SHAREDSPACE_ROLE.OWNER);
       
       await qr.manager.insert(SharedspaceMembers, {
         UserId,
         SharedspaceId: created.id,
-        RoleId: ownerRole.id,
+        RoleId: ownerInfo.id,
       });
 
       await qr.commitTransaction();
@@ -303,13 +301,12 @@ export class SharedspacesService {
         throw new ConflictException(CONFLICT_OWNER_MESSAGE);
       }
 
-      const rolesArray = await this.rolesService.getRolesArray();
-      const ownerRole = rolesArray.find(role => role.name === SHAREDSPACE_ROLE.OWNER);
-      const memberRole = rolesArray.find(role => role.name === SHAREDSPACE_ROLE.MEMBER);
+      const ownerInfo = await this.rolesService.getRoleInfo(SHAREDSPACE_ROLE.OWNER);
+      const memberInfo = await this.rolesService.getRoleInfo(SHAREDSPACE_ROLE.MEMBER);
 
       await qr.manager.update(Sharedspaces, { id: space.id }, { OwnerId: newOwnerId });
-      await qr.manager.update(SharedspaceMembers, { UserId: newOwnerId, SharedspaceId: space.id }, { RoleId: ownerRole.id });
-      await qr.manager.update(SharedspaceMembers, { UserId: space.OwnerId, SharedspaceId: space.id }, { RoleId: memberRole.id });
+      await qr.manager.update(SharedspaceMembers, { UserId: newOwnerId, SharedspaceId: space.id }, { RoleId: ownerInfo.id });
+      await qr.manager.update(SharedspaceMembers, { UserId: space.OwnerId, SharedspaceId: space.id }, { RoleId: memberInfo.id });
 
       await qr.commitTransaction();
 
@@ -523,10 +520,9 @@ export class SharedspacesService {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
-    const rolesArray = await this.rolesService.getRolesArray();
-    const role = rolesArray.find(role => role.name === RoleName);
+    const roleInfo = await this.rolesService.getRoleInfo(RoleName);
 
-    if (!role || role.name === SHAREDSPACE_ROLE.OWNER) {
+    if (!roleInfo || roleInfo.name === SHAREDSPACE_ROLE.OWNER) {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
@@ -547,7 +543,7 @@ export class SharedspacesService {
     await this.sharedspaceMembersRepository.insert({
       UserId: targetUserId,
       SharedspaceId: space.id,
-      RoleId: role.id,
+      RoleId: roleInfo.id,
     });
   }
 
@@ -566,10 +562,9 @@ export class SharedspacesService {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
-    const rolesArray = await this.rolesService.getRolesArray();
-    const role = rolesArray.find(role => role.name === RoleName);
+    const roleInfo = await this.rolesService.getRoleInfo(RoleName);
 
-    if (!role || role.name === SHAREDSPACE_ROLE.OWNER) {
+    if (!roleInfo || roleInfo.name === SHAREDSPACE_ROLE.OWNER) {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
@@ -591,7 +586,7 @@ export class SharedspacesService {
       UserId: targetUserId,
       SharedspaceId: space.id,
     },{
-      RoleId: role.id,
+      RoleId: roleInfo.id,
     });
 
     await this.rolesService.invalidateUserRoleCache(targetUserId, space.id);
@@ -620,10 +615,9 @@ export class SharedspacesService {
       }
     });
 
-    const rolesArray = await this.rolesService.getRolesArray();
-    const role = rolesArray.find(role => role.id === isMember.RoleId);
+    const ownerInfo = await this.rolesService.getRoleInfo(SHAREDSPACE_ROLE.OWNER);
 
-    if (!isMember || role.name === SHAREDSPACE_ROLE.OWNER) {
+    if (!isMember || isMember.RoleId === ownerInfo.id) {
       throw new NotFoundException(NOT_FOUND_RESOURCE);
     }
 

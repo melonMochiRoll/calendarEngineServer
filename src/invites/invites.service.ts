@@ -178,14 +178,13 @@ export class InvitesService {
         },
       );
 
-      const rolesArray = await this.rolesService.getRolesArray();
-      const role = rolesArray.find(role => role.name === SHAREDSPACE_ROLE.VIEWER);
+      const viewerInfo = await this.rolesService.getRoleInfo(SHAREDSPACE_ROLE.VIEWER);
 
       await qr.manager.save(SharedspaceMembers,
         {
           UserId,
           SharedspaceId: space.id,
-          RoleId: role.id,
+          RoleId: viewerInfo.id,
         }
       );
 
