@@ -71,8 +71,10 @@ export class ChatsService {
       where: beforeChatId ? {
         SharedspaceId: space.id,
         id: LessThan(beforeChatId),
+        removedAt: IsNull(),
       } : {
         SharedspaceId: space.id,
+        removedAt: IsNull(),
       },
       order: {
         createdAt: 'DESC',
