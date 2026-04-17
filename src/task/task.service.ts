@@ -4,7 +4,6 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { JOB_NAMES, JOB_STATUS } from "src/common/constant/constants";
 import { chunking } from "src/common/function/utilFunctions";
 import { BatchScheduler } from "src/entities/BatchScheduler";
-import { Users } from "src/entities/Users";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { UsersService } from "src/users/users.service";
 import { Repository } from "typeorm";
@@ -12,8 +11,6 @@ import { Repository } from "typeorm";
 @Injectable()
 export class TaskService {
   constructor(
-    @InjectRepository(Users)
-    private usersRepository: Repository<Users>,
     @InjectRepository(BatchScheduler)
     private batchSchedulerRepository: Repository<BatchScheduler>,
     private usersService: UsersService,
