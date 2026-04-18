@@ -223,6 +223,7 @@ export class UsersService {
     const totalCount = await this.usersRepository.count({
       where: {
         email: Like(`${query}%`),
+        status: USER_STATUS.ACTIVE,
       },
     });
 
