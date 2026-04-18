@@ -119,7 +119,7 @@ export class TaskService {
     }
   }
 
-  @Cron('0 20 3 * * *')
+  @Cron('0 50 2 * * *')
   async cleanupChats() {
     const softDeletedChats = await this.chatsRepository.find({
       select: {
