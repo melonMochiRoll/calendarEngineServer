@@ -30,8 +30,8 @@ export class Todos {
   @Column({ type: 'datetime', precision: 6, nullable: true, default: null })
   removedAt: Date | null;
 
-  @Column({ type: 'int', name: 'AuthorId', nullable: true })
-  AuthorId: number | null;
+  @Column({ type: 'int', name: 'AuthorId' })
+  AuthorId: number;
 
   @Column({ type: 'int', name: 'EditorId', nullable: true })
   EditorId: number | null;
