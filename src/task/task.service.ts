@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 import { IMAGE_STATUS, JOB_NAMES, JOB_STATUS } from "src/common/constant/constants";
 import { chunking } from "src/common/function/utilFunctions";
 import { BatchScheduler } from "src/entities/BatchScheduler";
+import { Chats } from "src/entities/Chats";
 import { Images } from "src/entities/Images";
 import { Todos } from "src/entities/Todos";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
@@ -21,6 +22,8 @@ export class TaskService {
     private imagesRepository: Repository<Images>,
     @InjectRepository(Todos)
     private todosRepository: Repository<Todos>,
+    @InjectRepository(Chats)
+    private chatsRepository: Repository<Chats>,
     private usersService: UsersService,
     private sharedspacesService: SharedspacesService,
     private storageR2Service: StorageR2Service,
@@ -111,6 +114,25 @@ export class TaskService {
 
     for (const chunk of todoChunks) {
       const batch = chunk.map(todo => this.todosRepository.delete(todo.id));
+      await Promise.all(batch);
+    }
+  }
+
+  @Cron('0 20 3 * * *')
+  async cleanupChats() {
+    const softDeletedChats = await this.chatsRepository.find({
+      select: {
+        id: true,
+      },
+      where: {
+        removedAt: Not(IsNull()),
+      },
+    });
+
+    const chatChunks = chunking(softDeletedChats, 2);
+
+    for (const chunk of chatChunks) {
+      const batch = chunk.map(chat => this.chatsRepository.delete(chat.id));
       await Promise.all(batch);
     }
   }
