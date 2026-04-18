@@ -6,12 +6,14 @@ import { BatchScheduler } from 'src/entities/BatchScheduler';
 import { SharedspacesModule } from 'src/sharedspaces/sharedspaces.module';
 import { Images } from 'src/entities/Images';
 import { StorageModule } from 'src/storage/storage.module';
+import { Todos } from 'src/entities/Todos';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       BatchScheduler,
       Images,
+      Todos,
     ]),
     UsersModule,
     SharedspacesModule,
