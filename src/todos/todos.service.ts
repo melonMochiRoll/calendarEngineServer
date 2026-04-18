@@ -233,6 +233,7 @@ export class TodosService {
       where: {
         SharedspaceId: space.id,
         description: Like(`%${query}%`),
+        removedAt: IsNull(),
       },
       order: {
         date: 'DESC',
@@ -245,6 +246,7 @@ export class TodosService {
       where: {
         SharedspaceId: space.id,
         description: Like(`%${query}%`),
+        removedAt: IsNull(),
       },
     });
 
