@@ -23,7 +23,7 @@ export class TaskService {
     private storageR2Service: StorageR2Service,
   ) {}
   
-  @Cron('* 30 2 * * *')
+  @Cron('0 30 2 * * *')
   async processUserDeleteBatch() {
     const targetTasks = await this.batchSchedulerRepository.find({
       select: {
@@ -47,7 +47,7 @@ export class TaskService {
     }
   }
 
-  @Cron('* 30 3 * * *')
+  @Cron('0 30 3 * * *')
   async processSharedspaceDeleteBatch() {
     const targetTasks = await this.batchSchedulerRepository.find({
       select: {
