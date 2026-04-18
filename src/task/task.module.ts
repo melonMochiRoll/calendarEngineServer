@@ -7,6 +7,7 @@ import { SharedspacesModule } from 'src/sharedspaces/sharedspaces.module';
 import { Images } from 'src/entities/Images';
 import { StorageModule } from 'src/storage/storage.module';
 import { Todos } from 'src/entities/Todos';
+import { Chats } from 'src/entities/Chats';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { Todos } from 'src/entities/Todos';
       BatchScheduler,
       Images,
       Todos,
+      Chats,
     ]),
     UsersModule,
     SharedspacesModule,
