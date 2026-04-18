@@ -11,11 +11,12 @@ import { Todos } from "src/entities/Todos";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { StorageR2Service } from "src/storage/storage.r2.service";
 import { UsersService } from "src/users/users.service";
-import { IsNull, LessThan, Not, Repository } from "typeorm";
+import { DataSource, IsNull, LessThan, Not, Repository } from "typeorm";
 
 @Injectable()
 export class TaskService {
   constructor(
+    private dataSource: DataSource,
     @InjectRepository(BatchScheduler)
     private batchSchedulerRepository: Repository<BatchScheduler>,
     @InjectRepository(Images)
@@ -133,6 +134,30 @@ export class TaskService {
 
     for (const chunk of chatChunks) {
       const batch = chunk.map(chat => this.chatsRepository.delete(chat.id));
+      await Promise.all(batch);
+    }
+  }
+
+  @Cron('0 40 2 * * *')
+  async cleanupChatImages() {
+    const softDeletedImages = await this.imagesRepository.find({
+      select: {
+        id: true,
+        path: true,
+      },
+      where: {
+        status: IMAGE_STATUS.DELETED,
+      },
+    });
+
+    const imageChunks = chunking(softDeletedImages, 2);
+
+    for (const chunk of imageChunks) {
+      const batch = chunk.map(async (image) => {
+        await this.storageR2Service.deleteFile(image.path);
+        await this.imagesRepository.delete({ id: image.id });
+      });
+
       await Promise.all(batch);
     }
   }
