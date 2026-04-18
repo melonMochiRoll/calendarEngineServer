@@ -1,7 +1,7 @@
 import { BadRequestException, ForbiddenException, Inject, Injectable } from "@nestjs/common";
 import dayjs from "dayjs";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Between, Like, Repository } from "typeorm";
+import { Between, IsNull, Like, Repository } from "typeorm";
 import { Todos } from "src/entities/Todos";
 import { CreateTodoDTO } from "./dto/create.todo.dto";
 import { UpdateTodoDto } from "./dto/update.todo.dto";
@@ -88,6 +88,7 @@ export class TodosService {
       where: {
         SharedspaceId: space.id,
         date: Between(startDate, endDate),
+        removedAt: IsNull(),
       },
       order: {
         startTime: 'ASC',
@@ -194,7 +195,9 @@ export class TodosService {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
-    await this.todosRepository.delete(todoId);
+    const now = dayjs().toDate();
+
+    await this.todosRepository.update({ id: todoId }, { removedAt: now });
 
     await this.invalidateTodosCache(space.url, targetTodo.date);
   }
