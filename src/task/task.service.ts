@@ -6,10 +6,11 @@ import { IMAGE_STATUS, JOB_NAMES, JOB_STATUS } from "src/common/constant/constan
 import { chunking } from "src/common/function/utilFunctions";
 import { BatchScheduler } from "src/entities/BatchScheduler";
 import { Images } from "src/entities/Images";
+import { Todos } from "src/entities/Todos";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { StorageR2Service } from "src/storage/storage.r2.service";
 import { UsersService } from "src/users/users.service";
-import { LessThan, Repository } from "typeorm";
+import { IsNull, LessThan, Not, Repository } from "typeorm";
 
 @Injectable()
 export class TaskService {
@@ -18,6 +19,8 @@ export class TaskService {
     private batchSchedulerRepository: Repository<BatchScheduler>,
     @InjectRepository(Images)
     private imagesRepository: Repository<Images>,
+    @InjectRepository(Todos)
+    private todosRepository: Repository<Todos>,
     private usersService: UsersService,
     private sharedspacesService: SharedspacesService,
     private storageR2Service: StorageR2Service,
@@ -89,6 +92,25 @@ export class TaskService {
 
     for (const chunk of imageChunks) {
       const batch = chunk.map(image => this.storageR2Service.deleteFile(image.path));
+      await Promise.all(batch);
+    }
+  }
+
+  @Cron('0 10 3 * * *')
+  async cleanupTodos() {
+    const softDeletedTodos = await this.todosRepository.find({
+      select: {
+        id: true,
+      },
+      where: {
+        removedAt: Not(IsNull()),
+      },
+    });
+
+    const todoChunks = chunking(softDeletedTodos, 2);
+
+    for (const chunk of todoChunks) {
+      const batch = chunk.map(todo => this.todosRepository.delete(todo.id));
       await Promise.all(batch);
     }
   }
