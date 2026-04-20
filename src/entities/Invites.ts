@@ -1,6 +1,7 @@
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Users } from "./Users";
 import { Sharedspaces } from "./Sharedspaces";
+import { INVITE_STATUS } from "src/common/constant/constants";
 
 @Index('invites_createdAt_idx', ['createdAt'])
 @Entity({ name: 'invites' })
@@ -17,7 +18,7 @@ export class Invites {
   @Column({ type: 'int', name: 'InviteeId' })
   InviteeId: number;
 
-  @Column({ type: 'varchar', name: 'status', length: 10, default: 'pending' })
+  @Column({ type: 'varchar', name: 'status', length: 10, default: INVITE_STATUS.PENDING })
   status: string;
 
   @CreateDateColumn()
