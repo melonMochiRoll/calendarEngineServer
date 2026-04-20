@@ -29,6 +29,7 @@ export const INVITE_STATUS = {
   PENDING: 'pending',
   ACCEPTED: 'accepted',
   REJECTED: 'rejected',
+  CANCELED: 'canceled',
 } as const;
 
 export const USER_STATUS = {
