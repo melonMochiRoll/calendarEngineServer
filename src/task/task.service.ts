@@ -2,11 +2,12 @@ import { Injectable } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
 import { InjectRepository } from "@nestjs/typeorm";
 import dayjs from "dayjs";
-import { IMAGE_STATUS, JOB_NAMES, JOB_STATUS } from "src/common/constant/constants";
+import { IMAGE_STATUS, INVITE_STATUS, JOB_NAMES, JOB_STATUS } from "src/common/constant/constants";
 import { chunking } from "src/common/function/utilFunctions";
 import { BatchScheduler } from "src/entities/BatchScheduler";
 import { Chats } from "src/entities/Chats";
 import { Images } from "src/entities/Images";
+import { Invites } from "src/entities/Invites";
 import { Todos } from "src/entities/Todos";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { StorageR2Service } from "src/storage/storage.r2.service";
@@ -25,6 +26,8 @@ export class TaskService {
     private todosRepository: Repository<Todos>,
     @InjectRepository(Chats)
     private chatsRepository: Repository<Chats>,
+    @InjectRepository(Invites)
+    private invitesRepository: Repository<Invites>,
     private usersService: UsersService,
     private sharedspacesService: SharedspacesService,
     private storageR2Service: StorageR2Service,
@@ -158,6 +161,32 @@ export class TaskService {
         await this.imagesRepository.delete({ id: image.id });
       });
 
+      await Promise.all(batch);
+    }
+  }
+
+  @Cron('0 40 3 * * 3')
+  async cleanupInvites() {
+    const ONE_WEEK_AGO = dayjs().subtract(1, 'week').toDate();
+
+    const invites = await this.invitesRepository.find({
+      select: {
+        id: true,
+      },
+      where: [
+        {
+          status: INVITE_STATUS.CANCELED
+        },
+        {
+          expiredAt: LessThan(ONE_WEEK_AGO),
+        }
+      ],
+    });
+
+    const inviteChunks = chunking(invites, 2);
+
+    for (const chunk of inviteChunks) {
+      const batch = chunk.map(invite => this.invitesRepository.delete(invite.id));
       await Promise.all(batch);
     }
   }

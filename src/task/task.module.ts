@@ -8,6 +8,7 @@ import { Images } from 'src/entities/Images';
 import { StorageModule } from 'src/storage/storage.module';
 import { Todos } from 'src/entities/Todos';
 import { Chats } from 'src/entities/Chats';
+import { Invites } from 'src/entities/Invites';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { Chats } from 'src/entities/Chats';
       Images,
       Todos,
       Chats,
+      Invites,
     ]),
     UsersModule,
     SharedspacesModule,
