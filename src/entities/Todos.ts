@@ -41,7 +41,6 @@ export class Todos {
   
   @ManyToOne(() => Users, users => users.Todos, {
     onUpdate: 'CASCADE',
-    onDelete: 'SET NULL',
   })
   @JoinColumn({
     name: 'AuthorId',
