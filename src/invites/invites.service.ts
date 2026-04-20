@@ -260,6 +260,6 @@ export class InvitesService {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
-    await this.invitesRepository.delete({ id: targetInvite.id });
+    await this.invitesRepository.update({ id: targetInvite.id }, { status: INVITE_STATUS.CANCELED });
   }
 }
