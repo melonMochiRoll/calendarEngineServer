@@ -1,6 +1,7 @@
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Users } from "./Users";
 import { Sharedspaces } from "./Sharedspaces";
+import { JOINREQUEST_STATUS } from "src/common/constant/constants";
 
 @Index('joinrequests_createdAt_idx', ['createdAt'])
 @Entity({ name: 'joinrequests' })
@@ -13,6 +14,9 @@ export class JoinRequests {
 
   @Column({ type: 'int', name: 'RequestorId', nullable: true })
   RequestorId: number | null;
+
+  @Column({ type: 'varchar', name: 'status', length: 15, default: JOINREQUEST_STATUS.PENDING })
+  status: string;
 
   @CreateDateColumn()
   createdAt: Date;
