@@ -621,10 +621,12 @@ export class SharedspacesService {
       throw new NotFoundException(NOT_FOUND_RESOURCE);
     }
 
-    await this.sharedspaceMembersRepository.delete({
-      UserId: targetUserId,
-      SharedspaceId: space.id,
-    });
+    const now = dayjs().toDate();
+
+    await this.sharedspaceMembersRepository.update(
+      { UserId: targetUserId, SharedspaceId: space.id },
+      { removedAt: now }
+    );
 
     await this.rolesService.invalidateUserRoleCache(targetUserId, space.id);
   }
