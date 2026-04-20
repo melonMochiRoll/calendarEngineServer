@@ -94,24 +94,16 @@ export class JoinRequestsService {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
-      const role = await this.rolesRepository.findOne({
-        select: {
-          id: true,
-          name: true,
-        },
-        where: {
-          name: dto.RoleName,
-        },
-      });
+      const roleInfo = await this.rolesService.getRoleInfo(dto.RoleName);
 
-      if (role.name === SHAREDSPACE_ROLE.OWNER) {
+      if (roleInfo.name === SHAREDSPACE_ROLE.OWNER) {
         throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
       }
 
       await qr.manager.save(SharedspaceMembers, {
         UserId: targetJoinRequest.RequestorId,
         SharedspaceId: targetJoinRequest.SharedspaceId,
-        RoleId: role.id,
+        RoleId: roleInfo.id,
       });
       await qr.manager.update(JoinRequests, { id: targetJoinRequest.id }, { status: JOINREQUEST_STATUS.ACCEPTED });
       
