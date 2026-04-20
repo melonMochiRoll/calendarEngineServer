@@ -454,6 +454,7 @@ export class SharedspacesService {
       },
       where: {
         SharedspaceId: space.id,
+        removedAt: IsNull(),
         User: {
           status: USER_STATUS.ACTIVE,
         },
