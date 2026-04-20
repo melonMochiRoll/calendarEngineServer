@@ -8,6 +8,7 @@ import { BatchScheduler } from "src/entities/BatchScheduler";
 import { Chats } from "src/entities/Chats";
 import { Images } from "src/entities/Images";
 import { Invites } from "src/entities/Invites";
+import { JoinRequests } from "src/entities/JoinRequests";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { Todos } from "src/entities/Todos";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
@@ -31,6 +32,8 @@ export class TaskService {
     private invitesRepository: Repository<Invites>,
     @InjectRepository(SharedspaceMembers)
     private sharedspaceMembersRepository: Repository<SharedspaceMembers>,
+    @InjectRepository(JoinRequests)
+    private joinRequestsRepository: Repository<JoinRequests>,
     private usersService: UsersService,
     private sharedspacesService: SharedspacesService,
     private storageR2Service: StorageR2Service,
@@ -210,6 +213,25 @@ export class TaskService {
 
     for (const chunk of memberChunks) {
       const batch = chunk.map(member => this.sharedspaceMembersRepository.delete({ UserId: member.UserId, SharedspaceId: member.SharedspaceId }));
+      await Promise.all(batch);
+    }
+  }
+
+  @Cron('0 0 4 * * 3')
+  async cleanupExpiredJoinRequests() {
+    const ONE_DAY_AGO = dayjs().subtract(1, 'day').toDate();
+
+    const expiredJoinRequests = await this.joinRequestsRepository.find({
+      select: {
+        id: true,
+      },
+      where: {
+        removedAt: LessThan(ONE_DAY_AGO),
+      },
+    });
+
+    for (const chunk of chunking(expiredJoinRequests, 2)) {
+      const batch = chunk.map(joinRequest => this.joinRequestsRepository.delete(joinRequest.id));
       await Promise.all(batch);
     }
   }
