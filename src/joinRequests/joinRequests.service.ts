@@ -113,7 +113,7 @@ export class JoinRequestsService {
         SharedspaceId: targetJoinRequest.SharedspaceId,
         RoleId: role.id,
       });
-      await qr.manager.delete(JoinRequests, { id: targetJoinRequest.id });
+      await qr.manager.update(JoinRequests, { id: targetJoinRequest.id }, { status: JOINREQUEST_STATUS.ACCEPTED });
       
       await qr.commitTransaction();
     } catch (err) {
