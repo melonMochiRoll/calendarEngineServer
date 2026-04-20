@@ -8,6 +8,7 @@ import { BatchScheduler } from "src/entities/BatchScheduler";
 import { Chats } from "src/entities/Chats";
 import { Images } from "src/entities/Images";
 import { Invites } from "src/entities/Invites";
+import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { Todos } from "src/entities/Todos";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { StorageR2Service } from "src/storage/storage.r2.service";
@@ -28,6 +29,8 @@ export class TaskService {
     private chatsRepository: Repository<Chats>,
     @InjectRepository(Invites)
     private invitesRepository: Repository<Invites>,
+    @InjectRepository(SharedspaceMembers)
+    private sharedspaceMembersRepository: Repository<SharedspaceMembers>,
     private usersService: UsersService,
     private sharedspacesService: SharedspacesService,
     private storageR2Service: StorageR2Service,
@@ -187,6 +190,26 @@ export class TaskService {
 
     for (const chunk of inviteChunks) {
       const batch = chunk.map(invite => this.invitesRepository.delete(invite.id));
+      await Promise.all(batch);
+    }
+  }
+
+  @Cron('0 50 3 * * *')
+  async cleanupSharedspaceMembers() {
+    const softDeletedMembers = await this.sharedspaceMembersRepository.find({
+      select: {
+        UserId: true,
+        SharedspaceId: true,
+      },
+      where: {
+        removedAt: Not(IsNull()),
+      },
+    });
+
+    const memberChunks = chunking(softDeletedMembers, 2);
+
+    for (const chunk of memberChunks) {
+      const batch = chunk.map(member => this.sharedspaceMembersRepository.delete({ UserId: member.UserId, SharedspaceId: member.SharedspaceId }));
       await Promise.all(batch);
     }
   }
