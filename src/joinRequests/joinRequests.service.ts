@@ -144,7 +144,7 @@ export class JoinRequestsService {
     });
   }
 
-  async deleteJoinRequest(
+  async rejectJoinRequest(
     url: string,
     joinRequestId: number,
     UserId: number,
@@ -170,6 +170,6 @@ export class JoinRequestsService {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
-    await this.joinRequestsRepository.delete({ id: targetJoinRequest.id });
+    await this.joinRequestsRepository.update({ id: targetJoinRequest.id }, { status: JOINREQUEST_STATUS.REJECTED });
   }
 }

@@ -49,12 +49,12 @@ export class JoinRequestsController {
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Delete(':url/joinrequest/:id')
-  deleteJoinRequest(
+  @Post(':url/joinrequest/:id')
+  rejectJoinRequest(
     @Param('url') url: string,
     @Param('id', ParseIntPipe) joinRequestId: number,
     @User() user: Users,
   ) {
-    return this.joinRequestsService.deleteJoinRequest(url, joinRequestId, user.id);
+    return this.joinRequestsService.rejectJoinRequest(url, joinRequestId, user.id);
   }
 }
