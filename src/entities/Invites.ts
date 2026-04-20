@@ -18,7 +18,7 @@ export class Invites {
   @Column({ type: 'int', name: 'InviteeId' })
   InviteeId: number;
 
-  @Column({ type: 'varchar', name: 'status', length: 10, default: INVITE_STATUS.PENDING })
+  @Column({ type: 'varchar', name: 'status', length: 15, default: INVITE_STATUS.PENDING })
   status: string;
 
   @CreateDateColumn()
