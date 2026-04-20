@@ -32,6 +32,12 @@ export const INVITE_STATUS = {
   CANCELED: 'canceled',
 } as const;
 
+export const JOINREQUEST_STATUS = {
+  PENDING: 'pending',
+  ACCEPTED: 'accepted',
+  REJECTED: 'rejected',
+} as const;
+
 export const USER_STATUS = {
   ACTIVE: 'active',
   INACTIVE: 'inactive',
