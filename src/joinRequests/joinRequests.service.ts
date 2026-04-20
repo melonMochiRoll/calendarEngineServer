@@ -9,7 +9,7 @@ import { Roles } from "src/entities/Roles";
 import { ResolveJoinRequestDTO } from "./dto/resolve.joinRequest.dto";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { RolesService } from "src/roles/roles.service";
-import { SHAREDSPACE_ROLE } from "src/common/constant/constants";
+import { JOINREQUEST_STATUS, SHAREDSPACE_ROLE } from "src/common/constant/constants";
 
 @Injectable()
 export class JoinRequestsService {
@@ -144,10 +144,11 @@ export class JoinRequestsService {
       throw new ConflictException(CONFLICT_REQUEST_MESSAGE);
     }
 
-    await this.joinRequestsRepository.save({
+    await this.joinRequestsRepository.insert({
       SharedspaceId: space.id,
       RequestorId: UserId,
       message: dto.message,
+      status: JOINREQUEST_STATUS.PENDING,
     });
   }
 
