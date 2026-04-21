@@ -13,8 +13,8 @@ export class Images {
   @Column({ type: 'varchar', name: 'status', length: 30, default: 'pending' })
   status: string;
 
-  @Column({ type: 'int', name: 'ChatId' })
-  ChatId: number;
+  @Column({ type: 'int', name: 'ChatId', nullable: true })
+  ChatId: number | null;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -24,7 +24,6 @@ export class Images {
 
   @ManyToOne(() => Chats, chats => chats.Images, {
     onUpdate: 'CASCADE',
-    orphanedRowAction: 'soft-delete',
   })
   @JoinColumn({
     name: 'ChatId',
