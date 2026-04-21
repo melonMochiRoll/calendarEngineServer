@@ -10,6 +10,7 @@ import { Todos } from 'src/entities/Todos';
 import { Chats } from 'src/entities/Chats';
 import { Invites } from 'src/entities/Invites';
 import { SharedspaceMembers } from 'src/entities/SharedspaceMembers';
+import { JoinRequests } from 'src/entities/JoinRequests';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { SharedspaceMembers } from 'src/entities/SharedspaceMembers';
       Chats,
       Invites,
       SharedspaceMembers,
+      JoinRequests,
     ]),
     UsersModule,
     SharedspacesModule,
