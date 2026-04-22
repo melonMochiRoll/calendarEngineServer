@@ -1,6 +1,8 @@
 
 export const NANOID_SHAREDSPACE_URL_LENGTH = 9;
 
+export const NANOID_PUBLIC_ID_LENGTH = 12;
+
 export const USER_PROVIDER = {
   LOCAL: 'local',
   NAVER: 'naver',
