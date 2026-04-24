@@ -1,6 +1,6 @@
 import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { DataSource, In, IsNull, Repository } from "typeorm";
+import { DataSource, FindOptionsWhere, In, IsNull, Repository } from "typeorm";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import { nanoid } from "nanoid";
 import { UpdateSharedspaceNameDTO } from "./dto/update.sharedspace.name.dto";
@@ -152,7 +152,7 @@ export class SharedspacesService {
     page = 1,
     limit = 7,
   ) {
-    const whereCondition = {
+    const whereCondition: FindOptionsWhere<SharedspaceMembers> = {
       UserId,
       removedAt: IsNull(),
     };
