@@ -154,6 +154,7 @@ export class SharedspacesService {
   ) {
     const whereCondition = {
       UserId,
+      removedAt: IsNull(),
     };
 
     if (sort === SUBSCRIBEDSPACES_SORT.OWNED) {
@@ -200,6 +201,7 @@ export class SharedspacesService {
       },
       where: {
         id: In(user_roles.map((role) => role.SharedspaceId)),
+        removedAt: IsNull(),
       },
     });
 
@@ -380,7 +382,7 @@ export class SharedspacesService {
           status: JOB_STATUS.PENDING,
         },
       );
-      
+
       await qr.commitTransaction();
 
       await this.invalidateSharedspaceCache(url);
