@@ -380,6 +380,10 @@ export class SharedspacesService {
           status: JOB_STATUS.PENDING,
         },
       );
+      
+      await qr.commitTransaction();
+
+      await this.invalidateSharedspaceCache(url);
     } catch (err) {
       await qr.rollbackTransaction();
 
