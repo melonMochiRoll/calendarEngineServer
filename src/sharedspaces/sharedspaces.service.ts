@@ -174,7 +174,25 @@ export class SharedspacesService {
 
     const user_roles = await this.sharedspaceMembersRepository.find({
       select: {
+        id: true,
         SharedspaceId: true,
+        createdAt: true,
+        Sharedspace: {
+          name: true,
+          url: true,
+          private: true,
+          OwnerId: true,
+          Owner: {
+            email: true,
+            nickname: true,
+            profileImage: true,
+          },
+        },
+      },
+      relations: {
+        Sharedspace: {
+          Owner: true,
+        },
       },
       where: whereCondition,
       order: {
@@ -184,29 +202,8 @@ export class SharedspacesService {
       take: limit,
     });
 
-    const subscribedspaces = await this.sharedspacesRepository.find({
-      select: {
-        name: true,
-        url: true,
-        private: true,
-        OwnerId: true,
-        Owner: {
-          email: true,
-          nickname: true,
-          profileImage: true,
-        },
-      },
-      relations: {
-        Owner: true,
-      },
-      where: {
-        id: In(user_roles.map((role) => role.SharedspaceId)),
-        removedAt: IsNull(),
-      },
-    });
-
-    const spaces = subscribedspaces.map((space) => {
-      const { OwnerId, ...rest } = space;
+    const spaces = user_roles.map((space) => {
+      const { OwnerId, ...rest } = space.Sharedspace;
       return {
         ...rest,
         permission: {
