@@ -1,11 +1,11 @@
-import { IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { IsNotEmpty, IsString, IsUUID } from "class-validator";
 import { TSharedspaceRole } from "src/typings/types";
 
 export class UpdateSharedspaceMembersDTO {
 
   @IsNotEmpty()
-  @IsNumber()
-  UserId: number;
+  @IsUUID(7)
+  UserId: string;
 
   @IsNotEmpty()
   @IsString()

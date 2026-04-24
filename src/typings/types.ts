@@ -49,13 +49,13 @@ export type TNaverProfile = {
 };
 
 export type TAccessTokenPayload = {
-  UserId: number,
+  UserId: string,
   exp: number,
 };
 
 export type TRefreshTokenPayload = {
   jti: string,
-  UserId: number,
+  UserId: string,
   exp: number,
 };
 

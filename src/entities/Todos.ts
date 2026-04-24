@@ -1,13 +1,14 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { Users } from "./Users";
 import { Sharedspaces } from "./Sharedspaces";
+import { UUIDV7Transformer } from "src/common/function/uuidv7Transformer";
 
 @Index('todos_createdAt_idx', ['createdAt'])
 @Index('todos_date_idx', ['date'])
 @Entity({ name: 'todos' })
 export class Todos {
-  @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
-  id: number;
+  @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
+  id: string;
 
   @Column({ type: 'text' })
   description: string;
@@ -30,14 +31,14 @@ export class Todos {
   @Column({ type: 'datetime', precision: 6, nullable: true, default: null })
   removedAt: Date | null;
 
-  @Column({ type: 'int', name: 'AuthorId' })
-  AuthorId: number;
+  @Column({ type: 'binary', name: 'AuthorId', length: 16, transformer: new UUIDV7Transformer() })
+  AuthorId: string;
 
-  @Column({ type: 'int', name: 'EditorId', nullable: true })
-  EditorId: number | null;
+  @Column({ type: 'binary', name: 'EditorId', length: 16, nullable: true, transformer: new UUIDV7Transformer() })
+  EditorId: string | null;
 
-  @Column({ type: 'int', name: 'SharedspaceId' })
-  SharedspaceId: number;
+  @Column({ type: 'binary', name: 'SharedspaceId', length: 16, transformer: new UUIDV7Transformer() })
+  SharedspaceId: string;
   
   @ManyToOne(() => Users, users => users.Todos, {
     onUpdate: 'CASCADE',

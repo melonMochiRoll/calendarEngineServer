@@ -11,6 +11,7 @@ import { RolesService } from "src/roles/roles.service";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { CACHE_EMPTY_SYMBOL } from "src/common/constant/constants";
+import { uuidv7 } from "uuidv7";
 
 @Injectable()
 export class TodosService {
@@ -26,7 +27,7 @@ export class TodosService {
   async getTodosByMonth(
     url: string,
     date: string,
-    UserId?: number,
+    UserId?: string,
   ) {
     const [ year, month ] = date.split('-');
     const startDate = dayjs(`${year}-${month}-01`).toDate();
@@ -119,7 +120,7 @@ export class TodosService {
   async createTodo(
     url: string,
     dto: CreateTodoDTO,
-    UserId: number,
+    UserId: string,
   ) {
     const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
@@ -132,19 +133,20 @@ export class TodosService {
       });
     }
 
-    const targetTodo = await this.todosRepository.save({
+    await this.todosRepository.insert({
       ...dto,
+      id: uuidv7(),
       AuthorId: UserId,
       SharedspaceId: space.id,
     });
 
-    await this.invalidateTodosCache(space.url, targetTodo.date);
+    await this.invalidateTodosCache(space.url, dto.date);
   }
 
   async updateTodo(
     url: string,
     dto: UpdateTodoDto,
-    UserId: number,
+    UserId: string,
   ) {
     const { id: todoId, ...rest } = dto;
 
@@ -175,8 +177,8 @@ export class TodosService {
 
   async deleteTodo(
     url: string,
-    todoId: number,
-    UserId: number,
+    todoId: string,
+    UserId: string,
   ) {
     const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
@@ -206,7 +208,7 @@ export class TodosService {
     url: string,
     query: string,
     page: number,
-    UserId?: number,
+    UserId?: string,
     limit = 10,
   ) {
     const space = await this.sharedspacesService.getSharedspaceByUrl(url);

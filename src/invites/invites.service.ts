@@ -12,6 +12,7 @@ import { UsersService } from "src/users/users.service";
 import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
 import { AcceptInviteDTO } from "./dto/accept.invite.dto";
 import { DeclineInviteDTO } from "./dto/decline.invite.dto";
+import { uuidv7 } from "uuidv7";
 
 @Injectable()
 export class InvitesService {
@@ -25,7 +26,7 @@ export class InvitesService {
   ) {}
 
   async getInvites(
-    UserId: number,
+    UserId: string,
     page = 1,
     limit = 7,
   ) {
@@ -86,7 +87,7 @@ export class InvitesService {
 
   async sendInvite(
     dto: SendInviteDTO,
-    UserId: number,
+    UserId: string,
   ) {
     const { url, inviteeEmail } = dto;
 
@@ -126,7 +127,8 @@ export class InvitesService {
       throw new ConflictException(CONFLICT_REQUEST_MESSAGE);
     }
 
-    await this.invitesRepository.save({
+    await this.invitesRepository.insert({
+      id: uuidv7(),
       SharedspaceId: space.id,
       InviterId: UserId,
       InviteeId: invitee.id,
@@ -136,7 +138,7 @@ export class InvitesService {
 
   async acceptInvite(
     dto: AcceptInviteDTO,
-    UserId: number,
+    UserId: string,
   ) {
     const { id: targetInviteId, url } = dto;
 
@@ -180,8 +182,9 @@ export class InvitesService {
 
       const viewerInfo = await this.rolesService.getRoleInfo(SHAREDSPACE_ROLE.VIEWER);
 
-      await qr.manager.save(SharedspaceMembers,
+      await qr.manager.insert(SharedspaceMembers,
         {
+          id: uuidv7(),
           UserId,
           SharedspaceId: space.id,
           RoleId: viewerInfo.id,
@@ -201,7 +204,7 @@ export class InvitesService {
 
   async declineInvite(
     dto: DeclineInviteDTO,
-    UserId: number,
+    UserId: string,
   ) {
     const { id: targetInviteId } = dto;
 
@@ -232,9 +235,9 @@ export class InvitesService {
   }
 
   async cancelInvite(
-    targetInviteId: number,
+    targetInviteId: string,
     url: string,
-    UserId: number,
+    UserId: string,
   ) {
     const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 

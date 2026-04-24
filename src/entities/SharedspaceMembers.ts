@@ -1,17 +1,20 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { Users } from "./Users";
 import { Sharedspaces } from "./Sharedspaces";
 import { Roles } from "./Roles";
+import { UUIDV7Transformer } from "src/common/function/uuidv7Transformer";
 
 @Index('sharedspacemembers_createdAt_idx', ['createdAt'])
 @Entity({ name: 'sharedspacemembers' })
 export class SharedspaceMembers {
+  @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
+  id: string;
 
-  @PrimaryColumn({ type: 'int', name: 'UserId' })
-  UserId: number;
+  @Column({ type: 'binary', name: 'UserId', length: 16, transformer: new UUIDV7Transformer() })
+  UserId: string;
 
-  @PrimaryColumn({ type: 'int', name: 'SharedspaceId' })
-  SharedspaceId: number;
+  @Column({ type: 'binary', name: 'SharedspaceId', length: 16, transformer: new UUIDV7Transformer() })
+  SharedspaceId: string;
 
   @Column({ type: 'int', name: 'RoleId' })
   RoleId: number;

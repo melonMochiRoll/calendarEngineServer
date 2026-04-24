@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Index, JoinTable, ManyToMany, OneToMany, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { Todos } from "./Todos";
 import { Sharedspaces } from "./Sharedspaces";
 import { SharedspaceMembers } from "./SharedspaceMembers";
@@ -6,12 +6,13 @@ import { JoinRequests } from "./JoinRequests";
 import { Chats } from "./Chats";
 import { RefreshTokens } from "./RefreshTokens";
 import { Invites } from "./Invites";
+import { UUIDV7Transformer } from "src/common/function/uuidv7Transformer";
 
 @Index('users_createdAt_idx', ['createdAt'])
 @Entity({ name: 'users' })
 export class Users {
-  @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
-  id: number;
+  @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
+  id: string;
 
   @Column({ type: 'varchar', name: 'email', length: 50, unique: true })
   email: string;

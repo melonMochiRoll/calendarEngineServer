@@ -1,22 +1,23 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { Users } from "./Users";
 import { Sharedspaces } from "./Sharedspaces";
 import { INVITE_STATUS } from "src/common/constant/constants";
+import { UUIDV7Transformer } from "src/common/function/uuidv7Transformer";
 
 @Index('invites_createdAt_idx', ['createdAt'])
 @Entity({ name: 'invites' })
 export class Invites {
-  @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
-  id: number;
+  @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
+  id: string;
 
-  @Column({ type: 'int', name: 'SharedspaceId' })
-  SharedspaceId: number;
+  @Column({ type: 'binary', name: 'SharedspaceId', length: 16, transformer: new UUIDV7Transformer() })
+  SharedspaceId: string;
 
-  @Column({ type: 'int', name: 'InviterId' })
-  InviterId: number;
+  @Column({ type: 'binary', name: 'InviterId', length: 16, transformer: new UUIDV7Transformer() })
+  InviterId: string;
 
-  @Column({ type: 'int', name: 'InviteeId' })
-  InviteeId: number;
+  @Column({ type: 'binary', name: 'InviteeId', length: 16, transformer: new UUIDV7Transformer() })
+  InviteeId: string;
 
   @Column({ type: 'varchar', name: 'status', length: 15, default: INVITE_STATUS.PENDING })
   status: string;

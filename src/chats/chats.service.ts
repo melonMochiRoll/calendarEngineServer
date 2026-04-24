@@ -14,6 +14,7 @@ import dayjs from "dayjs";
 import { GeneratePresignedPutUrlDTO } from "./dto/generate.presigned.put.url.dto";
 import { CHAT_EVENT, IMAGE_STATUS } from "src/common/constant/constants";
 import { StorageR2Service } from "src/storage/storage.r2.service";
+import { uuidv7 } from "uuidv7";
 
 @Injectable()
 export class ChatsService {
@@ -31,8 +32,8 @@ export class ChatsService {
 
   async getSharedspaceChats(
     url: string,
-    beforeChatId: number,
-    UserId?: number,
+    beforeChatId: string,
+    UserId?: string,
     limit = 100,
   ) {
     const space = await this.sharedspacesService.getSharedspaceByUrl(url);
@@ -142,7 +143,7 @@ export class ChatsService {
   async createSharedspaceChat(
     url: string,
     dto: CreateSharedspaceChatDTO,
-    UserId: number,
+    UserId: string,
   ) {
     const { content, imageKeys } = dto;
 
@@ -166,7 +167,10 @@ export class ChatsService {
         });
       }
 
-      const chatRecord = await qr.manager.save(Chats, {
+      const id = uuidv7();
+
+      await qr.manager.insert(Chats, {
+        id,
         content,
         SenderId: UserId,
         SharedspaceId: space.id,
@@ -180,7 +184,7 @@ export class ChatsService {
               { path: imageKey },
               {
                 status: IMAGE_STATUS.ACTIVE,
-                ChatId: chatRecord.id,
+                ChatId: id,
               })
           )
         );
@@ -210,7 +214,7 @@ export class ChatsService {
           Images: true,
         },
         where: {
-          id: chatRecord.id,
+          id,
         },
       });
 
@@ -239,7 +243,7 @@ export class ChatsService {
   async updateSharedspaceChat(
     url: string,
     dto: UpdateSharedspaceChatDTO,
-    UserId: number,
+    UserId: string,
   ) {
     const { ChatId, content } = dto;
 
@@ -270,8 +274,8 @@ export class ChatsService {
 
   async deleteSharedspaceChat(
     url: string,
-    ChatId: number,
-    UserId: number,
+    ChatId: string,
+    UserId: string,
   ) {
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
@@ -328,9 +332,9 @@ export class ChatsService {
 
   async deleteSharedspaceChatImage(
     url: string,
-    ChatId: number,
-    ImageId: number,
-    UserId: number,
+    ChatId: string,
+    ImageId: string,
+    UserId: string,
   ) {
     const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
@@ -426,7 +430,7 @@ export class ChatsService {
     );
 
     for (const { key } of keyAndUrls) {
-      await this.imagesRepository.insert({ status: IMAGE_STATUS.PENDING, path: key });
+      await this.imagesRepository.insert({ id: uuidv7(), status: IMAGE_STATUS.PENDING, path: key });
     }
 
     return keyAndUrls;

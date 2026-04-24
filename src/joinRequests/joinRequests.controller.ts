@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
 import { JoinRequestsService } from "./joinRequests.service";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
@@ -26,7 +26,7 @@ export class JoinRequestsController {
   @Post(':url/joinrequest/:id/resolve')
   resolveJoinRequest(
     @Param('url') url: string,
-    @Param('id', ParseIntPipe) joinRequestId: number,
+    @Param('id') joinRequestId: string,
     @Body() dto: ResolveJoinRequestDTO,
     @User() user: Users,
   ) {
@@ -52,7 +52,7 @@ export class JoinRequestsController {
   @Post(':url/joinrequest/:id')
   rejectJoinRequest(
     @Param('url') url: string,
-    @Param('id', ParseIntPipe) joinRequestId: number,
+    @Param('id') joinRequestId: string,
     @User() user: Users,
   ) {
     return this.joinRequestsService.rejectJoinRequest(url, joinRequestId, user.id);

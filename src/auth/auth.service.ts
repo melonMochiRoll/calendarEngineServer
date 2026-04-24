@@ -29,7 +29,10 @@ export class AuthService {
     secure: !isDevelopment,
   } as const;
 
-  async jwtLogin(response: Response, UserId: number) {
+  async jwtLogin(
+    response: Response,
+    UserId: string,
+  ) {
     const qr = this.dataSource.createQueryRunner();
 
     const accessTokenExpires = dayjs().add(15, 'minute');

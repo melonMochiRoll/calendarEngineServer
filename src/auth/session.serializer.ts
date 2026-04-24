@@ -17,7 +17,7 @@ export class SessionSerializer extends PassportSerializer {
     return done(null, user?.id);
   }
 
-  async deserializeUser(UserId: number, done: CallableFunction) {
+  async deserializeUser(UserId: string, done: CallableFunction) {
     const result = await this.usersRepository.findOne({
       select: {
         id: true,

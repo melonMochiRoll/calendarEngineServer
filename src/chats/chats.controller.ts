@@ -23,7 +23,7 @@ export class ChatsController {
   ) {
     return this.chatsService.getSharedspaceChats(
       url,
-      beforeChatId ? Number(beforeChatId) : null,
+      beforeChatId || null,
       user?.id
     );
   }
@@ -53,7 +53,7 @@ export class ChatsController {
   @Delete(':url/chats/:id')
   deleteSharedspaceChat(
     @Param('url') url: string,
-    @Param('id', ParseIntPipe) chatId: number,
+    @Param('id') chatId: string,
     @User() user: Users,
   ) {
     return this.chatsService.deleteSharedspaceChat(url, chatId, user.id);
@@ -64,8 +64,8 @@ export class ChatsController {
   @Delete(':url/chats/:ChatId/images/:ImageId')
   deleteSharedspaceChatImage(
     @Param('url') url: string,
-    @Param('ChatId', ParseIntPipe) ChatId: number,
-    @Param('ImageId', ParseIntPipe) ImageId: number,
+    @Param('ChatId') ChatId: string,
+    @Param('ImageId') ImageId: string,
     @User() user: Users,
   ) {
     return this.chatsService.deleteSharedspaceChatImage(url, ChatId, ImageId, user.id);

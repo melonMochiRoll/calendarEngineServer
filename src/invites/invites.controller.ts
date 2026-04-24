@@ -19,7 +19,7 @@ export class InvitesController {
     @Query('page', ParseIntPipe) page: number,
     @User() user: Users,
   ) {
-    return this.invitesService.getInvites(user.id);
+    return this.invitesService.getInvites(user.id, page);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -52,7 +52,7 @@ export class InvitesController {
   @UseGuards(JwtAuthGuard)
   @Delete('cancel/:id')
   cancelInvite(
-    @Param('id', ParseIntPipe) targetInviteId: number,
+    @Param('id') targetInviteId: string,
     @Query('url') url: string,
     @User() user: Users,
   ) {

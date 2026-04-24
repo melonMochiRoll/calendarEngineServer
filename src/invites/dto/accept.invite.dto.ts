@@ -1,11 +1,12 @@
-import { IsNotEmpty, IsNumber } from "class-validator";
+import { IsNotEmpty, IsString, IsUUID } from "class-validator";
 
 export class AcceptInviteDTO {
 
   @IsNotEmpty()
-  @IsNumber()
-  id: number;
+  @IsUUID(7)
+  id: string;
 
   @IsNotEmpty()
+  @IsString()
   url: string;
 }

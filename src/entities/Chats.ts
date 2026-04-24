@@ -1,22 +1,23 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, OneToMany, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { Users } from "./Users";
 import { Sharedspaces } from "./Sharedspaces";
 import { Images } from "./Images";
+import { UUIDV7Transformer } from "src/common/function/uuidv7Transformer";
 
 @Index('chats_createdAt_idx', ['createdAt'])
 @Entity({ name: 'chats' })
 export class Chats {
-  @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
-  id: number;
+  @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
+  id: string;
 
   @Column({ type: 'text' })
   content: string;
 
-  @Column({ type: 'int', name: 'SenderId' })
-  SenderId: number;
+  @Column({ type: 'binary', name: 'SenderId', length: 16, transformer: new UUIDV7Transformer() })
+  SenderId: string;
 
-  @Column({ type: 'int', name: 'SharedspaceId' })
-  SharedspaceId: number;
+  @Column({ type: 'binary', name: 'SharedspaceId', length: 16, transformer: new UUIDV7Transformer() })
+  SharedspaceId: string;
 
   @CreateDateColumn()
   createdAt: Date;

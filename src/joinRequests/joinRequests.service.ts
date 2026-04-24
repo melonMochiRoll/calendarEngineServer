@@ -10,6 +10,7 @@ import { ResolveJoinRequestDTO } from "./dto/resolve.joinRequest.dto";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { RolesService } from "src/roles/roles.service";
 import { JOINREQUEST_STATUS, SHAREDSPACE_ROLE } from "src/common/constant/constants";
+import { uuidv7 } from "uuidv7";
 
 @Injectable()
 export class JoinRequestsService {
@@ -27,7 +28,7 @@ export class JoinRequestsService {
 
   async getJoinRequests(
     url: string,
-    UserId: number,
+    UserId: string,
   ) {
     const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
@@ -64,9 +65,9 @@ export class JoinRequestsService {
 
   async resolveJoinRequest(
     url: string,
-    joinRequestId: number,
+    joinRequestId: string,
     dto: ResolveJoinRequestDTO,
-    UserId: number,
+    UserId: string,
   ) {
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
@@ -100,7 +101,8 @@ export class JoinRequestsService {
         throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
       }
 
-      await qr.manager.save(SharedspaceMembers, {
+      await qr.manager.insert(SharedspaceMembers, {
+        id: uuidv7(),
         UserId: targetJoinRequest.RequestorId,
         SharedspaceId: targetJoinRequest.SharedspaceId,
         RoleId: roleInfo.id,
@@ -120,7 +122,7 @@ export class JoinRequestsService {
   async createJoinRequest(
     url: string,
     dto: CreateJoinRequestDTO,
-    UserId: number,
+    UserId: string,
   ) {
     const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
@@ -137,6 +139,7 @@ export class JoinRequestsService {
     }
 
     await this.joinRequestsRepository.insert({
+      id: uuidv7(),
       SharedspaceId: space.id,
       RequestorId: UserId,
       message: dto.message,
@@ -146,8 +149,8 @@ export class JoinRequestsService {
 
   async rejectJoinRequest(
     url: string,
-    joinRequestId: number,
-    UserId: number,
+    joinRequestId: string,
+    UserId: string,
   ) {
     const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 

@@ -1,5 +1,6 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Users } from "./Users";
+import { UUIDV7Transformer } from "src/common/function/uuidv7Transformer";
 
 @Entity({ name: 'refreshTokens' })
 export class RefreshTokens {
@@ -9,8 +10,8 @@ export class RefreshTokens {
   @Column({ type: 'varchar', unique: true })
   jti: string;
 
-  @Column({ type: 'int', name: 'UserId' })
-  UserId: number;
+  @Column({ type: 'binary', name: 'UserId', length: 16, transformer: new UUIDV7Transformer() })
+  UserId: string;
 
   @CreateDateColumn()
   createdAt: Date;

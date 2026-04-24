@@ -20,6 +20,8 @@ import { Todos } from "src/entities/Todos";
 import { Chats } from "src/entities/Chats";
 import { BatchScheduler } from "src/entities/BatchScheduler";
 import dayjs from "dayjs";
+import { uuidv7 } from "uuidv7";
+import { uuidToString } from "src/common/function/uuidv7Transformer";
 
 @Injectable()
 export class UsersService {
@@ -36,7 +38,7 @@ export class UsersService {
   ) {}
 
   async getUserById<T extends 'full' | 'standard' = 'standard'>(
-    id: number,
+    id: string,
     columnGroup: T = 'standard' as T,
   ): Promise<UserReturnMap<T> | null> {
     const cacheKey = `user:${id}:${columnGroup}`;
@@ -243,20 +245,26 @@ export class UsersService {
       throw new ConflictException(CONFLICT_ACCOUNT_MESSAGE);
     }
 
+    const id = uuidv7();
+
     await this.usersRepository.insert({
+      id,
       email,
       nickname,
       password: await bcrypt.hash(password, Number(process.env.SALT_OR_ROUNDS)),
       provider: USER_PROVIDER.LOCAL,
       status: USER_STATUS.ACTIVE,
     });
+
+    await this.cacheManager.del(`user:${id}:standard`);
+    await this.cacheManager.del(`user:${id}:full`);
     await this.cacheManager.del(`user:${email}:standard`);
     await this.cacheManager.del(`user:${email}:full`);
     await this.cacheManager.del(`user:${nickname}:standard`);
     await this.cacheManager.del(`user:${nickname}:full`);
   }
 
-  async scheduleUserDeletion(UserId: number) {
+  async scheduleUserDeletion(UserId: string) {
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
@@ -291,7 +299,7 @@ export class UsersService {
 
   async deleteRelations(
     TaskId: number,
-    UserId: number,
+    UserId: string,
   ) {
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
@@ -333,7 +341,7 @@ export class UsersService {
       });
 
       if (mySpaces.length) {
-        const ownersToUpdateMembers = await qr.manager.query<{ UserId: number, SharedspaceId: number, ROW_NUM: string}[]>(`
+        const result = await qr.manager.query<{ UserId: Buffer, SharedspaceId: number, ROW_NUM: string}[]>(`
           SELECT *
           FROM (
             SELECT UserId, SharedspaceId, ROW_NUMBER() OVER(PARTITION BY SharedspaceId ORDER BY RoleId ASC, createdAt ASC) AS ROW_NUM
@@ -342,6 +350,13 @@ export class UsersService {
           ) AS oldest_members
           WHERE ROW_NUM = '1'
         `);
+
+        const ownersToUpdateMembers = result.map(member => {
+          return {
+            ...member,
+            UserId: uuidToString(member.UserId),
+          };
+        });
 
         await qr.manager
           .createQueryBuilder()

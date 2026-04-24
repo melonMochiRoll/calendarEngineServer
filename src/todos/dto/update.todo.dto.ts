@@ -1,11 +1,11 @@
-import { IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { IsNotEmpty, IsString, IsUUID } from "class-validator";
 import { IsTimeFormat } from "src/common/validator/IsTimeFormat";
 
 export class UpdateTodoDto {
 
   @IsNotEmpty()
-  @IsNumber()
-  id: number;
+  @IsUUID(7)
+  id: string;
 
   @IsString()
   @IsNotEmpty()

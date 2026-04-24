@@ -1,16 +1,17 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { Users } from "./Users";
 import { Todos } from "./Todos";
 import { SharedspaceMembers } from "./SharedspaceMembers";
 import { JoinRequests } from "./JoinRequests";
 import { Chats } from "./Chats";
 import { Invites } from "./Invites";
+import { UUIDV7Transformer } from "src/common/function/uuidv7Transformer";
 
 @Index('sharedspaces_createdAt_idx', ['createdAt'])
 @Entity({ name: 'sharedspaces' })
 export class Sharedspaces {
-  @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
-  id: number;
+  @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
+  id: string;
 
   @Column({ type: 'varchar', name: 'name', length: 30, default: '새 스페이스' })
   name: string;
@@ -30,8 +31,8 @@ export class Sharedspaces {
   @Column({ type: 'datetime', precision: 6, nullable: true, default: null })
   removedAt: Date | null;
 
-  @Column({ type: 'int', name: 'OwnerId', nullable: true })
-  OwnerId: number | null;
+  @Column({ type: 'binary', name: 'OwnerId', length: 16, nullable: true, transformer: new UUIDV7Transformer() })
+  OwnerId: string | null;
 
   @ManyToOne(() => Users, users => users.OwnedSharedspaces, {
     onUpdate: 'CASCADE',

@@ -53,7 +53,7 @@ export class TodosController {
   @Delete(':url/todos/:id')
   deleteTodo(
     @Param('url') url: string,
-    @Param('id', ParseIntPipe) todoId: number,
+    @Param('id') todoId: string,
     @User() user: Users,
   ) {
     return this.todosService.deleteTodo(url, todoId, user.id);

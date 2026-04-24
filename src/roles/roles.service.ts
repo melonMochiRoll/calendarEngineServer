@@ -61,8 +61,8 @@ export class RolesService {
   }
 
   async getUserRole(
-    UserId: number,
-    SharedspaceId: number,
+    UserId: string,
+    SharedspaceId: string,
   ) {
     const cacheKey = `user:role:${UserId}:${SharedspaceId}`;
     const cachedUserRole = await this.cacheManager.get<Pick<SharedspaceMembers, 'RoleId'> | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
@@ -93,15 +93,15 @@ export class RolesService {
   }
 
   async invalidateUserRoleCache(
-    UserId: number,
-    SharedspaceId: number,
+    UserId: string,
+    SharedspaceId: string,
   ) {
     await this.cacheManager.del(`user:role:${UserId}:${SharedspaceId}`);
   }
 
   async requireRole(
-    UserId: number,
-    SpaceId: number,
+    UserId: string,
+    SpaceId: string,
     roles: TSharedspaceRole[],
   ) {
     if (!UserId || !SpaceId) {
@@ -120,20 +120,20 @@ export class RolesService {
     return roles.find(r => r === role?.name) ? role : null;
   }
 
-  async requireOwner(UserId: number, SpaceId: number) {
+  async requireOwner(UserId: string, SpaceId: string) {
     return await this.requireRole(UserId, SpaceId, [
       SHAREDSPACE_ROLE.OWNER,
     ]);
   }
 
-  async requireMember(UserId: number, SpaceId: number) {
+  async requireMember(UserId: string, SpaceId: string) {
     return await this.requireRole(UserId, SpaceId, [
       SHAREDSPACE_ROLE.OWNER,
       SHAREDSPACE_ROLE.MEMBER,
     ]);
   }
 
-  async requireParticipant(UserId: number, SpaceId: number) {
+  async requireParticipant(UserId: string, SpaceId: string) {
     return await this.requireRole(UserId, SpaceId, [
       SHAREDSPACE_ROLE.OWNER,
       SHAREDSPACE_ROLE.MEMBER,

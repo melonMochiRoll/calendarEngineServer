@@ -17,11 +17,12 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { RolesService } from "src/roles/roles.service";
 import dayjs from "dayjs";
-import { JOB_NAMES, JOB_STATUS, NANOID_SHAREDSPACE_URL_LENGTH, SHAREDSPACE_ROLE, SUBSCRIBEDSPACES_SORT, USER_STATUS } from "src/common/constant/constants";
+import { JOB_NAMES, JOB_STATUS, NANOID_PUBLIC_ID_LENGTH, SHAREDSPACE_ROLE, SUBSCRIBEDSPACES_SORT, USER_STATUS } from "src/common/constant/constants";
 import { Todos } from "src/entities/Todos";
 import { JoinRequests } from "src/entities/JoinRequests";
 import { Invites } from "src/entities/Invites";
 import { BatchScheduler } from "src/entities/BatchScheduler";
+import { uuidv7 } from "uuidv7";
 
 @Injectable()
 export class SharedspacesService {
@@ -114,7 +115,7 @@ export class SharedspacesService {
 
   async getSharedspace(
     url: string,
-    UserId?: number,
+    UserId?: string,
   ) {
     const space = await this.getSharedspaceByUrl(url);
 
@@ -147,7 +148,7 @@ export class SharedspacesService {
 
   async getSubscribedspaces(
     sort: string,
-    UserId: number,
+    UserId: string,
     page = 1,
     limit = 7,
   ) {
@@ -219,28 +220,33 @@ export class SharedspacesService {
     return { spaces, totalCount };
   }
 
-  async createSharedspace(UserId: number) {
+  async createSharedspace(UserId: string) {
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
 
     try {
-      const created = await qr.manager.save(Sharedspaces, {
-        url: nanoid(NANOID_SHAREDSPACE_URL_LENGTH),
+      const SharedspaceId = uuidv7();
+      const url = nanoid(NANOID_PUBLIC_ID_LENGTH);
+
+      await qr.manager.insert(Sharedspaces, {
+        id: SharedspaceId,
+        url,
         OwnerId: UserId,
       });
 
       const ownerInfo = await this.rolesService.getRoleInfo(SHAREDSPACE_ROLE.OWNER);
       
       await qr.manager.insert(SharedspaceMembers, {
+        id: uuidv7(),
         UserId,
-        SharedspaceId: created.id,
+        SharedspaceId,
         RoleId: ownerInfo.id,
       });
 
       await qr.commitTransaction();
 
-      return created.url;
+      return url;
     } catch (err) {
       await qr.rollbackTransaction();
 
@@ -253,7 +259,7 @@ export class SharedspacesService {
   async updateSharedspaceName(
     url: string,
     dto: UpdateSharedspaceNameDTO,
-    UserId: number,
+    UserId: string,
   ) {
     const { name } = dto;
     
@@ -276,7 +282,7 @@ export class SharedspacesService {
   async updateSharedspaceOwner(
     url: string,
     dto: UpdateSharedspaceOwnerDTO,
-    UserId: number,
+    UserId: string,
   ) {
     const { newOwnerId } = dto;
 
@@ -325,7 +331,7 @@ export class SharedspacesService {
   async updateSharedspacePrivate(
     url: string,
     dto: UpdateSharedspacePrivateDTO,
-    UserId: number,
+    UserId: string,
   ) {
     const space = await this.getSharedspaceByUrl(url);
 
@@ -341,7 +347,7 @@ export class SharedspacesService {
 
   async scheduleSharedspaceDeletion(
     url: string,
-    UserId: number,
+    UserId: string,
   ) {
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
@@ -385,7 +391,7 @@ export class SharedspacesService {
 
   async deleteSharedspace(
     TaskId: number,
-    SharedspaceId: number,
+    SharedspaceId: string,
   ) {
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
@@ -422,7 +428,7 @@ export class SharedspacesService {
   async getSharedspaceMembers(
     url: string,
     page = 1,
-    UserId?: number,
+    UserId?: string,
     limit = 10,
   ) {
     const space = await this.getSharedspaceByUrl(url);
@@ -496,7 +502,7 @@ export class SharedspacesService {
   async createSharedspaceMembers(
     url: string,
     dto: CreateSharedspaceMembersDTO,
-    UserId: number,
+    UserId: string,
   ) {
     const { UserId: targetUserId, RoleName } = dto;
 
@@ -542,6 +548,7 @@ export class SharedspacesService {
     }
 
     await this.sharedspaceMembersRepository.insert({
+      id: uuidv7(),
       UserId: targetUserId,
       SharedspaceId: space.id,
       RoleId: roleInfo.id,
@@ -551,7 +558,7 @@ export class SharedspacesService {
   async updateSharedspaceMembers(
     url: string,
     dto: UpdateSharedspaceMembersDTO,
-    UserId: number,
+    UserId: string,
   ) {
     const { UserId: targetUserId, RoleName } = dto;
 
@@ -595,8 +602,8 @@ export class SharedspacesService {
 
   async deleteSharedspaceMembers(
     url: string,
-    targetUserId: number,
-    UserId: number,
+    targetUserId: string,
+    UserId: string,
   ) {
     const space = await this.getSharedspaceByUrl(url);
 

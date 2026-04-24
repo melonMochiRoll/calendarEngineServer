@@ -56,7 +56,7 @@ export class TaskService {
 
     for (const chunk of taskChunks) {
       const batch = chunk.map(task => {
-        const params: { UserId: number } = JSON.parse(task.job_params);
+        const params: { UserId: string } = JSON.parse(task.job_params);
         return this.usersService.deleteRelations(task.id, params.UserId);
       });
       await Promise.all(batch);
@@ -80,7 +80,7 @@ export class TaskService {
 
     for (const chunk of taskChunks) {
       const batch = chunk.map(task => {
-        const params: { SharedspaceId: number } = JSON.parse(task.job_params);
+        const params: { SharedspaceId: string } = JSON.parse(task.job_params);
         return this.sharedspacesService.deleteSharedspace(task.id, params.SharedspaceId);
       });
       await Promise.all(batch);

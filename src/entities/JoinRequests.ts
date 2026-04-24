@@ -1,19 +1,20 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { Users } from "./Users";
 import { Sharedspaces } from "./Sharedspaces";
 import { JOINREQUEST_STATUS } from "src/common/constant/constants";
+import { UUIDV7Transformer } from "src/common/function/uuidv7Transformer";
 
 @Index('joinrequests_createdAt_idx', ['createdAt'])
 @Entity({ name: 'joinrequests' })
 export class JoinRequests {
-  @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
-  id: number;
+  @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
+  id: string;
 
-  @Column({ type: 'int', name: 'SharedspaceId' })
-  SharedspaceId: number;
+  @Column({ type: 'binary', name: 'SharedspaceId', length: 16, transformer: new UUIDV7Transformer() })
+  SharedspaceId: string;
 
-  @Column({ type: 'int', name: 'RequestorId', nullable: true })
-  RequestorId: number | null;
+  @Column({ type: 'binary', name: 'RequestorId', length: 16, nullable: true, transformer: new UUIDV7Transformer() })
+  RequestorId: string | null;
 
   @Column({ type: 'varchar', name: 'status', length: 15, default: JOINREQUEST_STATUS.PENDING })
   status: string;

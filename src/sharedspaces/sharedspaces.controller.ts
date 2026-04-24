@@ -114,7 +114,7 @@ export class SharedspacesController {
   @Delete(':url/members/:id')
   deleteSharedspaceMembers(
     @Param('url') url: string,
-    @Param('id', ParseIntPipe) targetUserId: number,
+    @Param('id') targetUserId: string,
     @User() user: Users,
   ) {
     return this.sharedspacesService.deleteSharedspaceMembers(url, targetUserId, user.id);
