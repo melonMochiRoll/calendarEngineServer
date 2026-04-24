@@ -154,7 +154,9 @@ export class SharedspacesService {
   ) {
     const whereCondition: FindOptionsWhere<SharedspaceMembers> = {
       UserId,
-      removedAt: IsNull(),
+      Sharedspace: {
+        removedAt: IsNull(),
+      },
     };
 
     if (sort === SUBSCRIBEDSPACES_SORT.OWNED) {
