@@ -9,6 +9,7 @@ import { RefreshTokens } from "src/entities/RefreshTokens";
 import dayjs from "dayjs";
 import { JwtService } from "@nestjs/jwt";
 import { ACCESS_TOKEN_COOKIE_NAME, CSRF_TOKEN_COOKIE_NAME, OAUTH2_CSRF_STATE_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } from "src/common/constant/auth.constants";
+import { REFRESH_TOKEN_JTI_LENGTH } from "src/common/constant/constants";
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 
@@ -37,7 +38,7 @@ export class AuthService {
 
     const accessTokenExpires = dayjs().add(15, 'minute');
     const refreshTokenExpires = dayjs().add(7, 'day');
-    const jti = nanoid(+process.env.REFRESH_TOKEN_JTI_SIZE);
+    const jti = nanoid(REFRESH_TOKEN_JTI_LENGTH);
 
     const accessToken = this.jwtService.sign({
       UserId,

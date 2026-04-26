@@ -1,6 +1,8 @@
 
 export const NANOID_SHAREDSPACE_URL_LENGTH = 12;
 
+export const REFRESH_TOKEN_JTI_LENGTH = 20;
+
 export const USER_PROVIDER = {
   LOCAL: 'local',
   NAVER: 'naver',
