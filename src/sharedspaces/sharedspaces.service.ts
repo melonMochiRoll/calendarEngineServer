@@ -300,10 +300,6 @@ export class SharedspacesService {
         throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
       }
 
-      if (space.OwnerId !== UserId) {
-        throw new BadRequestException(BAD_REQUEST_MESSAGE);
-      }
-
       if (space.OwnerId === newOwnerId) {
         throw new ConflictException(CONFLICT_OWNER_MESSAGE);
       }
