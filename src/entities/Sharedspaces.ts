@@ -6,7 +6,7 @@ import { JoinRequests } from "./JoinRequests";
 import { Chats } from "./Chats";
 import { Invites } from "./Invites";
 import { UUIDV7Transformer } from "src/common/function/uuidv7Transformer";
-import { NANOID_SHAREDSPACE_URL_LENGTH } from "src/common/constant/constants";
+import { SHAREDSPACE_URL_LENGTH } from "src/common/constant/constants";
 
 @Index('sharedspaces_createdAt_idx', ['createdAt'])
 @Entity({ name: 'sharedspaces' })
@@ -17,7 +17,7 @@ export class Sharedspaces {
   @Column({ type: 'varchar', name: 'name', length: 30, default: '새 스페이스' })
   name: string;
 
-  @Column({ type: 'char', name: 'url', length: NANOID_SHAREDSPACE_URL_LENGTH, unique: true })
+  @Column({ type: 'char', name: 'url', length: SHAREDSPACE_URL_LENGTH, unique: true })
   url: string;
 
   @Column({ type: 'boolean', default: 1 })

@@ -1,5 +1,5 @@
 
-export const NANOID_SHAREDSPACE_URL_LENGTH = 12;
+export const SHAREDSPACE_URL_LENGTH = 12;
 
 export const REFRESH_TOKEN_JTI_LENGTH = 20;
 
