@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsUUID } from "class-validator";
+import { IsDateString, IsNotEmpty, IsString, IsUUID } from "class-validator";
 import { IsTimeFormat } from "src/common/validator/IsTimeFormat";
 
 export class UpdateTodoDto {
@@ -7,9 +7,13 @@ export class UpdateTodoDto {
   @IsUUID(7)
   id: string;
 
-  @IsString()
   @IsNotEmpty()
+  @IsString()
   description: string;
+  
+  @IsNotEmpty()
+  @IsDateString()
+  date: string;
 
   @IsTimeFormat({
     message: '$property은 Time형식이 아닙니다.'
