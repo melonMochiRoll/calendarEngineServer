@@ -155,30 +155,21 @@ export class InvitesService {
         throw new ConflictException(CONFLICT_USER_MESSAGE);
       }
 
-      const targetInvite = await this.invitesRepository.findOne({
-        select: {
-          id: true,
-        },
-        where: {
+      const result = await qr.manager.update(Invites,
+        {
           id: targetInviteId,
           InviteeId: UserId,
           status: INVITE_STATUS.PENDING,
           expiredAt: MoreThan(dayjs().toDate()),
         },
-      });
-
-      if (!targetInvite) {
-        throw new BadRequestException(BAD_REQUEST_MESSAGE);
-      }
-
-      await qr.manager.update(Invites,
-        {
-          id: targetInvite.id,
-        },
         {
           status: INVITE_STATUS.ACCEPTED,
         },
       );
+
+      if (!result.affected) {
+        throw new BadRequestException(BAD_REQUEST_MESSAGE);
+      }
 
       const viewerInfo = await this.rolesService.getRoleInfo(SHAREDSPACE_ROLE.VIEWER);
 
@@ -208,30 +199,21 @@ export class InvitesService {
   ) {
     const { id: targetInviteId } = dto;
 
-    const targetInvite = await this.invitesRepository.findOne({
-      select: {
-        id: true,
-      },
-      where: {
+    const result = await this.invitesRepository.update(
+      {
         id: targetInviteId,
         InviteeId: UserId,
         status: INVITE_STATUS.PENDING,
         expiredAt: MoreThan(dayjs().toDate()),
       },
-    });
-
-    if (!targetInvite) {
-      throw new BadRequestException(BAD_REQUEST_MESSAGE);
-    }
-
-    await this.invitesRepository.update(
-      {
-        id: targetInvite.id,
-      },
       {
         status: INVITE_STATUS.REJECTED,
       }
     );
+
+    if (!result.affected) {
+      throw new BadRequestException(BAD_REQUEST_MESSAGE);
+    }
   }
 
   async cancelInvite(
@@ -247,22 +229,18 @@ export class InvitesService {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
-    const targetInvite = await this.invitesRepository.findOne({
-      select: {
-        id: true,
-      },
-      where: {
+    const result = await this.invitesRepository.update(
+      {
         id: targetInviteId,
         InviterId: UserId,
         status: INVITE_STATUS.PENDING,
         expiredAt: MoreThan(dayjs().toDate()),
       },
-    });
+      { status: INVITE_STATUS.CANCELED }
+    );
 
-    if (!targetInvite) {
+    if (!result.affected) {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
-
-    await this.invitesRepository.update({ id: targetInvite.id }, { status: INVITE_STATUS.CANCELED });
   }
 }

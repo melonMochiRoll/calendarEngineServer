@@ -160,19 +160,13 @@ export class JoinRequestsService {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
-    const targetJoinRequest = await this.joinRequestsRepository.findOne({
-      select: {
-        SharedspaceId: true,
-      },
-      where: {
-        id: joinRequestId,
-      },
-    });
+    const result = await this.joinRequestsRepository.update(
+      { id: joinRequestId },
+      { status: JOINREQUEST_STATUS.REJECTED }
+    );
 
-    if (space.id !== targetJoinRequest?.SharedspaceId) {
+    if (!result.affected) {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
-
-    await this.joinRequestsRepository.update({ id: targetJoinRequest.id }, { status: JOINREQUEST_STATUS.REJECTED });
   }
 }

@@ -248,24 +248,24 @@ export class ChatsService {
     const { ChatId, content } = dto;
 
     const space = await this.sharedspacesService.getSharedspaceByUrl(url);
-    const targetChat = await this.chatsRepository.findOneBy({ id: ChatId });
-
-    if (
-      targetChat?.SenderId !== UserId ||
-      targetChat?.SharedspaceId !== space.id
-    ) {
-      throw new BadRequestException(BAD_REQUEST_MESSAGE);
-    }
 
     const updatedAt = dayjs().toDate();
 
-    await this.chatsRepository.update(
-      { id: ChatId },
+    const result = await this.chatsRepository.update(
+      {
+        id: ChatId,
+        SenderId: UserId,
+        SharedspaceId: space.id,
+      },
       {
         content,
         updatedAt,
       }
     );
+
+    if (!result.affected) {
+      throw new BadRequestException(BAD_REQUEST_MESSAGE);
+    }
 
     this.eventsGateway.server
       .to(`/sharedspace-${space.url}`)
