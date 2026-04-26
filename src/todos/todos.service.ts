@@ -161,18 +161,16 @@ export class TodosService {
       });
     }
 
-    const targetTodo = await this.todosRepository.findOneBy({ id: todoId });
-
-    if (targetTodo?.SharedspaceId !== space.id) {
-      throw new BadRequestException(BAD_REQUEST_MESSAGE);
-    }
-
-    await this.todosRepository.update({ id: todoId }, {
+    const result = await this.todosRepository.update({ id: todoId }, {
       ...rest,
       EditorId: UserId,
     });
 
-    await this.invalidateTodosCache(space.url, targetTodo.date);
+    if (!result.affected) {
+      throw new BadRequestException(BAD_REQUEST_MESSAGE);
+    }
+
+    await this.invalidateTodosCache(space.url, dto.date);
   }
 
   async deleteTodo(
@@ -258,7 +256,7 @@ export class TodosService {
     };
   }
 
-  async invalidateTodosCache(url: string, date: Date) {
+  async invalidateTodosCache(url: string, date: Date | string) {
     const targetDate = dayjs(date);
     const [ year, month ] = [ targetDate.year(), `${targetDate.month() + 1}`.padStart(2, '0') ];
 
