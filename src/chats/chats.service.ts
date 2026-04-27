@@ -410,28 +410,25 @@ export class ChatsService {
       throw new BadRequestException(CHAT_IMAGE_TOO_MANY_MESSAGE);
     }
 
-    const keyAndUrls = await Promise.all(
-      metaDatas.map(async (metaData) => {
-        const { fileName, fileSize, contentType } = metaData;
+    const batch = metaDatas.map(async (metaData) => {
+      const { id, fileName, fileSize, contentType } = metaData;
 
-        if (fileSize >= 5 * 1024 * 1024) {
-          throw new BadRequestException(CHAT_IMAGE_TOO_LARGE_MESSAGE);
-        }
-        
-        const key = this.storageR2Service.generateStorageKey(url, fileName);
-        const presignedUrl = await this.storageR2Service.generatePresignedPutUrl(key, contentType);
+      if (fileSize >= 5 * 1024 * 1024) {
+        throw new BadRequestException(CHAT_IMAGE_TOO_LARGE_MESSAGE);
+      }
+      
+      const key = this.storageR2Service.generateStorageKey(url, fileName);
+      const presignedUrl = await this.storageR2Service.generatePresignedPutUrl(key, contentType);
+      await this.imagesRepository.insert({ id, status: IMAGE_STATUS.PENDING, path: key });
 
-        return {
-          key,
-          presignedUrl,
-          contentType,
-        };
-      })
-    );
+      return {
+        key,
+        presignedUrl,
+        contentType,
+      };
+    })
 
-    for (const { key } of keyAndUrls) {
-      await this.imagesRepository.insert({ id: uuidv7(), status: IMAGE_STATUS.PENDING, path: key });
-    }
+    const keyAndUrls = await Promise.all(batch);
 
     return keyAndUrls;
   }
