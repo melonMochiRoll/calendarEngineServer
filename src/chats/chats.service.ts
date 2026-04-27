@@ -145,7 +145,7 @@ export class ChatsService {
     dto: CreateSharedspaceChatDTO,
     UserId: string,
   ) {
-    const { content, imageKeys } = dto;
+    const { id, content, imageIds } = dto;
 
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
@@ -167,8 +167,6 @@ export class ChatsService {
         });
       }
 
-      const id = uuidv7();
-
       await qr.manager.insert(Chats, {
         id,
         content,
@@ -176,18 +174,17 @@ export class ChatsService {
         SharedspaceId: space.id,
       });
 
-      if (imageKeys.length) {
-        await Promise.all(
-          imageKeys.map(imageKey =>
-            qr.manager.update(
-              Images,
-              { path: imageKey },
-              {
-                status: IMAGE_STATUS.ACTIVE,
-                ChatId: id,
-              })
-          )
+      if (imageIds.length) {
+        const batch = imageIds.map(imageId =>
+          qr.manager.update(Images,
+            { id: imageId },
+            {
+              status: IMAGE_STATUS.ACTIVE,
+              ChatId: id,
+            })
         );
+
+        await Promise.all(batch);
       }
 
       await qr.commitTransaction();
