@@ -1,8 +1,7 @@
-import { IsArray, IsNotEmpty, IsString } from "class-validator";
+import { IsArray, IsString } from "class-validator";
 
 export class CreateSharedspaceChatDTO {
 
-  @IsNotEmpty()
   @IsString()
   content: string;
 
