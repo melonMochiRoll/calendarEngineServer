@@ -21,6 +21,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 }
 
+@Injectable()
 export class PublicAuthGuard extends AuthGuard('jwt') {
   async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest();
