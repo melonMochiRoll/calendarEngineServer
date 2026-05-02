@@ -4,7 +4,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Users } from "src/entities/Users";
 import { DataSource, Repository } from "typeorm";
 import { nanoid } from "nanoid";
-import { Request, Response } from "express";
+import { Response } from "express";
 import { RefreshTokens } from "src/entities/RefreshTokens";
 import dayjs from "dayjs";
 import { JwtService } from "@nestjs/jwt";
@@ -34,10 +34,7 @@ export class AuthService {
     secure: !isDevelopment,
   } as const;
 
-  async jwtLogin(
-    response: Response,
-    UserId: string,
-  ) {
+  async jwtLogin(UserId: string) {
     const qr = this.dataSource.createQueryRunner();
 
     const accessTokenExpires = dayjs().add(15, 'minute');
@@ -67,21 +64,22 @@ export class AuthService {
         expiresAt: refreshTokenExpires.toDate(),
       });
 
-      response.cookie(ACCESS_TOKEN_COOKIE_NAME, accessToken, {
-        ...this.tokenCookieOption,
-        expires: accessTokenExpires.toDate(),
-      });
-      response.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
-        ...this.tokenCookieOption,
-        expires: refreshTokenExpires.toDate(),
-      });
-
       await qr.commitTransaction();
+
+      return {
+        accessToken: {
+          name: ACCESS_TOKEN_COOKIE_NAME,
+          token: accessToken,
+          option: this.tokenCookieOption,
+        },
+        refreshToken: {
+          name: REFRESH_TOKEN_COOKIE_NAME,
+          token: refreshToken,
+          option: this.tokenCookieOption,
+        },
+      }
     } catch (err) {
       await qr.rollbackTransaction();
-
-      response.clearCookie(ACCESS_TOKEN_COOKIE_NAME, this.tokenCookieOption);
-      response.clearCookie(REFRESH_TOKEN_COOKIE_NAME, this.tokenCookieOption);
 
       throw err;
     } finally {
@@ -89,7 +87,7 @@ export class AuthService {
     }
   }
 
-  async getGoogleAuthorizationUrl(response: Response) {
+  async getGoogleAuthorizationUrl() {
     const scope = [
       'https://www.googleapis.com/auth/userinfo.email',
       'https://www.googleapis.com/auth/userinfo.profile',
@@ -107,13 +105,16 @@ export class AuthService {
       prompt: 'select_account',
     }).toString();
 
-    response
-      .cookie(OAUTH2_CSRF_STATE_COOKIE_NAME, state, {
+    return {
+      name: OAUTH2_CSRF_STATE_COOKIE_NAME,
+      value: state,
+      option: {
         httpOnly: true,
         sameSite: 'lax',
         secure: !isDevelopment,
-      })
-      .json(`${request_url}?${params}`);
+      } as const,
+      url: `${request_url}?${params}`,
+    };
   }
 
   async getNaverAuthorizationUrl(response: Response) {
@@ -127,13 +128,16 @@ export class AuthService {
       redirect_uri: `${process.env.SERVER_ORIGIN}/api/auth/login/oauth2/naver/callback`,
     }).toString();
 
-    response
-      .cookie(OAUTH2_CSRF_STATE_COOKIE_NAME, state, {
+    return {
+      name: OAUTH2_CSRF_STATE_COOKIE_NAME,
+      value: state,
+      option: {
         httpOnly: true,
         sameSite: 'lax',
         secure: !isDevelopment,
-      })
-      .json(`${request_url}?${params}`);
+      } as const,
+      url: `${request_url}?${params}`,
+    };
   }
 
   async validateUser(
@@ -168,12 +172,14 @@ export class AuthService {
     return withoutPassword;
   }
 
-  async logout(response: Response, user: Users) {
-    await this.refreshTokensRepository.delete({ UserId: user.id });
-  
-    response.clearCookie(ACCESS_TOKEN_COOKIE_NAME, this.tokenCookieOption);
-    response.clearCookie(REFRESH_TOKEN_COOKIE_NAME, this.tokenCookieOption);
-    response.clearCookie(CSRF_TOKEN_COOKIE_NAME, this.tokenCookieOption);
+  async logout(UserId: string) {
+    await this.refreshTokensRepository.delete({ UserId });
+
+    return [
+      { name: ACCESS_TOKEN_COOKIE_NAME, option: this.tokenCookieOption },
+      { name: REFRESH_TOKEN_COOKIE_NAME, option: this.tokenCookieOption },
+      { name: CSRF_TOKEN_COOKIE_NAME, option: this.tokenCookieOption },
+    ];
   }
 
   getCsrfToken() {
@@ -184,11 +190,7 @@ export class AuthService {
     };
   }
 
-  async refreshAuthToken(
-    request: Request,
-    response: Response,
-  ) {
-    const refreshToken = request?.cookies[REFRESH_TOKEN_COOKIE_NAME];
+  async refreshAuthToken(refreshToken: string) {
     const now = dayjs();
 
     if (!refreshToken) {
@@ -224,7 +226,6 @@ export class AuthService {
       throw new BadRequestException(NOT_FOUND_USER);
     }
 
-    await this.jwtLogin(response, user.id);
-    response.send('ok');
+    return await this.jwtLogin(user.id);
   }
 }

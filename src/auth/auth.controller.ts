@@ -9,6 +9,7 @@ import { OAuth2CSRFGuard } from "./authGuard/oauth2.csrf.guard";
 import { JwtLoginAuthGuard } from "./authGuard/jwt.local.auth.guard";
 import { IsNotJwtAuthenicatedGuard, JwtAuthGuard, PublicAuthGuard } from "./authGuard/jwt.auth.guard";
 import { getOrigin } from "src/common/function/getOrigin";
+import { REFRESH_TOKEN_COOKIE_NAME } from "src/common/constant/auth.constants";
 
 @Controller('api/auth')
 export class AuthController {
@@ -22,15 +23,30 @@ export class AuthController {
     @Res() res: Response,
     @User() user: Users,
   ) {
-    await this.authService.jwtLogin(res, user.id);
+    const { accessToken, refreshToken } = await this.authService.jwtLogin(user.id);
+
+    res.cookie(
+      accessToken.name,
+      accessToken.token, 
+      accessToken.option,
+    );
+    res.cookie(
+      refreshToken.name,
+      refreshToken.token, 
+      refreshToken.option,
+    );
 
     res.status(201).send(user);
   }
 
   @UseGuards(IsNotJwtAuthenicatedGuard)
   @Get('login/oauth2/google')
-  loginOAuth2Google(@Res() res: Response) {
-    this.authService.getGoogleAuthorizationUrl(res);
+  async loginOAuth2Google(@Res() res: Response) {
+    const { name, value, option, url } = await this.authService.getGoogleAuthorizationUrl();
+
+    res
+      .cookie(name, value, option)
+      .json(url);
   }
 
   @Redirect(getOrigin())
@@ -40,15 +56,30 @@ export class AuthController {
     @Res() res: Response,
     @User() user: Users,
   ) {
-    await this.authService.jwtLogin(res, user.id);
+    const { accessToken, refreshToken } = await this.authService.jwtLogin(user.id);
+
+    res.cookie(
+      accessToken.name,
+      accessToken.token, 
+      accessToken.option,
+    );
+    res.cookie(
+      refreshToken.name,
+      refreshToken.token, 
+      refreshToken.option,
+    );
 
     res.status(201).send(user);
   }
 
   @UseGuards(IsNotJwtAuthenicatedGuard)
   @Get('login/oauth2/naver')
-  loginOAuth2Naver(@Res() res: Response) {
-    this.authService.getNaverAuthorizationUrl(res);
+  async loginOAuth2Naver(@Res() res: Response) {
+    const { name, value, option, url } = await this.authService.getNaverAuthorizationUrl(res);
+
+    res
+      .cookie(name, value, option)
+      .json(url);
   }
 
   @Redirect(getOrigin())
@@ -58,7 +89,18 @@ export class AuthController {
     @Res() res: Response,
     @User() user: Users,
   ) {
-    await this.authService.jwtLogin(res, user.id);
+    const { accessToken, refreshToken } = await this.authService.jwtLogin(user.id);
+
+    res.cookie(
+      accessToken.name,
+      accessToken.token, 
+      accessToken.option,
+    );
+    res.cookie(
+      refreshToken.name,
+      refreshToken.token, 
+      refreshToken.option,
+    );
 
     res.status(201).send(user);
   }
@@ -66,7 +108,11 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   async logout(@Res() res: Response, @User() user: Users) {
-    await this.authService.logout(res, user);
+    const clearCookies = await this.authService.logout(user.id);
+
+    clearCookies.forEach(({name, option}) => {
+      res.clearCookie(name, option);
+    });
 
     res.send('ok');
   }
@@ -86,10 +132,27 @@ export class AuthController {
 
   @UseGuards(IsNotJwtAuthenicatedGuard)
   @Post('refresh')
-  refreshAuthToken(
+  async refreshAuthToken(
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    return this.authService.refreshAuthToken(req, res);
+    const refreshToken = req?.cookies[REFRESH_TOKEN_COOKIE_NAME];
+    const {
+      accessToken,
+      refreshToken: newRefreshToken,
+    } = await this.authService.refreshAuthToken(refreshToken);
+
+    res.cookie(
+      accessToken.name,
+      accessToken.token, 
+      accessToken.option,
+    );
+    res.cookie(
+      newRefreshToken.name,
+      newRefreshToken.token, 
+      newRefreshToken.option,
+    );
+
+    res.send('ok');
   }
 }
