@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Redirect, Res, UseGuards } from "@nestjs/common";
+import { Controller, Get, Post, Redirect, Req, Res, UseGuards } from "@nestjs/common";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
-import { Response } from "express";
+import { Request, Response } from "express";
 import { NaverAuthGuard } from "./authGuard/naver.auth.guard";
 import { GoogleAuthGuard } from "./authGuard/google.auth.guard";
 import { AuthService } from "./auth.service";
@@ -16,7 +16,7 @@ export class AuthController {
     private authService: AuthService,
   ) {}
 
-  @UseGuards(IsNotJwtAuthenicatedGuard, JwtLoginAuthGuard)
+  @UseGuards(JwtLoginAuthGuard)
   @Post('login/jwt')
   async jwtLogin(
     @Res() res: Response,
@@ -75,5 +75,14 @@ export class AuthController {
   @Get('csrf-token')
   getCsrfToken(@Res() res: Response) {
     this.authService.getCsrfToken(res);
+  }
+
+  @UseGuards(IsNotJwtAuthenicatedGuard)
+  @Post('refresh')
+  refreshAuthToken(
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    return this.authService.refreshAuthToken(req, res);
   }
 }

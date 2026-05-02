@@ -1,15 +1,18 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
 import bcrypt from 'bcrypt';
 import { InjectRepository } from "@nestjs/typeorm";
 import { Users } from "src/entities/Users";
 import { DataSource, Repository } from "typeorm";
 import { nanoid } from "nanoid";
-import { Response } from "express";
+import { Request, Response } from "express";
 import { RefreshTokens } from "src/entities/RefreshTokens";
 import dayjs from "dayjs";
 import { JwtService } from "@nestjs/jwt";
 import { ACCESS_TOKEN_COOKIE_NAME, CSRF_TOKEN_COOKIE_NAME, OAUTH2_CSRF_STATE_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } from "src/common/constant/auth.constants";
-import { REFRESH_TOKEN_JTI_LENGTH } from "src/common/constant/constants";
+import { REFRESH_TOKEN_JTI_LENGTH, USER_STATUS } from "src/common/constant/constants";
+import { TRefreshTokenPayload } from "src/typings/types";
+import { NOT_FOUND_USER, TOKEN_EXPIRED } from "src/common/constant/error.message";
+import { UsersService } from "src/users/users.service";
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 
@@ -18,6 +21,7 @@ export class AuthService {
   constructor(
     private dataSource: DataSource,
     private jwtService: JwtService,
+    private usersService: UsersService,
     @InjectRepository(Users)
     private usersRepository: Repository<Users>,
     @InjectRepository(RefreshTokens)
@@ -182,5 +186,49 @@ export class AuthService {
         this.tokenCookieOption
       )
       .json({ csrfToken });
+  }
+
+  async refreshAuthToken(
+    request: Request,
+    response: Response,
+  ) {
+    const refreshToken = request?.cookies[REFRESH_TOKEN_COOKIE_NAME];
+    const now = dayjs();
+
+    if (!refreshToken) {
+      throw new UnauthorizedException(TOKEN_EXPIRED);
+    }
+
+    const refreshTokenPayload = await this.jwtService.verifyAsync<TRefreshTokenPayload>(refreshToken, {
+      secret: process.env.JWT_SECRET,
+      ignoreExpiration: true,
+    });
+
+    if (now.isSameOrAfter(dayjs(refreshTokenPayload.exp, 'X'))) {
+      throw new UnauthorizedException(TOKEN_EXPIRED);
+    }
+
+    const refreshTokenData = await this.refreshTokensRepository.findOne({
+      where: {
+        jti: refreshTokenPayload.jti,
+        UserId: refreshTokenPayload.UserId,
+      },
+    });
+
+    if (
+      !refreshTokenData ||
+      (refreshTokenData.revokedAt && now.isSameOrAfter(dayjs(refreshTokenData.revokedAt)))
+    ) {
+      throw new UnauthorizedException(TOKEN_EXPIRED);
+    }
+
+    const user = await this.usersService.getUserById(refreshTokenPayload.UserId);
+
+    if (!user || user.status !== USER_STATUS.ACTIVE) {
+      throw new BadRequestException(NOT_FOUND_USER);
+    }
+
+    await this.jwtLogin(response, user.id);
+    response.send('ok');
   }
 }
