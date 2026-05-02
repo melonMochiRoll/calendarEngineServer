@@ -74,7 +74,14 @@ export class AuthController {
   @UseGuards(PublicAuthGuard)
   @Get('csrf-token')
   getCsrfToken(@Res() res: Response) {
-    this.authService.getCsrfToken(res);
+    const { name, csrfToken, option } = this.authService.getCsrfToken();
+
+    res.cookie(
+      name,
+      csrfToken,
+      option
+    )
+    .json({ csrfToken });
   }
 
   @UseGuards(IsNotJwtAuthenicatedGuard)

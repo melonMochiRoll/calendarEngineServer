@@ -176,16 +176,12 @@ export class AuthService {
     response.clearCookie(CSRF_TOKEN_COOKIE_NAME, this.tokenCookieOption);
   }
 
-  getCsrfToken(response: Response) {
-    const csrfToken = nanoid(+process.env.CSRF_TOKEN_SIZE);
-
-    response
-      .cookie(
-        CSRF_TOKEN_COOKIE_NAME,
-        csrfToken,
-        this.tokenCookieOption
-      )
-      .json({ csrfToken });
+  getCsrfToken() {
+    return {
+      name: CSRF_TOKEN_COOKIE_NAME,
+      csrfToken: nanoid(+process.env.CSRF_TOKEN_SIZE),
+      option: this.tokenCookieOption,
+    };
   }
 
   async refreshAuthToken(
