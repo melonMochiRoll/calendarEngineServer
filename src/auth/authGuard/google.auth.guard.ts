@@ -7,8 +7,8 @@ import { Users } from "src/entities/Users";
 
 @Injectable()
 export class GoogleAuthGuard extends AuthGuard('google') {
-  async canActivate(context: ExecutionContext) {
-    return await super.canActivate(context) as boolean;
+  canActivate(context: ExecutionContext) {
+    return super.canActivate(context) as boolean;
   }
 
   handleRequest<TUser = Users>(err: Error | null, user: TUser | false, info: never, ctx: ExecutionContext) {

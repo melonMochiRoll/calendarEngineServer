@@ -6,7 +6,7 @@ import { getOrigin } from "src/common/function/getOrigin";
 
 @Injectable()
 export class OAuth2CSRFGuard implements CanActivate {
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest();
     const response = context.switchToHttp().getResponse();
 
