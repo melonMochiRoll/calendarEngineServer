@@ -4,7 +4,7 @@ import { PassportStrategy } from "@nestjs/passport";
 import { Request } from "express";
 import { Strategy } from "passport-custom";
 import { ACCESS_TOKEN_COOKIE_NAME, ERROR_TYPE } from "src/common/constant/auth.constants";
-import { NOT_FOUND_USER, TOKEN_EXPIRED } from "src/common/constant/error.message";
+import { NOT_FOUND_USER, TOKEN_EXPIRED, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
 import { TAccessTokenPayload } from "src/typings/types";
 import { UsersService } from "src/users/users.service";
 import dayjs from "dayjs";
@@ -21,9 +21,9 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 
   async validate(request: Request) {
     const accessToken = request?.cookies[ACCESS_TOKEN_COOKIE_NAME];
-
+    
     if (!accessToken) {
-      return false;
+      throw new UnauthorizedException(UNAUTHORIZED_MESSAGE);
     }
 
     const now = dayjs();
