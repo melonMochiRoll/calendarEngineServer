@@ -1,7 +1,7 @@
 import { ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
+import { ERROR_TYPE } from "src/common/constant/auth.constants";
 import { ACCESS_DENIED_MESSAGE, TOKEN_EXPIRED } from "src/common/constant/error.message";
-import { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } from "src/common/constant/auth.constants";
 import { Users } from "src/entities/Users";
 
 @Injectable()
@@ -31,6 +31,10 @@ export class PublicAuthGuard extends AuthGuard('jwt') {
   }
 
   handleRequest<TUser = Users>(err: any, user: TUser | null) {
+    if (err?.response?.metaData?.type === ERROR_TYPE.TOKEN_EXPIRED) {
+      throw err;
+    }
+
     return user;
   }
 }
