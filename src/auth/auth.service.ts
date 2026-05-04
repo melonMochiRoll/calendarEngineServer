@@ -11,7 +11,7 @@ import { JwtService } from "@nestjs/jwt";
 import { ACCESS_TOKEN_COOKIE_NAME, CSRF_TOKEN_COOKIE_NAME, OAUTH2_CSRF_STATE_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } from "src/common/constant/auth.constants";
 import { REFRESH_TOKEN_JTI_LENGTH, USER_STATUS } from "src/common/constant/constants";
 import { TRefreshTokenPayload } from "src/typings/types";
-import { NOT_FOUND_USER, TOKEN_EXPIRED } from "src/common/constant/error.message";
+import { NOT_FOUND_USER, TOKEN_EXPIRED, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
 import { UsersService } from "src/users/users.service";
 
 const isDevelopment = process.env.NODE_ENV === 'development';
@@ -194,7 +194,7 @@ export class AuthService {
     const now = dayjs();
 
     if (!refreshToken) {
-      throw new UnauthorizedException(TOKEN_EXPIRED);
+      throw new UnauthorizedException(UNAUTHORIZED_MESSAGE);
     }
 
     const refreshTokenPayload = await this.jwtService.verifyAsync<TRefreshTokenPayload>(refreshToken, {
