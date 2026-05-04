@@ -1,7 +1,7 @@
-import { ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { ExecutionContext, ForbiddenException, Injectable } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { ERROR_TYPE } from "src/common/constant/auth.constants";
-import { ACCESS_DENIED_MESSAGE, TOKEN_EXPIRED } from "src/common/constant/error.message";
+import { ACCESS_DENIED_MESSAGE } from "src/common/constant/error.message";
 import { Users } from "src/entities/Users";
 
 @Injectable()
@@ -11,13 +11,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     request.res = context.switchToHttp().getResponse();
 
     return await super.canActivate(context) as boolean;
-  }
-
-  handleRequest<TUser = Users>(err: any, user: TUser | null) {
-    if (err) {
-      throw new UnauthorizedException(TOKEN_EXPIRED);
-    }
-    return user;
   }
 }
 
