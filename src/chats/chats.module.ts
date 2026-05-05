@@ -6,7 +6,6 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { Chats } from "src/entities/Chats";
 import { RolesModule } from "src/roles/roles.module";
 import { Images } from "src/entities/Images";
-import { EventsModule } from "src/events/events.module";
 import { StorageModule } from "src/storage/storage.module";
 import { RefreshTokens } from "src/entities/RefreshTokens";
 
@@ -17,7 +16,6 @@ import { RefreshTokens } from "src/entities/RefreshTokens";
       Images,
       RefreshTokens,
     ]),
-    EventsModule,
     StorageModule,
     SharedspacesModule,
     RolesModule,
