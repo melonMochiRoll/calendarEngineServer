@@ -8,6 +8,7 @@ export interface IErrorResponse {
   message: string,
   metaData?: {
     spaceUrl?: string,
+    type?: string,
   },
 };
 
