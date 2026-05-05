@@ -3,18 +3,16 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CHAT_IMAGE_TOO_LARGE_MESSAGE, CHAT_IMAGE_TOO_MANY_MESSAGE } from "src/common/constant/error.message";
 import { Chats } from "src/entities/Chats";
 import { Images } from "src/entities/Images";
-import { EventsGateway } from "src/events/events.gateway";
 import { RolesService } from "src/roles/roles.service";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { DataSource, In, IsNull, LessThan, Repository } from "typeorm";
-import { CreateSharedspaceChatDTO } from "./dto/create.sharedspace.chat.dto";
 import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import dayjs from "dayjs";
 import { GeneratePresignedPutUrlDTO } from "./dto/generate.presigned.put.url.dto";
-import { CHAT_EVENT, IMAGE_STATUS } from "src/common/constant/constants";
+import { IMAGE_STATUS } from "src/common/constant/constants";
 import { StorageR2Service } from "src/storage/storage.r2.service";
-import { uuidv7 } from "uuidv7";
+import { SendSharedspacechatDTO } from "src/events/dto/send.sharedspace.chat.dto";
 
 @Injectable()
 export class ChatsService {
@@ -24,7 +22,6 @@ export class ChatsService {
     private chatsRepository: Repository<Chats>,
     @InjectRepository(Images)
     private imagesRepository: Repository<Images>,
-    private readonly eventsGateway: EventsGateway,
     private rolesService: RolesService,
     private storageR2Service: StorageR2Service,
     private sharedspacesService: SharedspacesService,
@@ -141,11 +138,10 @@ export class ChatsService {
   }
 
   async createSharedspaceChat(
-    url: string,
-    dto: CreateSharedspaceChatDTO,
+    dto: SendSharedspacechatDTO,
     UserId: string,
   ) {
-    const { id, content, imageIds } = dto;
+    const { url, id, content, imageIds } = dto;
 
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
@@ -223,11 +219,10 @@ export class ChatsService {
         );
       }
 
-      this.eventsGateway.server
-        .to(`/sharedspace-${space.url}`)
-        .emit(`publicChats:${CHAT_EVENT.CHAT_CREATED}`, chatWithUser);
-
-      return Object.assign(chatWithUser, { permission: { isSender: true } });
+      return {
+        sender: Object.assign({ ...chatWithUser }, { permission: { isSender: true } }),
+        receiver: Object.assign({ ...chatWithUser }, { permission: { isSender: false } }),
+      };
     } catch (err) {
       await qr.rollbackTransaction();
 
@@ -264,9 +259,9 @@ export class ChatsService {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
-    this.eventsGateway.server
-      .to(`/sharedspace-${space.url}`)
-      .emit(`publicChats:${CHAT_EVENT.CHAT_UPDATED}`, { id: ChatId, content, updatedAt });
+    // this.eventsGateway.server
+    //   .to(`/sharedspace-${space.url}`)
+    //   .emit(`publicChats:${CHAT_EVENT.CHAT_UPDATED}`, { id: ChatId, content, updatedAt });
   };
 
   async deleteSharedspaceChat(
@@ -315,9 +310,9 @@ export class ChatsService {
 
       await qr.commitTransaction();
 
-      this.eventsGateway.server
-        .to(`/sharedspace-${space.url}`)
-        .emit(`publicChats:${CHAT_EVENT.CHAT_DELETED}`, ChatId);
+      // this.eventsGateway.server
+      //   .to(`/sharedspace-${space.url}`)
+      //   .emit(`publicChats:${CHAT_EVENT.CHAT_DELETED}`, ChatId);
     } catch (err) {
       await qr.rollbackTransaction();
 
@@ -375,9 +370,9 @@ export class ChatsService {
 
         await qr.commitTransaction();
 
-        this.eventsGateway.server
-          .to(`/sharedspace-${space.url}`)
-          .emit(`publicChats:${CHAT_EVENT.CHAT_DELETED}`, ChatId);
+        // this.eventsGateway.server
+        //   .to(`/sharedspace-${space.url}`)
+        //   .emit(`publicChats:${CHAT_EVENT.CHAT_DELETED}`, ChatId);
         return;
       }
 
@@ -385,9 +380,9 @@ export class ChatsService {
 
       await qr.commitTransaction();
 
-      this.eventsGateway.server
-        .to(`/sharedspace-${space.url}`)
-        .emit(`publicChats:${CHAT_EVENT.CHAT_IMAGE_DELETED}`, ChatId, ImageId);
+      // this.eventsGateway.server
+      //   .to(`/sharedspace-${space.url}`)
+      //   .emit(`publicChats:${CHAT_EVENT.CHAT_IMAGE_DELETED}`, ChatId, ImageId);
     } catch (err) {
       await qr.rollbackTransaction();
 
