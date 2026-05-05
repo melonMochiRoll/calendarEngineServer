@@ -1,5 +1,13 @@
-import { ConnectedSocket, OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
+import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
+import { ChatsService } from "src/chats/chats.service";
+import { SendSharedspacechatDTO } from "./dto/send.sharedspace.chat.dto";
+import { CHAT_EVENT } from "src/common/constant/constants";
+import { UseGuards } from "@nestjs/common";
+import { SocketJwtAuthGuard } from "src/auth/authGuard/socket.jwt.auth.guard";
+import { SocketCSRFAuthGuard } from "src/auth/authGuard/socket.csrf.auth.guard";
+import { User } from "src/common/decorator/socket.user.decorator";
+import { Users } from "src/entities/Users";
 
 @WebSocketGateway({
   cors: process.env.NODE_ENV === 'development' && {
@@ -12,6 +20,10 @@ import { Server, Socket } from "socket.io";
   },
 })
 export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
+  constructor(
+    private chatsService: ChatsService,
+  ) {}
+
   @WebSocketServer()
   server: Server;
 
@@ -21,5 +33,22 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   handleDisconnect() {
     // disconnection
+  }
+
+  @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
+  @SubscribeMessage('send_sharedspace_chat')
+  async sendSharedspaceChat(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() dto: SendSharedspacechatDTO,
+    @User() user: Users,
+  ) {
+    const chatWithUser = await this.chatsService.createSharedspaceChat(dto, user.id);
+
+    socket
+      .to(`/sharedspace-${dto.url}`)
+      .emit(`publicChats:${CHAT_EVENT.CHAT_CREATED}`, chatWithUser.receiver);
+
+    socket
+      .emit(`publicChats:${CHAT_EVENT.CHAT_CREATED}`, chatWithUser.sender);
   }
 }
