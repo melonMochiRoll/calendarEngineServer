@@ -24,7 +24,7 @@ import { RefreshTokens } from "src/entities/RefreshTokens";
   ],
   controllers: [ ChatsController ],
   providers: [ ChatsService ],
-  exports: [],
+  exports: [ ChatsService ],
 })
 
 export class ChatsModule {}
