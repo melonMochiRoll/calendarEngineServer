@@ -62,6 +62,7 @@ export const CHAT_EVENT = {
   CHAT_UPDATED: 'chat_updated',
   CHAT_DELETED: 'chat_deleted',
   CHAT_IMAGE_DELETED: 'chat_image_deleted',
+  CHAT_ERROR: 'chat_error',
 } as const;
 
 export const CACHE_EMPTY_SYMBOL = '$$EMPTY$$';
