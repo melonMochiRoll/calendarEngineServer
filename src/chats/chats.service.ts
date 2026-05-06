@@ -128,6 +128,7 @@ export class ChatsService {
       where: {
         SharedspaceId: space.id,
         id: LessThan(chats[chats.length-1].id),
+        removedAt: IsNull(),
       },
     });
 
