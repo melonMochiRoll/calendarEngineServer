@@ -42,13 +42,21 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() dto: SendSharedspacechatDTO,
     @User() user: Users,
   ) {
-    const chatWithUser = await this.chatsService.createSharedspaceChat(dto, user.id);
+    try {
+      const chatWithUser = await this.chatsService.createSharedspaceChat(dto, user.id);
 
-    socket
-      .to(`/sharedspace-${dto.url}`)
-      .emit(`publicChats:${CHAT_EVENT.CHAT_CREATED}`, chatWithUser.receiver);
+      socket
+        .to(`/sharedspace-${dto.url}`)
+        .emit(`publicChats:${CHAT_EVENT.CHAT_CREATED}`, chatWithUser.receiver);
 
-    socket
-      .emit(`publicChats:${CHAT_EVENT.CHAT_CREATED}`, chatWithUser.sender);
+      socket
+        .emit(`publicChats:${CHAT_EVENT.CHAT_CREATED}`, chatWithUser.sender);
+    } catch (err) {
+      socket
+        .emit(`publicChats:${CHAT_EVENT.CHAT_ERROR}`, {
+          action: `publicChats:${CHAT_EVENT.CHAT_CREATED}`,
+          ChatId: dto.id,
+        });
+    }
   }
 }
