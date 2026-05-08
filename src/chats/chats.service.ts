@@ -6,13 +6,14 @@ import { Images } from "src/entities/Images";
 import { RolesService } from "src/roles/roles.service";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { DataSource, In, IsNull, LessThan, Repository } from "typeorm";
-import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import dayjs from "dayjs";
 import { GeneratePresignedPutUrlDTO } from "./dto/generate.presigned.put.url.dto";
 import { IMAGE_STATUS } from "src/common/constant/constants";
 import { StorageR2Service } from "src/storage/storage.r2.service";
 import { SendSharedspacechatDTO } from "src/events/dto/send.sharedspace.chat.dto";
+import { UpdateSharedspaceChatDTO } from "src/events/dto/update.sharedspace.chat.dto";
+import { permission } from "process";
 
 @Injectable()
 export class ChatsService {
@@ -234,11 +235,10 @@ export class ChatsService {
   }
 
   async updateSharedspaceChat(
-    url: string,
     dto: UpdateSharedspaceChatDTO,
     UserId: string,
   ) {
-    const { ChatId, content } = dto;
+    const { url, id, content } = dto;
 
     const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
@@ -246,7 +246,7 @@ export class ChatsService {
 
     const result = await this.chatsRepository.update(
       {
-        id: ChatId,
+        id,
         SenderId: UserId,
         SharedspaceId: space.id,
       },
@@ -260,9 +260,7 @@ export class ChatsService {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
-    // this.eventsGateway.server
-    //   .to(`/sharedspace-${space.url}`)
-    //   .emit(`publicChats:${CHAT_EVENT.CHAT_UPDATED}`, { id: ChatId, content, updatedAt });
+    return { id, content, updatedAt };
   };
 
   async deleteSharedspaceChat(
