@@ -8,6 +8,8 @@ import { SocketJwtAuthGuard } from "src/auth/authGuard/socket.jwt.auth.guard";
 import { SocketCSRFAuthGuard } from "src/auth/authGuard/socket.csrf.auth.guard";
 import { User } from "src/common/decorator/socket.user.decorator";
 import { Users } from "src/entities/Users";
+import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
+import { permission } from "process";
 
 @WebSocketGateway({
   cors: process.env.NODE_ENV === 'development' && {
@@ -55,6 +57,28 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       socket
         .emit(`publicChats:${CHAT_EVENT.CHAT_ERROR}`, {
           action: `publicChats:${CHAT_EVENT.CHAT_CREATED}`,
+          ChatId: dto.id,
+        });
+    }
+  }
+
+  @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
+  @SubscribeMessage('update_sharedspace_chat')
+  async updateSharedspaceChat(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() dto: UpdateSharedspaceChatDTO,
+    @User() user: Users,
+  ) {
+    try {
+      const updatedProperty = await this.chatsService.updateSharedspaceChat(dto, user.id);
+
+      this.server
+        .to(`/sharedspace-${dto.url}`)
+        .emit(`publicChats:${CHAT_EVENT.CHAT_UPDATED}`, updatedProperty);
+    } catch (err) {
+      socket
+        .emit(`publicChats:${CHAT_EVENT.CHAT_ERROR}`, {
+          action: `publicChats:${CHAT_EVENT.CHAT_UPDATED}`,
           ChatId: dto.id,
         });
     }
