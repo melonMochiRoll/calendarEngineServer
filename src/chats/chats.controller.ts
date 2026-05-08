@@ -4,7 +4,6 @@ import { JwtAuthGuard, PublicAuthGuard } from "src/auth/authGuard/jwt.auth.guard
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
-import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
 import { GeneratePresignedPutUrlDTO } from "./dto/generate.presigned.put.url.dto";
 
 @Controller('api/sharedspaces')
@@ -25,16 +24,6 @@ export class ChatsController {
       beforeChatId || null,
       user?.id
     );
-  }
-
-  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Patch(':url/chats')
-  updateSharedspaceChat(
-    @Param('url') url: string,
-    @Body() dto: UpdateSharedspaceChatDTO,
-    @User() user: Users,
-  ) {
-    return this.chatsService.updateSharedspaceChat(url, dto, user.id);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
