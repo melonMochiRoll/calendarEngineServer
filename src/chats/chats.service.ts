@@ -14,6 +14,7 @@ import { StorageR2Service } from "src/storage/storage.r2.service";
 import { SendSharedspacechatDTO } from "src/events/dto/send.sharedspace.chat.dto";
 import { UpdateSharedspaceChatDTO } from "src/events/dto/update.sharedspace.chat.dto";
 import { permission } from "process";
+import { DeleteSharedspaceChatDTO } from "src/events/dto/delete.sharedspace.chat.dto";
 
 @Injectable()
 export class ChatsService {
@@ -264,13 +265,14 @@ export class ChatsService {
   };
 
   async deleteSharedspaceChat(
-    url: string,
-    ChatId: string,
+    dto: DeleteSharedspaceChatDTO,
     UserId: string,
   ) {
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
+
+    const { url, id } = dto;
 
     try {
       const space = await this.sharedspacesService.getSharedspaceByUrl(url);
@@ -286,7 +288,7 @@ export class ChatsService {
           Images: true,
         },
         where: {
-          id: ChatId,
+          id,
         },
       });
 
@@ -309,9 +311,7 @@ export class ChatsService {
 
       await qr.commitTransaction();
 
-      // this.eventsGateway.server
-      //   .to(`/sharedspace-${space.url}`)
-      //   .emit(`publicChats:${CHAT_EVENT.CHAT_DELETED}`, ChatId);
+      return id;
     } catch (err) {
       await qr.rollbackTransaction();
 

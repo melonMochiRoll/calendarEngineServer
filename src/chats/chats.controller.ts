@@ -28,17 +28,6 @@ export class ChatsController {
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @HttpCode(204)
-  @Delete(':url/chats/:id')
-  deleteSharedspaceChat(
-    @Param('url') url: string,
-    @Param('id') chatId: string,
-    @User() user: Users,
-  ) {
-    return this.chatsService.deleteSharedspaceChat(url, chatId, user.id);
-  }
-
-  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @HttpCode(204)
   @Delete(':url/chats/:ChatId/images/:ImageId')
   deleteSharedspaceChatImage(
     @Param('url') url: string,

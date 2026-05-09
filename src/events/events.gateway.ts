@@ -10,6 +10,7 @@ import { User } from "src/common/decorator/socket.user.decorator";
 import { Users } from "src/entities/Users";
 import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
 import { permission } from "process";
+import { DeleteSharedspaceChatDTO } from "./dto/delete.sharedspace.chat.dto";
 
 @WebSocketGateway({
   cors: process.env.NODE_ENV === 'development' && {
@@ -79,6 +80,28 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       socket
         .emit(`publicChats:${CHAT_EVENT.CHAT_ERROR}`, {
           action: `publicChats:${CHAT_EVENT.CHAT_UPDATED}`,
+          ChatId: dto.id,
+        });
+    }
+  }
+
+  @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
+  @SubscribeMessage('delete_sharedspace_chat')
+  async deleteSharedspaceChat(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() dto: DeleteSharedspaceChatDTO,
+    @User() user: Users,
+  ) {
+    try {
+      const deletedChatId = await this.chatsService.deleteSharedspaceChat(dto, user.id);
+
+      this.server
+        .to(`/sharedspace-${dto.url}`)
+        .emit(`publicChats:${CHAT_EVENT.CHAT_DELETED}`, { id: deletedChatId });
+    } catch (err) {
+      socket
+        .emit(`publicChats:${CHAT_EVENT.CHAT_ERROR}`, {
+          action: `publicChats:${CHAT_EVENT.CHAT_DELETED}`,
           ChatId: dto.id,
         });
     }
