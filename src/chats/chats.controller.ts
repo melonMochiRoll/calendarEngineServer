@@ -27,18 +27,6 @@ export class ChatsController {
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @HttpCode(204)
-  @Delete(':url/chats/:ChatId/images/:ImageId')
-  deleteSharedspaceChatImage(
-    @Param('url') url: string,
-    @Param('ChatId') ChatId: string,
-    @Param('ImageId') ImageId: string,
-    @User() user: Users,
-  ) {
-    return this.chatsService.deleteSharedspaceChatImage(url, ChatId, ImageId, user.id);
-  }
-
-  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post(':url/chats/images/presigned-url')
   generatePresignedPutUrl(
     @Param('url') url: string,

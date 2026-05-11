@@ -9,12 +9,13 @@ import { DataSource, In, IsNull, LessThan, Repository } from "typeorm";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import dayjs from "dayjs";
 import { GeneratePresignedPutUrlDTO } from "./dto/generate.presigned.put.url.dto";
-import { IMAGE_STATUS } from "src/common/constant/constants";
+import { CHAT_EVENT, IMAGE_STATUS } from "src/common/constant/constants";
 import { StorageR2Service } from "src/storage/storage.r2.service";
 import { SendSharedspacechatDTO } from "src/events/dto/send.sharedspace.chat.dto";
 import { UpdateSharedspaceChatDTO } from "src/events/dto/update.sharedspace.chat.dto";
 import { permission } from "process";
 import { DeleteSharedspaceChatDTO } from "src/events/dto/delete.sharedspace.chat.dto";
+import { DeleteSharedspaceChatImageDTO } from "src/events/dto/delete.sharedspace.chat.image.dto";
 
 @Injectable()
 export class ChatsService {
@@ -322,11 +323,10 @@ export class ChatsService {
   }
 
   async deleteSharedspaceChatImage(
-    url: string,
-    ChatId: string,
-    ImageId: string,
+    dto: DeleteSharedspaceChatImageDTO,
     UserId: string,
   ) {
+    const { url, ChatId, ImageId } = dto;
     const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
     const targetChat = await this.chatsRepository.findOne({
@@ -369,19 +369,20 @@ export class ChatsService {
 
         await qr.commitTransaction();
 
-        // this.eventsGateway.server
-        //   .to(`/sharedspace-${space.url}`)
-        //   .emit(`publicChats:${CHAT_EVENT.CHAT_DELETED}`, ChatId);
-        return;
+        return {
+          event: `publicChats:${CHAT_EVENT.CHAT_DELETED}`,
+          data: { id: ChatId },
+        };
       }
 
       await qr.manager.update(Images, { id: ImageId }, { status: IMAGE_STATUS.DELETED, removedAt: now });
 
       await qr.commitTransaction();
 
-      // this.eventsGateway.server
-      //   .to(`/sharedspace-${space.url}`)
-      //   .emit(`publicChats:${CHAT_EVENT.CHAT_IMAGE_DELETED}`, ChatId, ImageId);
+      return {
+        action: `publicChats:${CHAT_EVENT.CHAT_IMAGE_DELETED}`,
+        data: { ChatId, ImageId },
+      };
     } catch (err) {
       await qr.rollbackTransaction();
 
