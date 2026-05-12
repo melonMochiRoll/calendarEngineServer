@@ -13,7 +13,6 @@ import { CHAT_EVENT, IMAGE_STATUS } from "src/common/constant/constants";
 import { StorageR2Service } from "src/storage/storage.r2.service";
 import { SendSharedspacechatDTO } from "src/events/dto/send.sharedspace.chat.dto";
 import { UpdateSharedspaceChatDTO } from "src/events/dto/update.sharedspace.chat.dto";
-import { permission } from "process";
 import { DeleteSharedspaceChatDTO } from "src/events/dto/delete.sharedspace.chat.dto";
 import { DeleteSharedspaceChatImageDTO } from "src/events/dto/delete.sharedspace.chat.image.dto";
 
