@@ -57,7 +57,14 @@ export const JOB_STATUS = {
   FAILED: 'failed',
 } as const;
 
-export const CHAT_EVENT = {
+export const ChatToServer = {
+  SEND_CHAT: 'send_chat',
+  UPDATE_CHAT: 'update_chat',
+  DELETE_CHAT: 'delete_chat',
+  DELETE_CHAT_IMAGE: 'delete_chat_image',
+} as const;
+
+export const ChatToClient = {
   CHAT_CREATED: 'chat_created',
   CHAT_UPDATED: 'chat_updated',
   CHAT_DELETED: 'chat_deleted',

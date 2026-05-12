@@ -2,7 +2,7 @@ import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect,
 import { Server, Socket } from "socket.io";
 import { ChatsService } from "src/chats/chats.service";
 import { SendSharedspacechatDTO } from "./dto/send.sharedspace.chat.dto";
-import { CHAT_EVENT } from "src/common/constant/constants";
+import { ChatToClient, ChatToServer } from "src/common/constant/constants";
 import { UseGuards } from "@nestjs/common";
 import { SocketJwtAuthGuard } from "src/auth/authGuard/socket.jwt.auth.guard";
 import { SocketCSRFAuthGuard } from "src/auth/authGuard/socket.csrf.auth.guard";
@@ -39,7 +39,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
-  @SubscribeMessage('send_sharedspace_chat')
+  @SubscribeMessage(ChatToServer.SEND_CHAT)
   async sendSharedspaceChat(
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: SendSharedspacechatDTO,
@@ -50,21 +50,21 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       socket
         .to(`/sharedspace-${dto.url}`)
-        .emit(`publicChats:${CHAT_EVENT.CHAT_CREATED}`, chatWithUser.receiver);
+        .emit(ChatToClient.CHAT_CREATED, chatWithUser.receiver);
 
       socket
-        .emit(`publicChats:${CHAT_EVENT.CHAT_CREATED}`, chatWithUser.sender);
+        .emit(ChatToClient.CHAT_CREATED, chatWithUser.sender);
     } catch (err) {
       socket
-        .emit(`publicChats:${CHAT_EVENT.CHAT_ERROR}`, {
-          action: `publicChats:${CHAT_EVENT.CHAT_CREATED}`,
+        .emit(ChatToClient.CHAT_ERROR, {
+          action: ChatToClient.CHAT_CREATED,
           ChatId: dto.id,
         });
     }
   }
 
   @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
-  @SubscribeMessage('update_sharedspace_chat')
+  @SubscribeMessage(ChatToServer.UPDATE_CHAT)
   async updateSharedspaceChat(
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: UpdateSharedspaceChatDTO,
@@ -75,18 +75,18 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       this.server
         .to(`/sharedspace-${dto.url}`)
-        .emit(`publicChats:${CHAT_EVENT.CHAT_UPDATED}`, updatedProperty);
+        .emit(ChatToClient.CHAT_UPDATED, updatedProperty);
     } catch (err) {
       socket
-        .emit(`publicChats:${CHAT_EVENT.CHAT_ERROR}`, {
-          action: `publicChats:${CHAT_EVENT.CHAT_UPDATED}`,
+        .emit(ChatToClient.CHAT_ERROR, {
+          action: ChatToClient.CHAT_UPDATED,
           ChatId: dto.id,
         });
     }
   }
 
   @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
-  @SubscribeMessage('delete_sharedspace_chat')
+  @SubscribeMessage(ChatToServer.DELETE_CHAT)
   async deleteSharedspaceChat(
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: DeleteSharedspaceChatDTO,
@@ -97,18 +97,18 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       this.server
         .to(`/sharedspace-${dto.url}`)
-        .emit(`publicChats:${CHAT_EVENT.CHAT_DELETED}`, { id: deletedChatId });
+        .emit(ChatToClient.CHAT_DELETED, { id: deletedChatId });
     } catch (err) {
       socket
-        .emit(`publicChats:${CHAT_EVENT.CHAT_ERROR}`, {
-          action: `publicChats:${CHAT_EVENT.CHAT_DELETED}`,
+        .emit(ChatToClient.CHAT_ERROR, {
+          action: ChatToClient.CHAT_DELETED,
           ChatId: dto.id,
         });
     }
   }
 
   @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
-  @SubscribeMessage('delete_sharedspace_chat_image')
+  @SubscribeMessage(ChatToServer.DELETE_CHAT_IMAGE)
   async deleteSharedspaceChatImage(
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: DeleteSharedspaceChatImageDTO,
@@ -122,8 +122,8 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         .emit(event, data);
     } catch (err) {
       socket
-        .emit(`publicChats:${CHAT_EVENT.CHAT_ERROR}`, {
-          action: `publicChats:${CHAT_EVENT.CHAT_IMAGE_DELETED}`,
+        .emit(ChatToClient.CHAT_ERROR, {
+          action: ChatToClient.CHAT_IMAGE_DELETED,
           ChatId: dto.ChatId,
         });
     }
