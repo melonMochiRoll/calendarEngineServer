@@ -102,11 +102,10 @@ export class ChatsService {
       },
     });
 
-    await Promise.all(
-      images.map(async (image) => 
-        image.path = await this.storageR2Service.generatePresignedGetUrl(image.path)
-      )
+    const batch = images.map(async (image) =>
+      image.path = await this.storageR2Service.generatePresignedGetUrl(image.path)
     );
+    await Promise.all(batch);
 
     const imagesMap = images.reduce((acc, image) => {
       if (!acc[image.ChatId]) {
