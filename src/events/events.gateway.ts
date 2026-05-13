@@ -1,8 +1,8 @@
-import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
+import { Ack, ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { ChatsService } from "src/chats/chats.service";
 import { SendSharedspacechatDTO } from "./dto/send.sharedspace.chat.dto";
-import { ChatToClient, ChatToServer } from "src/common/constant/constants";
+import { ChatAckStatus, ChatToClient, ChatToServer } from "src/common/constant/constants";
 import { UseGuards } from "@nestjs/common";
 import { SocketJwtAuthGuard } from "src/auth/authGuard/socket.jwt.auth.guard";
 import { SocketCSRFAuthGuard } from "src/auth/authGuard/socket.csrf.auth.guard";
@@ -11,6 +11,7 @@ import { Users } from "src/entities/Users";
 import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
 import { DeleteSharedspaceChatDTO } from "./dto/delete.sharedspace.chat.dto";
 import { DeleteSharedspaceChatImageDTO } from "./dto/delete.sharedspace.chat.image.dto";
+import { Chats } from "src/entities/Chats";
 
 @WebSocketGateway({
   cors: process.env.NODE_ENV === 'development' && {
@@ -44,6 +45,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: SendSharedspacechatDTO,
     @User() user: Users,
+    @Ack() ack: (response: { status: string; data: Chats | null }) => void,
   ) {
     try {
       const chatWithUser = await this.chatsService.createSharedspaceChat(dto, user.id);
@@ -52,14 +54,9 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         .to(`/sharedspace-${dto.url}`)
         .emit(ChatToClient.CHAT_CREATED, chatWithUser.receiver);
 
-      socket
-        .emit(ChatToClient.CHAT_CREATED, chatWithUser.sender);
+      ack({ status: ChatAckStatus.SUCCESS, data: chatWithUser.sender });
     } catch (err) {
-      socket
-        .emit(ChatToClient.CHAT_ERROR, {
-          action: ChatToClient.CHAT_CREATED,
-          ChatId: dto.id,
-        });
+      ack({ status: ChatAckStatus.ERROR, data: null });
     }
   }
 
