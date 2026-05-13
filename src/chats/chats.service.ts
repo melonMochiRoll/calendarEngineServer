@@ -9,7 +9,7 @@ import { DataSource, In, IsNull, LessThan, Repository } from "typeorm";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import dayjs from "dayjs";
 import { GeneratePresignedPutUrlDTO } from "./dto/generate.presigned.put.url.dto";
-import { CHAT_EVENT, IMAGE_STATUS } from "src/common/constant/constants";
+import { ChatToClient, IMAGE_STATUS } from "src/common/constant/constants";
 import { StorageR2Service } from "src/storage/storage.r2.service";
 import { SendSharedspacechatDTO } from "src/events/dto/send.sharedspace.chat.dto";
 import { UpdateSharedspaceChatDTO } from "src/events/dto/update.sharedspace.chat.dto";
@@ -368,7 +368,7 @@ export class ChatsService {
         await qr.commitTransaction();
 
         return {
-          event: `publicChats:${CHAT_EVENT.CHAT_DELETED}`,
+          event: ChatToClient.CHAT_DELETED,
           data: { id: ChatId },
         };
       }
@@ -378,7 +378,7 @@ export class ChatsService {
       await qr.commitTransaction();
 
       return {
-        action: `publicChats:${CHAT_EVENT.CHAT_IMAGE_DELETED}`,
+        action: ChatToClient.CHAT_IMAGE_DELETED,
         data: { ChatId, ImageId },
       };
     } catch (err) {
