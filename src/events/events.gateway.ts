@@ -66,19 +66,18 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: UpdateSharedspaceChatDTO,
     @User() user: Users,
+    @Ack() ack: (response: { status: string; data: Pick<Chats, 'id' | 'content' | 'updatedAt'> | null }) => void,
   ) {
     try {
       const updatedProperty = await this.chatsService.updateSharedspaceChat(dto, user.id);
 
-      this.server
+      socket
         .to(`/sharedspace-${dto.url}`)
         .emit(ChatToClient.CHAT_UPDATED, updatedProperty);
+
+      ack({ status: ChatAckStatus.SUCCESS, data: updatedProperty });
     } catch (err) {
-      socket
-        .emit(ChatToClient.CHAT_ERROR, {
-          action: ChatToClient.CHAT_UPDATED,
-          ChatId: dto.id,
-        });
+      ack({ status: ChatAckStatus.ERROR, data: null });
     }
   }
 
