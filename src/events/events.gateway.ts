@@ -18,7 +18,6 @@ import { Chats } from "src/entities/Chats";
     origin: process.env.FRONT_SERVER_ORIGIN,
     credentials: true,
   },
-  namespace: /\/sharedspace-.+/,
   connectionStateRecovery: {
     maxDisconnectionDuration: 1 * 60 * 1000,
   },
@@ -31,12 +30,26 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
-  handleConnection(@ConnectedSocket() socket: Socket) {
-    socket.join(socket.nsp.name);
+  handleConnection(@ConnectedSocket() socket: Socket) {}
+
+  handleDisconnect(@ConnectedSocket() socket: Socket) {}
+
+  @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
+  @SubscribeMessage(ChatToServer.JOIN_SHAREDSPACE_ROOM)
+  joinPublicChat(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() url: string,
+  ) {
+    socket.join(url);
   }
 
-  handleDisconnect() {
-    // disconnection
+  @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
+  @SubscribeMessage(ChatToServer.LEAVE_SHAREDSPACE_ROOM)
+  leavePublicChat(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() url: string,
+  ) {
+    socket.leave(url);
   }
 
   @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
