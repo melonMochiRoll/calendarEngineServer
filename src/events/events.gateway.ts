@@ -35,7 +35,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   handleDisconnect(@ConnectedSocket() socket: Socket) {}
 
   @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
-  @SubscribeMessage(ChatToServer.JOIN_SHAREDSPACE_ROOM)
+  @SubscribeMessage(ChatToServer.SHAREDSPACE_JOIN_ROOM)
   joinPublicChat(
     @ConnectedSocket() socket: Socket,
     @MessageBody() url: string,
@@ -44,7 +44,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
-  @SubscribeMessage(ChatToServer.LEAVE_SHAREDSPACE_ROOM)
+  @SubscribeMessage(ChatToServer.SHAREDSPACE_LEAVE_ROOM)
   leavePublicChat(
     @ConnectedSocket() socket: Socket,
     @MessageBody() url: string,
@@ -53,7 +53,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
-  @SubscribeMessage(ChatToServer.SEND_SHAREDSPACE_CHAT)
+  @SubscribeMessage(ChatToServer.SHAREDSPACE_SEND_CHAT)
   async sendSharedspaceChat(
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: SendSharedspacechatDTO,
@@ -74,7 +74,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
-  @SubscribeMessage(ChatToServer.UPDATE_SHAREDSPACE_CHAT)
+  @SubscribeMessage(ChatToServer.SHAREDSPACE_UPDATE_CHAT)
   async updateSharedspaceChat(
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: UpdateSharedspaceChatDTO,
@@ -95,7 +95,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
-  @SubscribeMessage(ChatToServer.DELETE_SHAREDSPACE_CHAT)
+  @SubscribeMessage(ChatToServer.SHAREDSPACE_DELETE_CHAT)
   async deleteSharedspaceChat(
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: DeleteSharedspaceChatDTO,
@@ -116,7 +116,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
-  @SubscribeMessage(ChatToServer.DELETE_SHAREDSPACE_CHAT_IMAGE)
+  @SubscribeMessage(ChatToServer.SHAREDSPACE_DELETE_CHAT_IMAGE)
   async deleteSharedspaceChatImage(
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: DeleteSharedspaceChatImageDTO,

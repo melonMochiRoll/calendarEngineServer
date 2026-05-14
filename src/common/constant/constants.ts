@@ -58,12 +58,12 @@ export const JOB_STATUS = {
 } as const;
 
 export const ChatToServer = {
-  JOIN_SHAREDSPACE_ROOM: 'join_sharedspace_room',
-  LEAVE_SHAREDSPACE_ROOM: 'leave_sharedspace_room',
-  SEND_SHAREDSPACE_CHAT: 'send_sharedspace_chat',
-  UPDATE_SHAREDSPACE_CHAT: 'update_sharedspace_chat',
-  DELETE_SHAREDSPACE_CHAT: 'delete_sharedspace_chat',
-  DELETE_SHAREDSPACE_CHAT_IMAGE: 'delete_sharedspace_chat_image',
+  SHAREDSPACE_JOIN_ROOM: 'sharedspace_join_room',
+  SHAREDSPACE_LEAVE_ROOM: 'sharedspace_leave_room',
+  SHAREDSPACE_SEND_CHAT: 'sharedspace_send_chat',
+  SHAREDSPACE_UPDATE_CHAT: 'sharedspace_update_chat',
+  SHAREDSPACE_DELETE_CHAT: 'sharedspace_delete_chat',
+  SHAREDSPACE_DELETE_CHAT_IMAGE: 'sharedspace_delete_chat_image',
 } as const;
 
 export const ChatToClient = {
