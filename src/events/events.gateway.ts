@@ -53,7 +53,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
-  @SubscribeMessage(ChatToServer.SEND_CHAT)
+  @SubscribeMessage(ChatToServer.SEND_SHAREDSPACE_CHAT)
   async sendSharedspaceChat(
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: SendSharedspacechatDTO,
@@ -65,7 +65,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       socket
         .to(`/sharedspace-${dto.url}`)
-        .emit(ChatToClient.CHAT_CREATED, chatWithUser.receiver);
+        .emit(ChatToClient.SHAREDSPACE_CHAT_CREATED, chatWithUser.receiver);
 
       ack({ status: ChatAckStatus.SUCCESS, data: chatWithUser.sender });
     } catch (err) {
@@ -74,7 +74,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
-  @SubscribeMessage(ChatToServer.UPDATE_CHAT)
+  @SubscribeMessage(ChatToServer.UPDATE_SHAREDSPACE_CHAT)
   async updateSharedspaceChat(
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: UpdateSharedspaceChatDTO,
@@ -86,7 +86,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       socket
         .to(`/sharedspace-${dto.url}`)
-        .emit(ChatToClient.CHAT_UPDATED, updatedProperty);
+        .emit(ChatToClient.SHAREDSPACE_CHAT_UPDATED, updatedProperty);
 
       ack({ status: ChatAckStatus.SUCCESS, data: updatedProperty });
     } catch (err) {
@@ -95,7 +95,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
-  @SubscribeMessage(ChatToServer.DELETE_CHAT)
+  @SubscribeMessage(ChatToServer.DELETE_SHAREDSPACE_CHAT)
   async deleteSharedspaceChat(
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: DeleteSharedspaceChatDTO,
@@ -107,7 +107,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       socket
         .to(`/sharedspace-${dto.url}`)
-        .emit(ChatToClient.CHAT_DELETED, { id: deletedChatId });
+        .emit(ChatToClient.SHAREDSPACE_CHAT_DELETED, { id: deletedChatId });
 
       ack({ status: ChatAckStatus.SUCCESS, data: { id: deletedChatId } });
     } catch (err) {
@@ -116,7 +116,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
-  @SubscribeMessage(ChatToServer.DELETE_CHAT_IMAGE)
+  @SubscribeMessage(ChatToServer.DELETE_SHAREDSPACE_CHAT_IMAGE)
   async deleteSharedspaceChatImage(
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: DeleteSharedspaceChatImageDTO,
