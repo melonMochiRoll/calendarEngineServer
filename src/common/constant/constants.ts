@@ -64,6 +64,8 @@ export const ChatToServer = {
   SHAREDSPACE_UPDATE_CHAT: 'sharedspace_update_chat',
   SHAREDSPACE_DELETE_CHAT: 'sharedspace_delete_chat',
   SHAREDSPACE_DELETE_CHAT_IMAGE: 'sharedspace_delete_chat_image',
+  DIRECT_JOIN_ROOM: 'direct_join_room',
+  DIRECT_LEAVE_ROOM: 'direct_leave_room',
 } as const;
 
 export const ChatToClient = {
