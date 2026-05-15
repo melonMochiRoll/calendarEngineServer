@@ -71,7 +71,6 @@ export const ChatToClient = {
   SHAREDSPACE_CHAT_UPDATED: 'sharedspace_chat_updated',
   SHAREDSPACE_CHAT_DELETED: 'sharedspace_chat_deleted',
   SHAREDSPACE_CHAT_IMAGE_DELETED: 'sharedspace_chat_image_deleted',
-  SHAREDSPACE_CHAT_ERROR: 'sharedspace_chat_error',
 } as const;
 
 export const ChatAckStatus = {
