@@ -23,9 +23,7 @@ export class Images {
   @Column({ type: 'datetime', precision: 6, nullable: true, default: null })
   removedAt: Date | null;
 
-  @ManyToOne(() => Chats, chats => chats.Images, {
-    onUpdate: 'CASCADE',
-  })
+  @ManyToOne(() => Chats, chats => chats.Images)
   @JoinColumn({
     name: 'ChatId',
     referencedColumnName: 'id',
