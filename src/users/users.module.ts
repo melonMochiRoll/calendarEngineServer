@@ -4,7 +4,7 @@ import { UsersService } from './users.service';
 import { Users } from 'src/entities/Users';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RefreshTokens } from 'src/entities/RefreshTokens';
-import { SharedspaceMembers } from 'src/entities/SharedspaceMembers';
+import { SpaceMembers } from 'src/entities/SpaceMembers';
 import { SharedspacesModule } from 'src/sharedspaces/sharedspaces.module';
 import { SharedspacesUsersContoller } from './sharedspaces.users.controller';
 import { RolesModule } from 'src/roles/roles.module';
@@ -14,7 +14,7 @@ import { RolesModule } from 'src/roles/roles.module';
     TypeOrmModule.forFeature([
       Users,
       RefreshTokens,
-      SharedspaceMembers,
+      SpaceMembers,
     ]),
     SharedspacesModule,
     RolesModule,

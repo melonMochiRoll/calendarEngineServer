@@ -1,12 +1,13 @@
 import { Column, CreateDateColumn, Entity, Index, JoinTable, ManyToMany, OneToMany, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { Todos } from "./Todos";
 import { Sharedspaces } from "./Sharedspaces";
-import { SharedspaceMembers } from "./SharedspaceMembers";
+import { SpaceMembers } from "./SpaceMembers";
 import { JoinRequests } from "./JoinRequests";
 import { Chats } from "./Chats";
 import { RefreshTokens } from "./RefreshTokens";
 import { Invites } from "./Invites";
 import { UUIDV7Transformer } from "src/common/function/uuidv7Transformer";
+import { Spaces } from "./Spaces";
 
 @Index('users_createdAt_idx', ['createdAt'])
 @Entity({ name: 'users' })
@@ -50,8 +51,8 @@ export class Users {
   @OneToMany(() => Sharedspaces, sharedspaces => sharedspaces.Owner)
   OwnedSharedspaces: Sharedspaces[];
 
-  @OneToMany(() => SharedspaceMembers, sharedspacemembers => sharedspacemembers.User)
-  Sharedspacemembers: SharedspaceMembers[];
+  @OneToMany(() => SpaceMembers, spacemembers => spacemembers.User)
+  Spacemembers: SpaceMembers[];
 
   @OneToMany(() => JoinRequests, joinRequests => joinRequests.Requestor)
   JoinRequests: JoinRequests[];
@@ -68,17 +69,17 @@ export class Users {
   @OneToMany(() => Invites, invites => invites.Invitee)
   ReceivedInvites: Invites[];
 
-  @ManyToMany(() => Sharedspaces, sharedspaces => sharedspaces.Members)
+  @ManyToMany(() => Spaces, spaces => spaces.Members)
   @JoinTable({
-    name: 'sharedspacemembers',
+    name: 'spacemembers',
     joinColumn: {
       name: 'UserId',
       referencedColumnName: 'id'
     },
     inverseJoinColumn: {
-      name: 'SharedspaceId',
+      name: 'SpaceId',
       referencedColumnName: 'id'
     }
   })
-  Sharedspaces: Sharedspaces[];
+  Spaces: Spaces[];
 }

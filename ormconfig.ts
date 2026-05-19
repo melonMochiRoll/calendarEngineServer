@@ -5,13 +5,15 @@ import { Todos } from './src/entities/Todos';
 import { Sharedspaces } from './src/entities/Sharedspaces';
 import { Roles } from './src/entities/Roles';
 import { JoinRequests } from './src/entities/JoinRequests';
-import { SharedspaceMembers } from './src/entities/SharedspaceMembers';
+import { SpaceMembers } from './src/entities/SpaceMembers';
 import { Chats } from './src/entities/Chats';
 import { Images } from './src/entities/Images';
 import { RefreshTokens } from 'src/entities/RefreshTokens';
 import { Invites } from 'src/entities/Invites';
 import path from 'path';
 import { BatchScheduler } from 'src/entities/BatchScheduler';
+import { Spaces } from 'src/entities/Spaces';
+import { ChatSpaces } from 'src/entities/ChatSpaces';
 
 const dbconfig: DataSourceOptions = {
   type: "mysql",
@@ -36,10 +38,12 @@ export const ormconfig = {
   entities: [
     Users,
     Todos,
+    Spaces,
     Sharedspaces,
+    ChatSpaces,
     Roles,
     JoinRequests,
-    SharedspaceMembers,
+    SpaceMembers,
     Chats,
     Images,
     RefreshTokens,

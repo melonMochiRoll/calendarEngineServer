@@ -9,7 +9,7 @@ import { Chats } from "src/entities/Chats";
 import { Images } from "src/entities/Images";
 import { Invites } from "src/entities/Invites";
 import { JoinRequests } from "src/entities/JoinRequests";
-import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
+import { SpaceMembers } from "src/entities/SpaceMembers";
 import { Todos } from "src/entities/Todos";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { StorageR2Service } from "src/storage/storage.r2.service";
@@ -30,8 +30,8 @@ export class TaskService {
     private chatsRepository: Repository<Chats>,
     @InjectRepository(Invites)
     private invitesRepository: Repository<Invites>,
-    @InjectRepository(SharedspaceMembers)
-    private sharedspaceMembersRepository: Repository<SharedspaceMembers>,
+    @InjectRepository(SpaceMembers)
+    private spaceMembersRepository: Repository<SpaceMembers>,
     @InjectRepository(JoinRequests)
     private joinRequestsRepository: Repository<JoinRequests>,
     private usersService: UsersService,
@@ -80,8 +80,8 @@ export class TaskService {
 
     for (const chunk of taskChunks) {
       const batch = chunk.map(task => {
-        const params: { SharedspaceId: string } = JSON.parse(task.job_params);
-        return this.sharedspacesService.deleteSharedspace(task.id, params.SharedspaceId);
+        const params: { SpaceId: string, SpaceType: string } = JSON.parse(task.job_params);
+        return this.sharedspacesService.deleteSharedspace(task.id, params.SpaceId, params.SpaceType);
       });
       await Promise.all(batch);
     }
@@ -199,10 +199,10 @@ export class TaskService {
 
   @Cron('0 50 3 * * *')
   async cleanupSharedspaceMembers() {
-    const softDeletedMembers = await this.sharedspaceMembersRepository.find({
+    const softDeletedMembers = await this.spaceMembersRepository.find({
       select: {
         UserId: true,
-        SharedspaceId: true,
+        SpaceId: true,
       },
       where: {
         removedAt: Not(IsNull()),
@@ -212,7 +212,7 @@ export class TaskService {
     const memberChunks = chunking(softDeletedMembers, 2);
 
     for (const chunk of memberChunks) {
-      const batch = chunk.map(member => this.sharedspaceMembersRepository.delete({ UserId: member.UserId, SharedspaceId: member.SharedspaceId }));
+      const batch = chunk.map(member => this.spaceMembersRepository.delete({ UserId: member.UserId, SpaceId: member.SpaceId }));
       await Promise.all(batch);
     }
   }

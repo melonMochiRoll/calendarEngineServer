@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Todos } from 'src/entities/Todos';
 import { Sharedspaces } from 'src/entities/Sharedspaces';
 import { RefreshTokens } from 'src/entities/RefreshTokens';
-import { SharedspaceMembers } from 'src/entities/SharedspaceMembers';
+import { SpaceMembers } from 'src/entities/SpaceMembers';
 import { SharedspacesModule } from 'src/sharedspaces/sharedspaces.module';
 import { RolesModule } from 'src/roles/roles.module';
 import { UsersModule } from 'src/users/users.module';
@@ -16,7 +16,7 @@ import { UsersModule } from 'src/users/users.module';
       Todos,
       Sharedspaces,
       RefreshTokens,
-      SharedspaceMembers,
+      SpaceMembers,
     ]),
     SharedspacesModule,
     RolesModule,

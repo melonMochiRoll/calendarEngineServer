@@ -1,20 +1,21 @@
 import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { Users } from "./Users";
-import { Sharedspaces } from "./Sharedspaces";
 import { Roles } from "./Roles";
 import { UUIDV7Transformer } from "src/common/function/uuidv7Transformer";
+import { Spaces } from "./Spaces";
 
-@Index('sharedspacemembers_createdAt_idx', ['createdAt'])
-@Entity({ name: 'sharedspacemembers' })
-export class SharedspaceMembers {
+@Index('userid_spaceid_unique_idx', ['UserId', 'SpaceId'], { unique: true })
+@Index('spacemembers_createdAt_idx', ['createdAt'])
+@Entity({ name: 'spacemembers' })
+export class SpaceMembers {
   @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
   id: string;
 
   @Column({ type: 'binary', name: 'UserId', length: 16, transformer: new UUIDV7Transformer() })
   UserId: string;
 
-  @Column({ type: 'binary', name: 'SharedspaceId', length: 16, transformer: new UUIDV7Transformer() })
-  SharedspaceId: string;
+  @Column({ type: 'binary', name: 'SpaceId', length: 16, transformer: new UUIDV7Transformer() })
+  SpaceId: string;
 
   @Column({ type: 'int', name: 'RoleId' })
   RoleId: number;
@@ -28,34 +29,26 @@ export class SharedspaceMembers {
   @Column({ type: 'datetime', precision: 6, nullable: true, default: null })
   removedAt: Date | null;
 
-  @ManyToOne(() => Users, users => users.Sharedspacemembers, {
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => Users, users => users.Spacemembers)
   @JoinColumn({
     name: 'UserId',
     referencedColumnName: 'id',
   })
   User: Users;
 
-  @ManyToOne(() => Sharedspaces, sharedspace => sharedspace.Sharedspacemembers, {
-    onUpdate: 'CASCADE',
-    orphanedRowAction: 'soft-delete',
-  })
+  @ManyToOne(() => Spaces, space => space.Spacemembers)
   @JoinColumn({
-    name: 'SharedspaceId',
+    name: 'SpaceId',
     referencedColumnName: 'id',
-    foreignKeyConstraintName: 'sharedspacemembers_SharedspaceId_fk'
+    foreignKeyConstraintName: 'spacemembers_SpaceId_fk'
   })
-  Sharedspace: Sharedspaces;
+  Space: Spaces;
 
-  @ManyToOne(() => Roles, roles => roles.SharedspaceMembers, {
-    onUpdate: 'CASCADE',
-  })
+  @ManyToOne(() => Roles, roles => roles.SpaceMembers)
   @JoinColumn({
     name: 'RoleId',
     referencedColumnName: 'id',
-    foreignKeyConstraintName: 'sharedspacemembers_RoleId_fk'
+    foreignKeyConstraintName: 'spacemembers_RoleId_fk'
   })
   Role: Roles;
 }

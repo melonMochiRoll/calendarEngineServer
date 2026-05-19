@@ -9,7 +9,7 @@ import { StorageModule } from 'src/storage/storage.module';
 import { Todos } from 'src/entities/Todos';
 import { Chats } from 'src/entities/Chats';
 import { Invites } from 'src/entities/Invites';
-import { SharedspaceMembers } from 'src/entities/SharedspaceMembers';
+import { SpaceMembers } from 'src/entities/SpaceMembers';
 import { JoinRequests } from 'src/entities/JoinRequests';
 
 @Module({
@@ -20,7 +20,7 @@ import { JoinRequests } from 'src/entities/JoinRequests';
       Todos,
       Chats,
       Invites,
-      SharedspaceMembers,
+      SpaceMembers,
       JoinRequests,
     ]),
     UsersModule,

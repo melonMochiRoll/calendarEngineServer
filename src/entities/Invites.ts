@@ -10,8 +10,8 @@ export class Invites {
   @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
   id: string;
 
-  @Column({ type: 'binary', name: 'SharedspaceId', length: 16, transformer: new UUIDV7Transformer() })
-  SharedspaceId: string;
+  @Column({ type: 'binary', name: 'SpaceId', length: 16, transformer: new UUIDV7Transformer() })
+  SpaceId: string;
 
   @Column({ type: 'binary', name: 'InviterId', length: 16, transformer: new UUIDV7Transformer() })
   InviterId: string;
@@ -34,10 +34,7 @@ export class Invites {
   @Column({ type: 'datetime', precision: 6 })
   expiredAt: Date;
 
-  @ManyToOne(() => Users, users => users.SentInvites, {
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => Users, users => users.SentInvites)
   @JoinColumn({
     name: 'InviterId',
     referencedColumnName: 'id',
@@ -45,10 +42,7 @@ export class Invites {
   })
   Inviter: Users;
 
-  @ManyToOne(() => Users, users => users.ReceivedInvites, {
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => Users, users => users.ReceivedInvites)
   @JoinColumn({
     name: 'InviteeId',
     referencedColumnName: 'id',
@@ -56,14 +50,11 @@ export class Invites {
   })
   Invitee: Users;
 
-  @ManyToOne(() => Sharedspaces, sharedspaces => sharedspaces.Invites, {
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => Sharedspaces, sharedspaces => sharedspaces.Invites)
   @JoinColumn({
-    name: 'SharedspaceId',
+    name: 'SpaceId',
     referencedColumnName: 'id',
-    foreignKeyConstraintName: 'invites_SharedspaceId_fk'
+    foreignKeyConstraintName: 'invites_SpaceId_fk'
   })
   Sharedspace: Sharedspaces;
 }

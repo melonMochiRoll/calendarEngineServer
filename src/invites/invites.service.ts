@@ -9,7 +9,7 @@ import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_REQUEST_MESSAGE, C
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { RolesService } from "src/roles/roles.service";
 import { UsersService } from "src/users/users.service";
-import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
+import { SpaceMembers } from "src/entities/SpaceMembers";
 import { AcceptInviteDTO } from "./dto/accept.invite.dto";
 import { DeclineInviteDTO } from "./dto/decline.invite.dto";
 import { uuidv7 } from "uuidv7";
@@ -116,7 +116,7 @@ export class InvitesService {
         id: true,
       },
       where: {
-        SharedspaceId: space.id,
+        SpaceId: space.id,
         InviteeId: invitee.id,
         status: INVITE_STATUS.PENDING,
         expiredAt: MoreThan(dayjs().toDate()),
@@ -129,7 +129,7 @@ export class InvitesService {
 
     await this.invitesRepository.insert({
       id: uuidv7(),
-      SharedspaceId: space.id,
+      SpaceId: space.id,
       InviterId: UserId,
       InviteeId: invitee.id,
       expiredAt: dayjs().add(7, 'day').format('YYYY-MM-DD HH:mm:ss'),
@@ -173,11 +173,11 @@ export class InvitesService {
 
       const viewerInfo = await this.rolesService.getRoleInfo(SHAREDSPACE_ROLE.VIEWER);
 
-      await qr.manager.insert(SharedspaceMembers,
+      await qr.manager.insert(SpaceMembers,
         {
           id: uuidv7(),
           UserId,
-          SharedspaceId: space.id,
+          SpaceId: space.id,
           RoleId: viewerInfo.id,
         }
       );

@@ -1,5 +1,5 @@
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { SharedspaceMembers } from "./SharedspaceMembers";
+import { SpaceMembers } from "./SpaceMembers";
 
 @Entity({ name: 'roles' })
 export class Roles {
@@ -15,8 +15,6 @@ export class Roles {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @OneToMany(() => SharedspaceMembers, sharedspaceMembers => sharedspaceMembers.Role, {
-    cascade: true,
-  })
-  SharedspaceMembers: SharedspaceMembers[];
+  @OneToMany(() => SpaceMembers, spaceMembers => spaceMembers.Role)
+  SpaceMembers: SpaceMembers[];
 }

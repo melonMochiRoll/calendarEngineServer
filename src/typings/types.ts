@@ -1,5 +1,6 @@
 import { SHAREDSPACE_ROLE } from "src/common/constant/constants";
 import { Sharedspaces } from "src/entities/Sharedspaces";
+import { Spaces } from "src/entities/Spaces";
 import { Users } from "src/entities/Users";
 
 export type TSharedspaceRole = typeof SHAREDSPACE_ROLE[keyof typeof SHAREDSPACE_ROLE];
@@ -60,8 +61,8 @@ export type TRefreshTokenPayload = {
   exp: number,
 };
 
-export type SharedspaceReturnMap<T> = T extends 'full' ? Sharedspaces :
-  T extends 'standard' ? Pick<Sharedspaces, 'id' | 'name' | 'url' | 'private' | 'createdAt' | 'OwnerId'> :
+export type SharedspaceReturnMap<T> = T extends 'full' ? Spaces & Sharedspaces :
+  T extends 'standard' ? Pick<Sharedspaces, 'id' | 'name' | 'url' | 'private' | 'OwnerId'> & { Space: Pick<Spaces, 'createdAt'> } :
   never;
 
 export type UserReturnMap<T> = T extends 'full' ? Users :

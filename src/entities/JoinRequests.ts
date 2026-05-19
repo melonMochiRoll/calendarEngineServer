@@ -10,8 +10,8 @@ export class JoinRequests {
   @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
   id: string;
 
-  @Column({ type: 'binary', name: 'SharedspaceId', length: 16, transformer: new UUIDV7Transformer() })
-  SharedspaceId: string;
+  @Column({ type: 'binary', name: 'SpaceId', length: 16, transformer: new UUIDV7Transformer() })
+  SpaceId: string;
 
   @Column({ type: 'binary', name: 'RequestorId', length: 16, nullable: true, transformer: new UUIDV7Transformer() })
   RequestorId: string | null;
@@ -28,21 +28,15 @@ export class JoinRequests {
   @Column({ type: 'text' })
   message: string;
 
-  @ManyToOne(() => Sharedspaces, sharedspaces => sharedspaces.JoinRequests, {
-    onUpdate: 'CASCADE',
-    orphanedRowAction: 'soft-delete',
-  })
+  @ManyToOne(() => Sharedspaces, sharedspaces => sharedspaces.JoinRequests)
   @JoinColumn({
-    name: 'SharedspaceId',
+    name: 'SpaceId',
     referencedColumnName: 'id',
-    foreignKeyConstraintName: 'joinrequests_SharedspaceId_fk'
+    foreignKeyConstraintName: 'joinrequests_SpaceId_fk'
   })
   Sharedspace: Sharedspaces;
 
-  @ManyToOne(() => Users, users => users.JoinRequests, {
-    onUpdate: 'CASCADE',
-    onDelete: 'SET NULL',
-  })
+  @ManyToOne(() => Users, users => users.JoinRequests)
   @JoinColumn({
     name: 'RequestorId',
     referencedColumnName: 'id',

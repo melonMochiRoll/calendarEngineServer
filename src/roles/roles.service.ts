@@ -5,7 +5,7 @@ import { Repository } from "typeorm";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { ROLES_ARRAY_KEY } from "src/common/constant/auth.constants";
-import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
+import { SpaceMembers } from "src/entities/SpaceMembers";
 import { TSharedspaceRole } from "src/typings/types";
 import { CACHE_EMPTY_SYMBOL, SHAREDSPACE_ROLE } from "src/common/constant/constants";
 
@@ -16,8 +16,8 @@ export class RolesService {
     private cacheManager: Cache,
     @InjectRepository(Roles)
     private rolesRepository: Repository<Roles>,
-    @InjectRepository(SharedspaceMembers)
-    private sharedspaceMembersRepository: Repository<SharedspaceMembers>,
+    @InjectRepository(SpaceMembers)
+    private spaceMembersRepository: Repository<SpaceMembers>,
   ) {}
 
   async initRoles() {
@@ -62,22 +62,22 @@ export class RolesService {
 
   async getUserRole(
     UserId: string,
-    SharedspaceId: string,
+    SpaceId: string,
   ) {
-    const cacheKey = `user:role:${UserId}:${SharedspaceId}`;
-    const cachedUserRole = await this.cacheManager.get<Pick<SharedspaceMembers, 'RoleId'> | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
+    const cacheKey = `user:role:${UserId}:${SpaceId}`;
+    const cachedUserRole = await this.cacheManager.get<Pick<SpaceMembers, 'RoleId'> | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
     if (cachedUserRole) {
       return cachedUserRole === CACHE_EMPTY_SYMBOL ? null : cachedUserRole;
     }
 
-    const userRole = await this.sharedspaceMembersRepository.findOne({
+    const userRole = await this.spaceMembersRepository.findOne({
       select: {
         RoleId: true,
       },
       where: {
         UserId,
-        SharedspaceId,
+        SpaceId,
       },
     });
 
@@ -94,9 +94,9 @@ export class RolesService {
 
   async invalidateUserRoleCache(
     UserId: string,
-    SharedspaceId: string,
+    SpaceId: string,
   ) {
-    await this.cacheManager.del(`user:role:${UserId}:${SharedspaceId}`);
+    await this.cacheManager.del(`user:role:${UserId}:${SpaceId}`);
   }
 
   async requireRole(

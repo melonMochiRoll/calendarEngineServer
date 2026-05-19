@@ -6,7 +6,6 @@ import { Images } from "src/entities/Images";
 import { RolesService } from "src/roles/roles.service";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { DataSource, In, IsNull, LessThan, Repository } from "typeorm";
-import { Sharedspaces } from "src/entities/Sharedspaces";
 import dayjs from "dayjs";
 import { GeneratePresignedPutUrlDTO } from "./dto/generate.presigned.put.url.dto";
 import { ChatToClient, IMAGE_STATUS } from "src/common/constant/constants";
@@ -69,11 +68,11 @@ export class ChatsService {
         Sender: true,
       },
       where: beforeChatId ? {
-        SharedspaceId: space.id,
+        SpaceId: space.id,
         id: LessThan(beforeChatId),
         removedAt: IsNull(),
       } : {
-        SharedspaceId: space.id,
+        SpaceId: space.id,
         removedAt: IsNull(),
       },
       order: {
@@ -127,7 +126,7 @@ export class ChatsService {
 
     const totalCount = await this.chatsRepository.count({
       where: {
-        SharedspaceId: space.id,
+        SpaceId: space.id,
         id: LessThan(chats[chats.length-1].id),
         removedAt: IsNull(),
       },
@@ -169,7 +168,7 @@ export class ChatsService {
         id,
         content,
         SenderId: UserId,
-        SharedspaceId: space.id,
+        SpaceId: space.id,
       });
 
       if (imageIds.length) {
@@ -248,7 +247,7 @@ export class ChatsService {
       {
         id,
         SenderId: UserId,
-        SharedspaceId: space.id,
+        SpaceId: space.id,
       },
       {
         content,
@@ -280,7 +279,7 @@ export class ChatsService {
         select: {
           id: true,
           SenderId: true,
-          SharedspaceId: true,
+          SpaceId: true,
           Images: true,
         },
         relations: {
@@ -293,7 +292,7 @@ export class ChatsService {
 
       if (
         targetChat?.SenderId !== UserId ||
-        targetChat?.SharedspaceId !== space.id
+        targetChat?.SpaceId !== space.id
       ) {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
@@ -331,7 +330,7 @@ export class ChatsService {
       select: {
         id: true,
         SenderId: true,
-        SharedspaceId: true,
+        SpaceId: true,
         content: true,
         Images: {
           id: true,
@@ -348,7 +347,7 @@ export class ChatsService {
 
     if (
       targetChat?.SenderId !== UserId ||
-      targetChat?.SharedspaceId !== space.id ||
+      targetChat?.SpaceId !== space.id ||
       !targetChat.Images.find(image => image.id === ImageId)
     ) {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);

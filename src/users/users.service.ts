@@ -9,7 +9,7 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { CONFLICT_ACCOUNT_MESSAGE, CONFLICT_MESSAGE } from "src/common/constant/error.message";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
-import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
+import { SpaceMembers } from "src/entities/SpaceMembers";
 import { RolesService } from "src/roles/roles.service";
 import { CACHE_EMPTY_SYMBOL, JOB_NAMES, JOB_STATUS, SHAREDSPACE_ROLE, USER_PROVIDER, USER_STATUS } from "src/common/constant/constants";
 import { RefreshTokens } from "src/entities/RefreshTokens";
@@ -31,8 +31,8 @@ export class UsersService {
     private dataSource: DataSource,
     @InjectRepository(Users)
     private usersRepository: Repository<Users>,
-    @InjectRepository(SharedspaceMembers)
-    private sharedspaceMembersRepository: Repository<SharedspaceMembers>,
+    @InjectRepository(SpaceMembers)
+    private spaceMembersRepository: Repository<SpaceMembers>,
     private sharedspacesService: SharedspacesService,
     private rolesService: RolesService,
   ) {}
@@ -199,12 +199,12 @@ export class UsersService {
       take: limit,
     });
 
-    const memberRecords = await this.sharedspaceMembersRepository.find({
+    const memberRecords = await this.spaceMembersRepository.find({
       select: {
         UserId: true,
       },
       where: {
-        SharedspaceId: space.id,
+        SpaceId: space.id,
       },
     });
 
@@ -328,7 +328,7 @@ export class UsersService {
 
       await qr.manager.delete(RefreshTokens, { UserId });
       await qr.manager.delete(JoinRequests, { RequestorId: UserId });
-      await qr.manager.delete(SharedspaceMembers, { UserId });
+      await qr.manager.delete(SpaceMembers, { UserId });
       await qr.manager.delete(Invites, [{ InviterId: UserId }, { InviteeId: UserId }]);
 
       const mySpaces = await qr.manager.find(Sharedspaces, {
@@ -341,12 +341,12 @@ export class UsersService {
       });
 
       if (mySpaces.length) {
-        const result = await qr.manager.query<{ UserId: Buffer, SharedspaceId: number, ROW_NUM: string}[]>(`
+        const result = await qr.manager.query<{ UserId: Buffer, SpaceId: number, ROW_NUM: string}[]>(`
           SELECT *
           FROM (
-            SELECT UserId, SharedspaceId, ROW_NUMBER() OVER(PARTITION BY SharedspaceId ORDER BY RoleId ASC, createdAt ASC) AS ROW_NUM
-            FROM sharedspacemembers
-            WHERE deletedAt IS NULL AND SharedspaceId IN (${mySpaces.map((space) => space.id).join(',')})
+            SELECT UserId, SpaceId, ROW_NUMBER() OVER(PARTITION BY SpaceId ORDER BY RoleId ASC, createdAt ASC) AS ROW_NUM
+            FROM spacemembers
+            WHERE removedAt IS NULL AND SpaceId IN (${mySpaces.map((space) => space.id).join(',')})
           ) AS oldest_members
           WHERE ROW_NUM = '1'
         `);
@@ -362,14 +362,14 @@ export class UsersService {
           .createQueryBuilder()
           .update(Sharedspaces)
           .set({
-            OwnerId: () => `CASE id ${ownersToUpdateMembers.map(({UserId, SharedspaceId}) => `WHEN ${SharedspaceId} THEN ${UserId}`).join(' ')} ELSE OwnerId END`,
+            OwnerId: () => `CASE id ${ownersToUpdateMembers.map(({UserId, SpaceId}) => `WHEN ${SpaceId} THEN ${UserId}`).join(' ')} ELSE OwnerId END`,
           })
-          .where(`id IN (:...ids)`, { ids: ownersToUpdateMembers.map(({SharedspaceId}) => SharedspaceId) })
+          .where(`id IN (:...ids)`, { ids: ownersToUpdateMembers.map(({SpaceId}) => SpaceId) })
           .execute();
-        await qr.manager.update(SharedspaceMembers, ownersToUpdateMembers.map(({UserId, SharedspaceId}) => {return { UserId, SharedspaceId }}), { RoleId: ownerInfo.id });
+        await qr.manager.update(SpaceMembers, ownersToUpdateMembers.map(({UserId, SpaceId}) => {return { UserId, SpaceId }}), { RoleId: ownerInfo.id });
 
         const ownerUpdateSpacesMap = ownersToUpdateMembers.reduce((acc, member) => {
-          acc[member.SharedspaceId] = member.UserId;
+          acc[member.SpaceId] = member.UserId;
           return acc;
         }, {});
 

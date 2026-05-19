@@ -37,12 +37,10 @@ export class Todos {
   @Column({ type: 'binary', name: 'EditorId', length: 16, nullable: true, transformer: new UUIDV7Transformer() })
   EditorId: string | null;
 
-  @Column({ type: 'binary', name: 'SharedspaceId', length: 16, transformer: new UUIDV7Transformer() })
-  SharedspaceId: string;
+  @Column({ type: 'binary', name: 'SpaceId', length: 16, transformer: new UUIDV7Transformer() })
+  SpaceId: string;
   
-  @ManyToOne(() => Users, users => users.Todos, {
-    onUpdate: 'CASCADE',
-  })
+  @ManyToOne(() => Users, users => users.Todos)
   @JoinColumn({
     name: 'AuthorId',
     referencedColumnName: 'id',
@@ -50,10 +48,7 @@ export class Todos {
   })
   Author: Users;
 
-  @ManyToOne(() => Users, users => users.EditedTodos, {
-    onUpdate: 'CASCADE',
-    onDelete: 'SET NULL',
-  })
+  @ManyToOne(() => Users, users => users.EditedTodos)
   @JoinColumn({
     name: 'EditorId',
     referencedColumnName: 'id',
@@ -61,14 +56,11 @@ export class Todos {
   })
   Editor: Users;
 
-  @ManyToOne(() => Sharedspaces, sharedspaces => sharedspaces.Todos, {
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => Sharedspaces, sharedspaces => sharedspaces.Todos)
   @JoinColumn({
-    name: 'SharedspaceId',
+    name: 'SpaceId',
     referencedColumnName: 'id',
-    foreignKeyConstraintName: 'todos_SharedspaceId_fk',
+    foreignKeyConstraintName: 'todos_SpaceId_fk',
   })
   Sharedspace: Sharedspaces;
 }

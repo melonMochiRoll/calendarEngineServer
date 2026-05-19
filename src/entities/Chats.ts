@@ -1,8 +1,8 @@
 import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, OneToMany, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { Users } from "./Users";
-import { Sharedspaces } from "./Sharedspaces";
 import { Images } from "./Images";
 import { UUIDV7Transformer } from "src/common/function/uuidv7Transformer";
+import { Spaces } from "./Spaces";
 
 @Index('chats_createdAt_idx', ['createdAt'])
 @Entity({ name: 'chats' })
@@ -16,8 +16,8 @@ export class Chats {
   @Column({ type: 'binary', name: 'SenderId', length: 16, transformer: new UUIDV7Transformer() })
   SenderId: string;
 
-  @Column({ type: 'binary', name: 'SharedspaceId', length: 16, transformer: new UUIDV7Transformer() })
-  SharedspaceId: string;
+  @Column({ type: 'binary', name: 'SpaceId', length: 16, transformer: new UUIDV7Transformer() })
+  SpaceId: string;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -31,9 +31,7 @@ export class Chats {
   @OneToMany(() => Images, images => images.Chat)
   Images: Images[];
 
-  @ManyToOne(() => Users, users => users.Todos, {
-    onUpdate: 'CASCADE',
-  })
+  @ManyToOne(() => Users, users => users.Todos)
   @JoinColumn({
     name: 'SenderId',
     referencedColumnName: 'id',
@@ -41,14 +39,11 @@ export class Chats {
   })
   Sender: Users;
 
-  @ManyToOne(() => Sharedspaces, sharedspaces => sharedspaces.Chats, {
-    onUpdate: 'CASCADE',
-    orphanedRowAction: 'soft-delete',
-  })
+  @ManyToOne(() => Spaces, spaces => spaces.Chats)
   @JoinColumn({
-    name: 'SharedspaceId',
+    name: 'SpaceId',
     referencedColumnName: 'id',
-    foreignKeyConstraintName: 'chats_SharedspaceId_fk',
+    foreignKeyConstraintName: 'chats_SpaceId_fk',
   })
-  Sharedspace: Sharedspaces;
+  Space: Spaces;
 }

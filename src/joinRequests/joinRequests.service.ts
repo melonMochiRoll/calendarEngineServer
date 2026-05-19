@@ -3,7 +3,7 @@ import { CreateJoinRequestDTO } from "./dto/create.joinRequest.dto";
 import { DataSource, Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 import { JoinRequests } from "src/entities/JoinRequests";
-import { SharedspaceMembers } from "src/entities/SharedspaceMembers";
+import { SpaceMembers } from "src/entities/SpaceMembers";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_REQUEST_MESSAGE } from "src/common/constant/error.message";
 import { Roles } from "src/entities/Roles";
 import { ResolveJoinRequestDTO } from "./dto/resolve.joinRequest.dto";
@@ -18,8 +18,8 @@ export class JoinRequestsService {
     private dataSource: DataSource,
     @InjectRepository(JoinRequests)
     private joinRequestsRepository: Repository<JoinRequests>,
-    @InjectRepository(SharedspaceMembers)
-    private sharedspaceMembersRepository: Repository<SharedspaceMembers>,
+    @InjectRepository(SpaceMembers)
+    private spaceMembersRepository: Repository<SpaceMembers>,
     @InjectRepository(Roles)
     private rolesRepository: Repository<Roles>,
     private sharedspacesService: SharedspacesService,
@@ -53,7 +53,7 @@ export class JoinRequestsService {
         Requestor: true,
       },
       where: {
-        SharedspaceId: space.id,
+        SpaceId: space.id,
       },
       order: {
         createdAt: 'DESC',
@@ -84,14 +84,14 @@ export class JoinRequestsService {
 
       const targetJoinRequest = await this.joinRequestsRepository.findOne({
         select: {
-          SharedspaceId: true,
+          SpaceId: true,
         },
         where: {
           id: joinRequestId,
         },
       });
 
-      if (space.id !== targetJoinRequest?.SharedspaceId) {
+      if (space.id !== targetJoinRequest?.SpaceId) {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
@@ -101,10 +101,10 @@ export class JoinRequestsService {
         throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
       }
 
-      await qr.manager.insert(SharedspaceMembers, {
+      await qr.manager.insert(SpaceMembers, {
         id: uuidv7(),
         UserId: targetJoinRequest.RequestorId,
-        SharedspaceId: targetJoinRequest.SharedspaceId,
+        SpaceId: targetJoinRequest.SpaceId,
         RoleId: roleInfo.id,
       });
       await qr.manager.update(JoinRequests, { id: targetJoinRequest.id }, { status: JOINREQUEST_STATUS.ACCEPTED });
@@ -132,7 +132,7 @@ export class JoinRequestsService {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
-    const isRequested = await this.joinRequestsRepository.findOneBy({ RequestorId: UserId, SharedspaceId: space.id });
+    const isRequested = await this.joinRequestsRepository.findOneBy({ RequestorId: UserId, SpaceId: space.id });
 
     if (isRequested) {
       throw new ConflictException(CONFLICT_REQUEST_MESSAGE);
@@ -140,7 +140,7 @@ export class JoinRequestsService {
 
     await this.joinRequestsRepository.insert({
       id: uuidv7(),
-      SharedspaceId: space.id,
+      SpaceId: space.id,
       RequestorId: UserId,
       message: dto.message,
       status: JOINREQUEST_STATUS.PENDING,
