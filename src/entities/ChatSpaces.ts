@@ -7,7 +7,9 @@ export class ChatSpaces {
   @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
   id: string;
 
-  @OneToOne(() => Spaces, spaces => spaces.Chatspace)
+  @OneToOne(() => Spaces, spaces => spaces.Chatspace, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({
     name: 'id',
     referencedColumnName: 'id',

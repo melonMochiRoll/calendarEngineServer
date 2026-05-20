@@ -24,7 +24,9 @@ export class Sharedspaces {
   @Column({ type: 'binary', name: 'OwnerId', length: 16, nullable: true, transformer: new UUIDV7Transformer() })
   OwnerId: string | null;
 
-  @OneToOne(() => Spaces, spaces => spaces.Sharedspace)
+  @OneToOne(() => Spaces, spaces => spaces.Sharedspace, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({
     name: 'id',
     referencedColumnName: 'id',
