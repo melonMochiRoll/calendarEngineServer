@@ -14,6 +14,7 @@ import { SendSharedspacechatDTO } from "src/events/dto/send.sharedspace.chat.dto
 import { UpdateSharedspaceChatDTO } from "src/events/dto/update.sharedspace.chat.dto";
 import { DeleteSharedspaceChatDTO } from "src/events/dto/delete.sharedspace.chat.dto";
 import { DeleteSharedspaceChatImageDTO } from "src/events/dto/delete.sharedspace.chat.image.dto";
+import { ChatImages } from "src/entities/ChatImages";
 
 @Injectable()
 export class ChatsService {
@@ -23,6 +24,8 @@ export class ChatsService {
     private chatsRepository: Repository<Chats>,
     @InjectRepository(Images)
     private imagesRepository: Repository<Images>,
+    @InjectRepository(ChatImages)
+    private chatImagesRepository: Repository<ChatImages>,
     private rolesService: RolesService,
     private storageR2Service: StorageR2Service,
     private sharedspacesService: SharedspacesService,
@@ -88,23 +91,34 @@ export class ChatsService {
       };
     }
 
-    const images = await this.imagesRepository.find({
+    const result = await this.chatImagesRepository.find({
       select: {
         id: true,
-        path: true,
         ChatId: true,
+        Image: {
+          path: true,
+        },
       },
       where: {
         ChatId: In(chatRecords.map((chat) => chat.id)),
-        status: IMAGE_STATUS.ACTIVE,
-        removedAt: IsNull(),
+        Image: {
+          status: IMAGE_STATUS.ACTIVE,
+          removedAt: IsNull(),
+        },
+      },
+      relations: {
+        Image: true,
       },
     });
 
-    const batch = images.map(async (image) =>
-      image.path = await this.storageR2Service.generatePresignedGetUrl(image.path)
-    );
-    await Promise.all(batch);
+    const getUrlPromises = result.map(async (image) => {
+      const { Image, ...rest } = image;
+      return {
+        ...rest,
+        path: await this.storageR2Service.generatePresignedGetUrl(Image.path),
+      };
+    });
+    const images = await Promise.all(getUrlPromises);
 
     const imagesMap = images.reduce((acc, image) => {
       if (!acc[image.ChatId]) {
@@ -172,21 +186,17 @@ export class ChatsService {
       });
 
       if (imageIds.length) {
-        const batch = imageIds.map(imageId =>
-          qr.manager.update(Images,
-            { id: imageId },
-            {
-              status: IMAGE_STATUS.ACTIVE,
-              ChatId: id,
-            })
-        );
+        const updatePromises = imageIds.map(async (imageId) => {
+          await qr.manager.update(Images, { id: imageId }, { status: IMAGE_STATUS.ACTIVE });
+          await qr.manager.insert(ChatImages, { id: imageId, ChatId: id });
+        });
 
-        await Promise.all(batch);
+        await Promise.all(updatePromises);
       }
 
       await qr.commitTransaction();
 
-      const chatWithUser = await this.chatsRepository.findOne({
+      const result = await this.chatsRepository.findOne({
         select: {
           id: true,
           content: true,
@@ -198,27 +208,35 @@ export class ChatsService {
             nickname: true,
             profileImage: true,
           },
-          Images: {
+          ChatImages: {
             id: true,
-            path: true,
+            Image: {
+              path: true,
+            }
           },
         },
         relations: {
           Sender: true,
-          Images: true,
+          ChatImages: {
+            Image: true,
+          },
         },
         where: {
           id,
         },
       });
 
-      if (chatWithUser.Images.length) {
-        await Promise.all(
-          chatWithUser.Images.map(async (image) => {
-            image.path = await this.storageR2Service.generatePresignedGetUrl(image.path);
-          })
-        );
-      }
+      const getUrlPromisesAndFlattening = result.ChatImages.map(async (chatImage) => {
+        const { Image, ...rest } = chatImage;
+        return {
+          ...rest,
+          path: await this.storageR2Service.generatePresignedGetUrl(Image.path),
+        };
+      });
+      const chatWithUser = {
+        ...result,
+        ChatImages: await Promise.all(getUrlPromisesAndFlattening),
+      };
 
       return {
         sender: Object.assign({ ...chatWithUser }, { permission: { isSender: true } }),
@@ -280,10 +298,12 @@ export class ChatsService {
           id: true,
           SenderId: true,
           SpaceId: true,
-          Images: true,
+          ChatImages: {
+            id: true,
+          },
         },
         relations: {
-          Images: true,
+          ChatImages: true,
         },
         where: {
           id,
@@ -299,11 +319,10 @@ export class ChatsService {
 
       const now = dayjs().toDate();
 
-      await Promise.all(
-        targetChat.Images.map(
-          image => qr.manager.update(Images, { id: image.id }, { status: IMAGE_STATUS.DELETED, removedAt: now })
-        )
+      const softDeletePromises = targetChat.ChatImages.map(chatImage =>
+        qr.manager.update(Images, { id: chatImage.id }, { status: IMAGE_STATUS.DELETED, removedAt: now })
       );
+      await Promise.all(softDeletePromises);
 
       await qr.manager.update(Chats, { id: targetChat.id }, { removedAt: now });
 
@@ -326,29 +345,42 @@ export class ChatsService {
     const { url, ChatId, ImageId } = dto;
     const space = await this.sharedspacesService.getSharedspaceByUrl(url);
 
-    const targetChat = await this.chatsRepository.findOne({
+    const result = await this.chatsRepository.findOne({
       select: {
         id: true,
         SenderId: true,
         SpaceId: true,
         content: true,
-        Images: {
+        ChatImages: {
           id: true,
-          path: true,
+          Image: {
+            path: true,
+          },
         },
       },
       relations: {
-        Images: true,
+        ChatImages: true,
       },
       where: {
         id: ChatId,
       },
     });
 
+    const targetChat = {
+      ...result,
+      ChatImages: result.ChatImages.map(chatImage => {
+        const { Image, ...rest } = chatImage;
+        return {
+          ...rest,
+          path: Image.path,
+        };
+      }),
+    };
+
     if (
       targetChat?.SenderId !== UserId ||
       targetChat?.SpaceId !== space.id ||
-      !targetChat.Images.find(image => image.id === ImageId)
+      !targetChat.ChatImages.find(chatImage => chatImage.id === ImageId)
     ) {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
@@ -360,7 +392,7 @@ export class ChatsService {
     const now = dayjs().toDate();
 
     try {
-      if (targetChat.Images.length === 1 && !targetChat.content) {
+      if (targetChat.ChatImages.length === 1 && !targetChat.content) {
         await qr.manager.update(Images, { id: ImageId }, { status: IMAGE_STATUS.DELETED, removedAt: now });
         await qr.manager.update(Chats, { id: targetChat.id }, { removedAt: now });
 

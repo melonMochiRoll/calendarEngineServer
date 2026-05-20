@@ -8,12 +8,14 @@ import { RolesModule } from "src/roles/roles.module";
 import { Images } from "src/entities/Images";
 import { StorageModule } from "src/storage/storage.module";
 import { RefreshTokens } from "src/entities/RefreshTokens";
+import { ChatImages } from "src/entities/ChatImages";
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       Chats,
       Images,
+      ChatImages,
       RefreshTokens,
     ]),
     StorageModule,

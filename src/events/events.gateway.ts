@@ -12,6 +12,7 @@ import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
 import { DeleteSharedspaceChatDTO } from "./dto/delete.sharedspace.chat.dto";
 import { DeleteSharedspaceChatImageDTO } from "./dto/delete.sharedspace.chat.image.dto";
 import { Chats } from "src/entities/Chats";
+import { TChatPayload } from "src/typings/types";
 
 @WebSocketGateway({
   cors: process.env.NODE_ENV === 'development' && {
@@ -58,7 +59,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: SendSharedspacechatDTO,
     @User() user: Users,
-    @Ack() ack: (response: { status: string; data: Chats | null }) => void,
+    @Ack() ack: (response: { status: string; data: TChatPayload | null }) => void,
   ) {
     try {
       const chatWithUser = await this.chatsService.createSharedspaceChat(dto, user.id);

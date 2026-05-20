@@ -14,6 +14,8 @@ import path from 'path';
 import { BatchScheduler } from 'src/entities/BatchScheduler';
 import { Spaces } from 'src/entities/Spaces';
 import { ChatSpaces } from 'src/entities/ChatSpaces';
+import { ChatImages } from 'src/entities/ChatImages';
+import { ProfileImages } from 'src/entities/ProfileImages';
 
 const dbconfig: DataSourceOptions = {
   type: "mysql",
@@ -46,6 +48,8 @@ export const ormconfig = {
     SpaceMembers,
     Chats,
     Images,
+    ChatImages,
+    ProfileImages,
     RefreshTokens,
     Invites,
     BatchScheduler,

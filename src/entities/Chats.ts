@@ -1,8 +1,8 @@
 import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, OneToMany, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { Users } from "./Users";
-import { Images } from "./Images";
 import { UUIDV7Transformer } from "src/common/function/uuidv7Transformer";
 import { Spaces } from "./Spaces";
+import { ChatImages } from "./ChatImages";
 
 @Index('chats_createdAt_idx', ['createdAt'])
 @Entity({ name: 'chats' })
@@ -28,8 +28,8 @@ export class Chats {
   @Column({ type: 'datetime', precision: 6, nullable: true, default: null })
   removedAt: Date | null;
 
-  @OneToMany(() => Images, images => images.Chat)
-  Images: Images[];
+  @OneToMany(() => ChatImages, chatImages => chatImages.Chat)
+  ChatImages: ChatImages[];
 
   @ManyToOne(() => Users, users => users.Todos)
   @JoinColumn({

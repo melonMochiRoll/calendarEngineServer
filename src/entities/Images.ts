@@ -1,6 +1,7 @@
-import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
-import { Chats } from "./Chats";
+import { Column, CreateDateColumn, Entity, Index, OneToOne, PrimaryColumn } from "typeorm";
 import { UUIDV7Transformer } from "src/common/function/uuidv7Transformer";
+import { ChatImages } from "./ChatImages";
+import { ProfileImages } from "./ProfileImages";
 
 @Index('images_createdAt_idx', ['createdAt'])
 @Entity({ name: 'images' })
@@ -14,8 +15,8 @@ export class Images {
   @Column({ type: 'varchar', name: 'status', length: 30, default: 'pending' })
   status: string;
 
-  @Column({ type: 'binary', name: 'ChatId', length: 16, nullable: true, transformer: new UUIDV7Transformer() })
-  ChatId: string | null;
+  @Column({ type: 'varchar', length: 30 })
+  type: string;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -23,11 +24,9 @@ export class Images {
   @Column({ type: 'datetime', precision: 6, nullable: true, default: null })
   removedAt: Date | null;
 
-  @ManyToOne(() => Chats, chats => chats.Images)
-  @JoinColumn({
-    name: 'ChatId',
-    referencedColumnName: 'id',
-    foreignKeyConstraintName: 'images_ChatId_fk',
-  })
-  Chat: Chats;
+  @OneToOne(() => ChatImages, chatImages => chatImages.Image)
+  ChatImage: ChatImages;
+
+  @OneToOne(() => ProfileImages, profileImages => profileImages.Image)
+  ProfileImage: ProfileImages;
 }
