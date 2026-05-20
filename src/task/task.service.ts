@@ -148,7 +148,7 @@ export class TaskService {
   }
 
   @Cron('0 40 2 * * *')
-  async cleanupChatImages() {
+  async cleanupImages() {
     const softDeletedImages = await this.imagesRepository.find({
       select: {
         id: true,
