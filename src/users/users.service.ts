@@ -1,13 +1,13 @@
-import { ConflictException, Inject, Injectable } from "@nestjs/common";
+import { BadRequestException, ConflictException, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Users } from "src/entities/Users";
 import { DataSource, In, Like, Repository } from "typeorm";
 import bcrypt from 'bcrypt';
 import { CreateUserDTO } from "./dto/create.user.dto";
-import { UserReturnMap } from "src/typings/types";
+import { TUserStandardType } from "src/typings/types";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
-import { CONFLICT_ACCOUNT_MESSAGE, CONFLICT_MESSAGE } from "src/common/constant/error.message";
+import { BAD_REQUEST_MESSAGE, CONFLICT_ACCOUNT_MESSAGE, CONFLICT_MESSAGE } from "src/common/constant/error.message";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { SpaceMembers } from "src/entities/SpaceMembers";
 import { RolesService } from "src/roles/roles.service";
@@ -21,7 +21,8 @@ import { Chats } from "src/entities/Chats";
 import { BatchScheduler } from "src/entities/BatchScheduler";
 import dayjs from "dayjs";
 import { uuidv7 } from "uuidv7";
-import { uuidToString } from "src/common/function/uuidv7Transformer";
+import { uuidToString } from "src/common/function/uuidv7Transformer"
+import { ProfileImages } from "src/entities/ProfileImages";
 
 @Injectable()
 export class UsersService {
@@ -37,35 +38,46 @@ export class UsersService {
     private rolesService: RolesService,
   ) {}
 
-  async getUserById<T extends 'full' | 'standard' = 'standard'>(
-    id: string,
-    columnGroup: T = 'standard' as T,
-  ): Promise<UserReturnMap<T> | null> {
-    const cacheKey = `user:${id}:${columnGroup}`;
+  async getUserById(id: string): Promise<TUserStandardType> {
+    const cacheKey = `user:${id}:standard`;
 
-    const cachedItem = await this.cacheManager.get<UserReturnMap<T> | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
+    const cachedItem = await this.cacheManager.get<TUserStandardType | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
     if (cachedItem) {
       return cachedItem === CACHE_EMPTY_SYMBOL ? null : cachedItem;
     }
 
-    const selectClause = columnGroup === 'full' ?
-      {} :
-      {
+    const result = await this.usersRepository.findOne({
+      select: {
         id: true,
         email: true,
         nickname: true,
         provider: true,
-        profileImage: true,
+        ProfileImage: {
+          id: true,
+          Image: {
+            path: true,
+          },
+        },
         status: true,
-      };
-
-    const user = await this.usersRepository.findOne({
-      select: selectClause,
+      },
       where: {
         id,
       },
-    }) as UserReturnMap<T>;
+      relations: {
+        ProfileImage: {
+          Image: true,
+        },
+      },
+    });
+
+    const user = {
+      ...result,
+      ProfileImage: {
+        id: result.ProfileImage.id,
+        path: result.ProfileImage.Image.path,
+      },
+    };
 
     const minute = 60000;
 
@@ -78,35 +90,46 @@ export class UsersService {
     return user;
   }
 
-  async getUserByEmail<T extends 'full' | 'standard' = 'standard'>(
-    email: string,
-    columnGroup: T = 'standard' as T,
-  ): Promise<UserReturnMap<T> | null> {
-    const cacheKey = `user:${email}:${columnGroup}`;
+  async getUserByEmail(email: string): Promise<TUserStandardType> {
+    const cacheKey = `user:${email}:standard`;
 
-    const cachedItem = await this.cacheManager.get<UserReturnMap<T> | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
+    const cachedItem = await this.cacheManager.get<TUserStandardType | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
     if (cachedItem) {
       return cachedItem === CACHE_EMPTY_SYMBOL ? null : cachedItem;
     }
 
-    const selectClause = columnGroup === 'full' ?
-      {} :
-      {
+    const result = await this.usersRepository.findOne({
+      select: {
         id: true,
         email: true,
         nickname: true,
         provider: true,
-        profileImage: true,
+        ProfileImage: {
+          id: true,
+          Image: {
+            path: true,
+          },
+        },
         status: true,
-      };
-
-    const user = await this.usersRepository.findOne({
-      select: selectClause,
+      },
       where: {
         email,
       },
-    }) as UserReturnMap<T>;
+      relations: {
+        ProfileImage: {
+          Image: true,
+        },
+      },
+    });
+
+    const user = {
+      ...result,
+      ProfileImage: {
+        id: result.ProfileImage.id,
+        path: result.ProfileImage.Image.path,
+      },
+    };
 
     const minute = 60000;
 
@@ -119,35 +142,46 @@ export class UsersService {
     return user;
   }
 
-  async getUserByNickname<T extends 'full' | 'standard' = 'standard'>(
-    nickname: string,
-    columnGroup: T = 'standard' as T,
-  ): Promise<UserReturnMap<T> | null> {
-    const cacheKey = `user:${nickname}:${columnGroup}`;
+  async getUserByNickname(nickname: string): Promise<TUserStandardType> {
+    const cacheKey = `user:${nickname}:standard`;
 
-    const cachedItem = await this.cacheManager.get<UserReturnMap<T> | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
+    const cachedItem = await this.cacheManager.get<TUserStandardType | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
     if (cachedItem) {
       return cachedItem === CACHE_EMPTY_SYMBOL ? null : cachedItem;
     }
 
-    const selectClause = columnGroup === 'full' ?
-      {} :
-      {
+    const result = await this.usersRepository.findOne({
+      select: {
         id: true,
         email: true,
         nickname: true,
         provider: true,
-        profileImage: true,
+        ProfileImage: {
+          id: true,
+          Image: {
+            path: true,
+          },
+        },
         status: true,
-      };
-
-    const user = await this.usersRepository.findOne({
-      select: selectClause,
+      },
       where: {
         nickname,
       },
-    }) as UserReturnMap<T>;
+      relations: {
+        ProfileImage: {
+          Image: true,
+        },
+      },
+    });
+
+    const user = {
+      ...result,
+      ProfileImage: {
+        id: result.ProfileImage.id,
+        path: result.ProfileImage.Image.path,
+      },
+    };
 
     const minute = 60000;
 
@@ -183,7 +217,6 @@ export class UsersService {
         id: true,
         email: true,
         nickname: true,
-        profileImage: true,
       },
       where: [
         {
