@@ -32,6 +32,11 @@ export const IMAGE_STATUS = {
   DELETED: 'deleted',
 } as const;
 
+export const IMAGE_TYPE = {
+  CHAT: 'chat',
+  PROFILE: 'profile',
+} as const;
+
 export const INVITE_STATUS = {
   PENDING: 'pending',
   ACCEPTED: 'accepted',
