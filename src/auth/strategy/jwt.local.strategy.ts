@@ -1,14 +1,18 @@
 import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { Strategy } from "passport-local";
-import { AuthService } from "../auth.service";
 import { INCORRECT_CREDENTIALS_MESSAGE, NOT_FOUND_USER } from "src/common/constant/error.message";
 import { USER_STATUS } from "src/common/constant/constants";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Users } from "src/entities/Users";
+import { Repository } from "typeorm";
+import bcrypt from 'bcrypt';
 
 @Injectable()
 export class JwtLocalStrategy extends PassportStrategy(Strategy, 'jwt-local') {
   constructor(
-    private authService: AuthService,
+    @InjectRepository(Users)
+    private usersRepository: Repository<Users>,
   ) {
     super({ usernameField: 'email', passwordField: 'password' });
   }
@@ -17,15 +21,50 @@ export class JwtLocalStrategy extends PassportStrategy(Strategy, 'jwt-local') {
     email: string,
     password: string,
   ) {
-    const user = await this.authService.validateUser(email, password);
+    const result = await this.usersRepository.findOne({
+      select: {
+        id: true,
+        email: true,
+        nickname: true,
+        password: true,
+        provider: true,
+        ProfileImage: {
+          id: true,
+          Image: {
+            path: true,
+          },
+        },
+        status: true,
+      },
+      where: {
+        email,
+      },
+      relations: {
+        ProfileImage: {
+          Image: true,
+        },
+      },
+    });
 
-    if (!user) {
+    const compare = await bcrypt.compare(password, result?.password);
+
+    if (!result || !compare) {
       throw new UnauthorizedException(INCORRECT_CREDENTIALS_MESSAGE);
     }
 
-    if (user.status !== USER_STATUS.ACTIVE) {
+    if (result.status !== USER_STATUS.ACTIVE) {
       throw new BadRequestException(NOT_FOUND_USER);
     }
+
+    const { password: _, ...rest } = result;
+
+    const user = {
+      ...rest,
+      ProfileImage: {
+        id: result.ProfileImage?.id,
+        path: result.ProfileImage?.Image?.path,
+      },
+    };
 
     return user;
   }

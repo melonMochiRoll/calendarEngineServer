@@ -140,38 +140,6 @@ export class AuthService {
     };
   }
 
-  async validateUser(
-    email: string,
-    password: string,
-  ) {
-    const user = await this.usersRepository.findOne({
-      select: {
-        id: true,
-        email: true,
-        nickname: true,
-        password: true,
-        profileImage: true,
-        status: true,
-      },
-      where: {
-        email,
-      },
-    });
-
-    if (!user) {
-      return false;
-    }
-
-    const compare = await bcrypt.compare(password, user.password);
-
-    if (!compare) {
-      return false;
-    }
-
-    const { password: _, ...withoutPassword } = user;
-    return withoutPassword;
-  }
-
   async logout(UserId: string) {
     await this.refreshTokensRepository.delete({ UserId });
 
