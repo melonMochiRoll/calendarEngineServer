@@ -1,4 +1,6 @@
 import { SHAREDSPACE_ROLE } from "src/common/constant/constants";
+import { Chats } from "src/entities/Chats";
+import { Images } from "src/entities/Images";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import { Spaces } from "src/entities/Spaces";
 import { Users } from "src/entities/Users";
@@ -74,3 +76,16 @@ export type CacheItem<T> = {
   duration: number,
   expireTime: number,
 };
+
+export type TChatPayload = Pick<Chats,
+  'id' |
+  'content' |
+  'SenderId' |
+  'createdAt' |
+  'updatedAt'> & {
+    Sender: Pick<Users, 'email' | 'nickname' | 'profileImage'>,
+    ChatImages: Array<Pick<Images, 'id' | 'path'>>,
+    permission: {
+      isSender: boolean,
+    },
+  }
