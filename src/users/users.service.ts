@@ -11,7 +11,7 @@ import { CONFLICT_ACCOUNT_MESSAGE, CONFLICT_MESSAGE, PROFILE_IMAGE_TOO_LARGE_MES
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { SpaceMembers } from "src/entities/SpaceMembers";
 import { RolesService } from "src/roles/roles.service";
-import { CACHE_EMPTY_SYMBOL, IMAGE_STATUS, JOB_NAMES, JOB_STATUS, SHAREDSPACE_ROLE, USER_PROVIDER, USER_STATUS } from "src/common/constant/constants";
+import { CACHE_EMPTY_SYMBOL, IMAGE_STATUS, IMAGE_TYPE, JOB_NAMES, JOB_STATUS, SHAREDSPACE_ROLE, USER_PROVIDER, USER_STATUS } from "src/common/constant/constants";
 import { RefreshTokens } from "src/entities/RefreshTokens";
 import { JoinRequests } from "src/entities/JoinRequests";
 import { Invites } from "src/entities/Invites";
@@ -431,7 +431,7 @@ export class UsersService {
 
     const key = this.storageR2Service.generateStorageKey(UserId, fileName);
     const presignedUrl = await this.storageR2Service.generatePresignedPutUrl(key, contentType);
-    await this.imagesRepository.insert({ id, status: IMAGE_STATUS.PENDING, path: key });
+    await this.imagesRepository.insert({ id, status: IMAGE_STATUS.PENDING, path: key, type: IMAGE_TYPE.PROFILE });
 
     return {
       key,
