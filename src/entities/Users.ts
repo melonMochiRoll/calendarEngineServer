@@ -28,9 +28,6 @@ export class Users {
   @Column({ type: 'varchar', length: 20 })
   provider: string;
 
-  @Column({ type: 'text', nullable: true })
-  profileImage: string;
-
   @Column({ type: 'varchar', length: 20 })
   status: string;
 

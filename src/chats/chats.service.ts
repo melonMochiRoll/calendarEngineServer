@@ -64,11 +64,18 @@ export class ChatsService {
         Sender: {
           email: true,
           nickname: true,
-          profileImage: true,
+          ProfileImage: {
+            id: true,
+            Image: {
+              path: true,
+            },
+          },
         },
       },
       relations: {
-        Sender: true,
+        Sender: {
+          ProfileImage: true,
+        },
       },
       where: beforeChatId ? {
         SpaceId: space.id,
@@ -132,6 +139,10 @@ export class ChatsService {
       return {
         ...chat,
         Images: imagesMap[`${chat.id}`] || [],
+        Sender: {
+          ...chat.Sender,
+          ProfileImage: chat.Sender.ProfileImage?.Image?.path,
+        },
         permission: {
           isSender: chat.SenderId === UserId,
         },
@@ -206,7 +217,12 @@ export class ChatsService {
           Sender: {
             email: true,
             nickname: true,
-            profileImage: true,
+            ProfileImage: {
+              id: true,
+              Image: {
+                path: true,
+              },
+            },
           },
           ChatImages: {
             id: true,
@@ -216,7 +232,11 @@ export class ChatsService {
           },
         },
         relations: {
-          Sender: true,
+          Sender: {
+            ProfileImage: {
+              Image: true,
+            },
+          },
           ChatImages: {
             Image: true,
           },
@@ -235,6 +255,10 @@ export class ChatsService {
       });
       const chatWithUser = {
         ...result,
+        Sender: {
+          ...result.Sender,
+          ProfileImage: result.Sender.ProfileImage?.Image?.path,
+        },
         ChatImages: await Promise.all(getUrlPromisesAndFlattening),
       };
 

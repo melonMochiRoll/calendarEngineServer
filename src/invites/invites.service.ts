@@ -40,13 +40,22 @@ export class InvitesService {
           Owner: {
             email: true,
             nickname: true,
-            profileImage: true,
+            ProfileImage: {
+              id: true,
+              Image: {
+                path: true,
+              },
+            },
           },
         },
       },
       relations: {
         Sharedspace: {
-          Owner: true,
+          Owner: {
+            ProfileImage: {
+              Image: true,
+            },
+          },
         },
       },
       where: {
@@ -74,7 +83,10 @@ export class InvitesService {
       return {
         ...rest,
         SharedspaceName: Sharedspace.name,
-        Owner: Sharedspace.Owner,
+        Owner: {
+          ...Sharedspace.Owner,
+          ProfileImage: Sharedspace.Owner.ProfileImage?.Image?.path,
+        },
         url: Sharedspace.url,
       };
     });

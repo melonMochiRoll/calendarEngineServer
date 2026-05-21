@@ -69,10 +69,7 @@ export type SharedspaceReturnMap<T> = T extends 'full' ? Spaces & Sharedspaces :
   never;
 
 export type TUserStandardType = Pick<Users, 'id' | 'email' | 'nickname' | 'provider' | 'status'> & {
-  ProfileImage: {
-    id: string,
-    path: string,
-  },
+  ProfileImage: string,
 };
 
 export type CacheItem<T> = {

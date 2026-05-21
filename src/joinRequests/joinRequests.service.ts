@@ -38,7 +38,7 @@ export class JoinRequestsService {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
-    const requests = await this.joinRequestsRepository.find({
+    const result = await this.joinRequestsRepository.find({
       select: {
         id: true,
         RequestorId: true,
@@ -46,11 +46,20 @@ export class JoinRequestsService {
         message: true,
         Requestor: {
           email: true,
-          profileImage: true,
+          ProfileImage: {
+            id: true,
+            Image: {
+              path: true,
+            },
+          },
         },
       },
       relations: {
-        Requestor: true,
+        Requestor: {
+          ProfileImage: {
+            Image: true,
+          },
+        },
       },
       where: {
         SpaceId: space.id,
@@ -58,6 +67,16 @@ export class JoinRequestsService {
       order: {
         createdAt: 'DESC',
       },
+    });
+
+    const requests = result.map(request => {
+      return {
+        ...request,
+        Requestor: {
+          ...request.Requestor,
+          ProfileImage: request.Requestor.ProfileImage?.Image?.path,
+        },
+      };
     });
 
     return requests;

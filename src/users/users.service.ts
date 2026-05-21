@@ -73,10 +73,7 @@ export class UsersService {
 
     const user = {
       ...result,
-      ProfileImage: {
-        id: result.ProfileImage.id,
-        path: result.ProfileImage.Image.path,
-      },
+      ProfileImage: result.ProfileImage?.Image?.path,
     };
 
     const minute = 60000;
@@ -125,10 +122,7 @@ export class UsersService {
 
     const user = {
       ...result,
-      ProfileImage: {
-        id: result.ProfileImage.id,
-        path: result.ProfileImage.Image.path,
-      },
+      ProfileImage: result.ProfileImage?.Image?.path,
     };
 
     const minute = 60000;
@@ -177,10 +171,7 @@ export class UsersService {
 
     const user = {
       ...result,
-      ProfileImage: {
-        id: result.ProfileImage.id,
-        path: result.ProfileImage.Image.path,
-      },
+      ProfileImage: result.ProfileImage?.Image?.path,
     };
 
     const minute = 60000;

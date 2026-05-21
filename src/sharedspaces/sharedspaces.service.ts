@@ -205,7 +205,12 @@ export class SharedspacesService {
             Owner: {
               email: true,
               nickname: true,
-              profileImage: true,
+              ProfileImage: {
+                id: true,
+                Image: {
+                  path: true,
+                },
+              },
             },
           },
         },
@@ -213,7 +218,11 @@ export class SharedspacesService {
       relations: {
         Space: {
           Sharedspace: {
-            Owner: true,
+            Owner: {
+              ProfileImage: {
+                Image: true,
+              },
+            },
           },
         },
       },
@@ -229,6 +238,10 @@ export class SharedspacesService {
       const { OwnerId, ...rest } = space.Space.Sharedspace;
       return {
         ...rest,
+        Owner: {
+          ...rest.Owner,
+          ProfileImage: rest.Owner.ProfileImage?.Image?.path,
+        },
         permission: {
           isOwner: UserId === OwnerId,
         },
@@ -481,7 +494,12 @@ export class SharedspacesService {
         User: {
           email: true,
           nickname: true,
-          profileImage: true,
+          ProfileImage: {
+            id: true,
+            Image: {
+              path: true,
+            },
+          },
         },
         Role: {
           name: true,
@@ -495,7 +513,11 @@ export class SharedspacesService {
         },
       },
       relations: {
-        User: true,
+        User: {
+          ProfileImage: {
+            Image: true,
+          },
+        },
         Role: true,
       },
       order: {
@@ -511,8 +533,8 @@ export class SharedspacesService {
         ...rest,
         email: User.email,
         nickname: User.nickname,
-        profileImage: User.profileImage,
         RoleName: Role.name,
+        ProfileImage: User.ProfileImage?.Image?.path,
       };
     });
 
