@@ -5,6 +5,7 @@ import { Users } from "src/entities/Users";
 import { CreateUserDTO } from "./dto/create.user.dto";
 import { IsNotJwtAuthenicatedGuard, JwtAuthGuard, PublicAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
+import { GenerateProfileImagePresignedPutUrlDTO } from "./dto/generate.profileImage.presigned.put.url.dto";
 
 @Controller('api/users')
 export class UsersController {
@@ -38,5 +39,14 @@ export class UsersController {
   @Delete()
   scheduleUserDeletion(@User() user: Users) {
     return this.usersService.scheduleUserDeletion(user.id);
+  }
+
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
+  @Post('profileimages/presigned-url')
+  generateProfileImagePresignedPutUrl(
+    @Body() dto: GenerateProfileImagePresignedPutUrlDTO,
+    @User() user: Users,
+  ) {
+    return this.usersService.generateProfileImagePresignedPutUrl(dto, user.id);
   }
 }

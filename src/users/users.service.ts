@@ -7,11 +7,11 @@ import { CreateUserDTO } from "./dto/create.user.dto";
 import { TUserStandardType } from "src/typings/types";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
-import { BAD_REQUEST_MESSAGE, CONFLICT_ACCOUNT_MESSAGE, CONFLICT_MESSAGE } from "src/common/constant/error.message";
+import { CONFLICT_ACCOUNT_MESSAGE, CONFLICT_MESSAGE, PROFILE_IMAGE_TOO_LARGE_MESSAGE } from "src/common/constant/error.message";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { SpaceMembers } from "src/entities/SpaceMembers";
 import { RolesService } from "src/roles/roles.service";
-import { CACHE_EMPTY_SYMBOL, JOB_NAMES, JOB_STATUS, SHAREDSPACE_ROLE, USER_PROVIDER, USER_STATUS } from "src/common/constant/constants";
+import { CACHE_EMPTY_SYMBOL, IMAGE_STATUS, JOB_NAMES, JOB_STATUS, SHAREDSPACE_ROLE, USER_PROVIDER, USER_STATUS } from "src/common/constant/constants";
 import { RefreshTokens } from "src/entities/RefreshTokens";
 import { JoinRequests } from "src/entities/JoinRequests";
 import { Invites } from "src/entities/Invites";
@@ -23,6 +23,9 @@ import dayjs from "dayjs";
 import { uuidv7 } from "uuidv7";
 import { uuidToString } from "src/common/function/uuidv7Transformer"
 import { ProfileImages } from "src/entities/ProfileImages";
+import { Images } from "src/entities/Images";
+import { GenerateProfileImagePresignedPutUrlDTO } from "./dto/generate.profileImage.presigned.put.url.dto";
+import { StorageR2Service } from "src/storage/storage.r2.service";
 
 @Injectable()
 export class UsersService {
@@ -34,8 +37,13 @@ export class UsersService {
     private usersRepository: Repository<Users>,
     @InjectRepository(SpaceMembers)
     private spaceMembersRepository: Repository<SpaceMembers>,
+    @InjectRepository(Images)
+    private imagesRepository: Repository<Images>,
+    @InjectRepository(ProfileImages)
+    private profileImagesRepository: Repository<ProfileImages>,
     private sharedspacesService: SharedspacesService,
     private rolesService: RolesService,
+    private storageR2Service: StorageR2Service,
   ) {}
 
   async getUserById(id: string): Promise<TUserStandardType> {
@@ -409,5 +417,26 @@ export class UsersService {
     } finally {
       await qr.release();
     }
+  }
+
+  async generateProfileImagePresignedPutUrl(
+    dto: GenerateProfileImagePresignedPutUrlDTO,
+    UserId: string,
+  ) {
+    const { id, fileName, fileSize, contentType } = dto;
+
+    if (fileSize >= 3 * 1024 * 1024) {
+      throw new BadRequestException(PROFILE_IMAGE_TOO_LARGE_MESSAGE);
+    }
+
+    const key = this.storageR2Service.generateStorageKey(UserId, fileName);
+    const presignedUrl = await this.storageR2Service.generatePresignedPutUrl(key, contentType);
+    await this.imagesRepository.insert({ id, status: IMAGE_STATUS.PENDING, path: key });
+
+    return {
+      key,
+      presignedUrl,
+      contentType,
+    };
   }
 }
