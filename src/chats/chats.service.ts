@@ -8,7 +8,7 @@ import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { DataSource, In, IsNull, LessThan, Repository } from "typeorm";
 import dayjs from "dayjs";
 import { GeneratePresignedPutUrlDTO } from "./dto/generate.presigned.put.url.dto";
-import { ChatToClient, IMAGE_STATUS } from "src/common/constant/constants";
+import { ChatToClient, IMAGE_STATUS, IMAGE_TYPE } from "src/common/constant/constants";
 import { StorageR2Service } from "src/storage/storage.r2.service";
 import { SendSharedspacechatDTO } from "src/events/dto/send.sharedspace.chat.dto";
 import { UpdateSharedspaceChatDTO } from "src/events/dto/update.sharedspace.chat.dto";
@@ -464,7 +464,7 @@ export class ChatsService {
       
       const key = this.storageR2Service.generateStorageKey(url, fileName);
       const presignedUrl = await this.storageR2Service.generatePresignedPutUrl(key, contentType);
-      await this.imagesRepository.insert({ id, status: IMAGE_STATUS.PENDING, path: key });
+      await this.imagesRepository.insert({ id, status: IMAGE_STATUS.PENDING, path: key, type: IMAGE_TYPE.CHAT });
 
       return {
         key,
