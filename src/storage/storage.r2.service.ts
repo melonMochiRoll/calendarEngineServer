@@ -19,10 +19,10 @@ export class StorageR2Service {
   }
 
   generateStorageKey(
-    url: string,
+    urlOrUserId: string,
     fileName: string,
   ) {
-    return `${process.env.R2_FOLDER_NAME}/${url}/${performance.now()}${path.extname(fileName)}`;
+    return `${process.env.R2_FOLDER_NAME}/${urlOrUserId}/${performance.now()}${path.extname(fileName)}`;
   }
   
   async uploadFile(
