@@ -8,6 +8,9 @@ import { SpaceMembers } from 'src/entities/SpaceMembers';
 import { SharedspacesModule } from 'src/sharedspaces/sharedspaces.module';
 import { SharedspacesUsersContoller } from './sharedspaces.users.controller';
 import { RolesModule } from 'src/roles/roles.module';
+import { Images } from 'src/entities/Images';
+import { ProfileImages } from 'src/entities/ProfileImages';
+import { StorageModule } from 'src/storage/storage.module';
 
 @Module({
   imports: [
@@ -15,9 +18,12 @@ import { RolesModule } from 'src/roles/roles.module';
       Users,
       RefreshTokens,
       SpaceMembers,
+      Images,
+      ProfileImages,
     ]),
     SharedspacesModule,
     RolesModule,
+    StorageModule,
   ],
   controllers: [
     UsersController,

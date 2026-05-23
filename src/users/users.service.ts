@@ -26,6 +26,7 @@ import { ProfileImages } from "src/entities/ProfileImages";
 import { Images } from "src/entities/Images";
 import { GenerateProfileImagePresignedPutUrlDTO } from "./dto/generate.profileImage.presigned.put.url.dto";
 import { StorageR2Service } from "src/storage/storage.r2.service";
+import { UpdateProfileImageDTO } from "./dto/update.profile.image.dto";
 
 @Injectable()
 export class UsersService {
@@ -438,5 +439,59 @@ export class UsersService {
       presignedUrl,
       contentType,
     };
+  }
+
+  async updateProfileImage(
+    dto: UpdateProfileImageDTO,
+    UserId: string,
+  ) {
+    const { ImageId } = dto;
+
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+
+    try {
+      const profileImage = await qr.manager.findOne(ProfileImages,
+        {
+          select: {
+            id: true,
+            Image: {
+              id: true,
+            },
+          },
+          where: {
+            UserId,
+          },
+          relations: {
+            Image: true,
+          },
+        }
+      );
+
+      if (profileImage) {
+        await qr.manager.update(Images,
+          {
+            id: profileImage.Image.id,
+            status: IMAGE_STATUS.ACTIVE,
+          },
+          {
+            status: IMAGE_STATUS.DELETED,
+            removedAt: dayjs().toDate(),
+          },
+        );
+      }
+
+      await qr.manager.update(Images, { id: ImageId }, { status: IMAGE_STATUS.ACTIVE });
+      await qr.manager.upsert(ProfileImages, { id: ImageId, UserId }, ['id', 'UserId']);
+
+      await qr.commitTransaction();
+    } catch (err) {
+      await qr.rollbackTransaction();
+
+      throw err;
+    } finally {
+      await qr.release();
+    }
   }
 }

@@ -6,6 +6,7 @@ import { CreateUserDTO } from "./dto/create.user.dto";
 import { IsNotJwtAuthenicatedGuard, JwtAuthGuard, PublicAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
 import { GenerateProfileImagePresignedPutUrlDTO } from "./dto/generate.profileImage.presigned.put.url.dto";
+import { UpdateProfileImageDTO } from "./dto/update.profile.image.dto";
 
 @Controller('api/users')
 export class UsersController {
@@ -48,5 +49,14 @@ export class UsersController {
     @User() user: Users,
   ) {
     return this.usersService.generateProfileImagePresignedPutUrl(dto, user.id);
+  }
+
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
+  @Post('profileimages')
+  updateProfileImage(
+    @Body() dto: UpdateProfileImageDTO,
+    @User() user: Users,
+  ) {
+    return this.usersService.updateProfileImage(dto, user.id);
   }
 }
