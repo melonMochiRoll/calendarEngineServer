@@ -74,7 +74,9 @@ export class ChatsService {
       },
       relations: {
         Sender: {
-          ProfileImage: true,
+          ProfileImage: {
+            Image: true,
+          },
         },
       },
       where: beforeChatId ? {
