@@ -15,6 +15,7 @@ import { UpdateSharedspaceChatDTO } from "src/events/dto/update.sharedspace.chat
 import { DeleteSharedspaceChatDTO } from "src/events/dto/delete.sharedspace.chat.dto";
 import { DeleteSharedspaceChatImageDTO } from "src/events/dto/delete.sharedspace.chat.image.dto";
 import { ChatImages } from "src/entities/ChatImages";
+import { getR2PublicURL } from "src/common/function/getStorageURL";
 
 @Injectable()
 export class ChatsService {
@@ -120,14 +121,13 @@ export class ChatsService {
       },
     });
 
-    const getUrlPromises = result.map(async (image) => {
+    const images = result.map((image) => {
       const { Image, ...rest } = image;
       return {
         ...rest,
-        path: await this.storageR2Service.generatePresignedGetUrl(Image.path),
+        path: `${getR2PublicURL()}/${Image.path}`,
       };
     });
-    const images = await Promise.all(getUrlPromises);
 
     const imagesMap = images.reduce((acc, image) => {
       if (!acc[image.ChatId]) {
@@ -140,10 +140,10 @@ export class ChatsService {
     const chats = chatRecords.map((chat) => {
       return {
         ...chat,
-        Images: imagesMap[`${chat.id}`] || [],
+        ChatImages: imagesMap[`${chat.id}`] || [],
         Sender: {
           ...chat.Sender,
-          ProfileImage: chat.Sender.ProfileImage?.Image?.path,
+          ProfileImage: `${getR2PublicURL()}/${chat.Sender.ProfileImage?.Image?.path}`,
         },
         permission: {
           isSender: chat.SenderId === UserId,

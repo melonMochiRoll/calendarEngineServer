@@ -27,6 +27,7 @@ import { Images } from "src/entities/Images";
 import { GenerateProfileImagePresignedPutUrlDTO } from "./dto/generate.profileImage.presigned.put.url.dto";
 import { StorageR2Service } from "src/storage/storage.r2.service";
 import { UpdateProfileImageDTO } from "./dto/update.profile.image.dto";
+import { getR2PublicURL } from "src/common/function/getStorageURL";
 
 @Injectable()
 export class UsersService {
@@ -82,7 +83,7 @@ export class UsersService {
 
     const user = {
       ...result,
-      ProfileImage: result.ProfileImage?.Image?.path,
+      ProfileImage: `${getR2PublicURL()}/${result.ProfileImage?.Image?.path}`,
     };
 
     const minute = 60000;
@@ -131,7 +132,7 @@ export class UsersService {
 
     const user = {
       ...result,
-      ProfileImage: result.ProfileImage?.Image?.path,
+      ProfileImage: `${getR2PublicURL()}/${result.ProfileImage?.Image?.path}`,
     };
 
     const minute = 60000;
@@ -180,7 +181,7 @@ export class UsersService {
 
     const user = {
       ...result,
-      ProfileImage: result.ProfileImage?.Image?.path,
+      ProfileImage: `${getR2PublicURL()}/${result.ProfileImage?.Image?.path}`,
     };
 
     const minute = 60000;

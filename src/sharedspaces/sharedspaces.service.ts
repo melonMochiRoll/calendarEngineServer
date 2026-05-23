@@ -24,6 +24,7 @@ import { Invites } from "src/entities/Invites";
 import { BatchScheduler } from "src/entities/BatchScheduler";
 import { uuidv7 } from "uuidv7";
 import { Spaces } from "src/entities/Spaces";
+import { getR2PublicURL } from "src/common/function/getStorageURL";
 
 @Injectable()
 export class SharedspacesService {
@@ -240,7 +241,7 @@ export class SharedspacesService {
         ...rest,
         Owner: {
           ...rest.Owner,
-          ProfileImage: rest.Owner.ProfileImage?.Image?.path,
+          ProfileImage: `${getR2PublicURL()}/${rest.Owner.ProfileImage?.Image?.path}`,
         },
         permission: {
           isOwner: UserId === OwnerId,
