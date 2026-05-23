@@ -248,20 +248,20 @@ export class ChatsService {
         },
       });
 
-      const getUrlPromisesAndFlattening = result.ChatImages.map(async (chatImage) => {
+      const getPublicUrlAndFlattening = result.ChatImages.map((chatImage) => {
         const { Image, ...rest } = chatImage;
         return {
           ...rest,
-          path: await this.storageR2Service.generatePresignedGetUrl(Image.path),
+          path: `${getR2PublicURL()}/${Image.path}`,
         };
       });
       const chatWithUser = {
         ...result,
         Sender: {
           ...result.Sender,
-          ProfileImage: result.Sender.ProfileImage?.Image?.path,
+          ProfileImage: `${getR2PublicURL()}/${result.Sender.ProfileImage?.Image?.path}`,
         },
-        ChatImages: await Promise.all(getUrlPromisesAndFlattening),
+        ChatImages: getPublicUrlAndFlattening,
       };
 
       return {
