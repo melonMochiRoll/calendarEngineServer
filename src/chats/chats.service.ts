@@ -469,7 +469,6 @@ export class ChatsService {
       await this.imagesRepository.insert({ id, status: IMAGE_STATUS.PENDING, path: key, type: IMAGE_TYPE.CHAT });
 
       return {
-        key,
         presignedUrl,
         contentType,
       };
