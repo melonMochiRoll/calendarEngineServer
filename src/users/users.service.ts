@@ -218,6 +218,12 @@ export class UsersService {
         id: true,
         email: true,
         nickname: true,
+        ProfileImage: {
+          id: true,
+          Image: {
+            path: true,
+          },
+        },
       },
       where: [
         {
@@ -229,6 +235,11 @@ export class UsersService {
           status: USER_STATUS.ACTIVE,
         },
       ],
+      relations: {
+        ProfileImage: {
+          Image: true,
+        },
+      },
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -250,6 +261,7 @@ export class UsersService {
     const users = userRecords.map((user) => {
       return {
         ...user,
+        ProfileImage: `${getR2PublicURL()}/${user.ProfileImage?.Image?.path}`,
         permission: {
           isParticipant: memberSet.has(user.id),
         },
