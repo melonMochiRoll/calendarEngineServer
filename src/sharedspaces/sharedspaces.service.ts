@@ -489,6 +489,7 @@ export class SharedspacesService {
 
     const memberRecords = await this.spaceMembersRepository.find({
       select: {
+        id: true,
         UserId: true,
         SpaceId: true,
         createdAt: true,
@@ -535,7 +536,7 @@ export class SharedspacesService {
         email: User.email,
         nickname: User.nickname,
         RoleName: Role.name,
-        ProfileImage: User.ProfileImage?.Image?.path,
+        ProfileImage: `${getR2PublicURL()}/${User.ProfileImage?.Image?.path}`,
       };
     });
 
