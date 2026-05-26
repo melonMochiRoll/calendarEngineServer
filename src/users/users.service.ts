@@ -454,7 +454,6 @@ export class UsersService {
     await this.imagesRepository.insert({ id, status: IMAGE_STATUS.PENDING, path: key, type: IMAGE_TYPE.PROFILE });
 
     return {
-      key,
       presignedUrl,
       contentType,
     };
