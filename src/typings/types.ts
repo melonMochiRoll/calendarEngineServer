@@ -66,7 +66,7 @@ export type TRefreshTokenPayload = {
 
 export type TSharedspaceDefault = Pick<Spaces, 'createdAt'> & Pick<Sharedspaces, 'id' | 'name' | 'url' | 'private' | 'OwnerId'>;
 
-export type TUserStandardType = Pick<Users, 'id' | 'email' | 'nickname' | 'provider' | 'status'> & {
+export type TUserDefault = Pick<Users, 'id' | 'email' | 'nickname' | 'provider' | 'status'> & {
   ProfileImage: string,
 };
 

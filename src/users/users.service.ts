@@ -4,7 +4,7 @@ import { Users } from "src/entities/Users";
 import { DataSource, In, Like, Repository } from "typeorm";
 import bcrypt from 'bcrypt';
 import { CreateUserDTO } from "./dto/create.user.dto";
-import { TUserStandardType } from "src/typings/types";
+import { TUserDefault } from "src/typings/types";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { CONFLICT_ACCOUNT_MESSAGE, CONFLICT_MESSAGE, PROFILE_IMAGE_TOO_LARGE_MESSAGE } from "src/common/constant/error.message";
@@ -48,10 +48,10 @@ export class UsersService {
     private storageR2Service: StorageR2Service,
   ) {}
 
-  async getUserById(id: string): Promise<TUserStandardType> {
+  async getUserById(id: string): Promise<TUserDefault> {
     const cacheKey = `user:${id}:standard`;
 
-    const cachedItem = await this.cacheManager.get<TUserStandardType | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
+    const cachedItem = await this.cacheManager.get<TUserDefault | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
     if (cachedItem) {
       return cachedItem === CACHE_EMPTY_SYMBOL ? null : cachedItem;
@@ -97,10 +97,10 @@ export class UsersService {
     return user;
   }
 
-  async getUserByEmail(email: string): Promise<TUserStandardType> {
+  async getUserByEmail(email: string): Promise<TUserDefault> {
     const cacheKey = `user:${email}:standard`;
 
-    const cachedItem = await this.cacheManager.get<TUserStandardType | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
+    const cachedItem = await this.cacheManager.get<TUserDefault | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
     if (cachedItem) {
       return cachedItem === CACHE_EMPTY_SYMBOL ? null : cachedItem;
@@ -146,10 +146,10 @@ export class UsersService {
     return user;
   }
 
-  async getUserByNickname(nickname: string): Promise<TUserStandardType> {
+  async getUserByNickname(nickname: string): Promise<TUserDefault> {
     const cacheKey = `user:${nickname}:standard`;
 
-    const cachedItem = await this.cacheManager.get<TUserStandardType | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
+    const cachedItem = await this.cacheManager.get<TUserDefault | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
     if (cachedItem) {
       return cachedItem === CACHE_EMPTY_SYMBOL ? null : cachedItem;
