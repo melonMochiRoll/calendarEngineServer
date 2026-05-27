@@ -6,7 +6,7 @@ import { nanoid } from "nanoid";
 import { UpdateSharedspaceNameDTO } from "./dto/update.sharedspace.name.dto";
 import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { SpaceMembers } from "src/entities/SpaceMembers";
-import { CacheItem, SharedspaceReturnMap } from "src/typings/types";
+import { CacheItem, TSharedspaceDefault } from "src/typings/types";
 import { Users } from "src/entities/Users";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, CONFLICT_OWNER_MESSAGE, NOT_FOUND_RESOURCE, NOT_FOUND_SPACE_MESSAGE, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
@@ -42,19 +42,18 @@ export class SharedspacesService {
   ) {}
   private refreshLock = new Set<String>();
 
-  async getSharedspaceByUrl<T extends 'full' | 'standard' = 'standard'>(
+  async getSharedspaceByUrl(
     url: string,
-    columnGroup: T = 'standard' as T,
     beta = 1,
-  ): Promise<SharedspaceReturnMap<T>> {
-    const cacheKey = `sharedspace:${url}:${columnGroup}`;
+  ) {
+    const cacheKey = `sharedspace:${url}`;
 
-    const cachedItem = await this.cacheManager.get<CacheItem<SharedspaceReturnMap<T>>>(cacheKey);
+    const cachedItem = await this.cacheManager.get<CacheItem<TSharedspaceDefault>>(cacheKey);
 
     const fetchSharedspaceAndWrite = async (cacheKey: string) => {
-      const selectClause = columnGroup === 'full' ?
-        {} :
-        {
+      const start = dayjs();
+      const result = await this.sharedspacesRepository.findOne({
+        select: {
           id: true,
           name: true,
           url: true,
@@ -63,11 +62,7 @@ export class SharedspacesService {
             createdAt: true,
           },
           OwnerId: true,
-        };
-
-      const start = dayjs();
-      const result = await this.sharedspacesRepository.findOne({
-        select: selectClause,
+        },
         where: {
           url,
           Space: {
@@ -77,16 +72,18 @@ export class SharedspacesService {
         relations: {
           Space: true,
         },
-      }) as SharedspaceReturnMap<T>;
+      });
       const delta = dayjs().diff(start);
 
       if (!result) {
         throw new NotFoundException(NOT_FOUND_SPACE_MESSAGE);
       }
 
-      const space = {
-        ...result,
-        createdAt: result.Space.createdAt,
+      const { Space, ...rest } = result;
+
+      const space: TSharedspaceDefault = {
+        ...rest,
+        createdAt: Space.createdAt,
       };
 
       const minute = 60000;
@@ -124,8 +121,7 @@ export class SharedspacesService {
   }
 
   async invalidateSharedspaceCache(url: string) {
-    await this.cacheManager.del(`sharedspace:${url}:full`);
-    await this.cacheManager.del(`sharedspace:${url}:standard`);
+    await this.cacheManager.del(`sharedspace:${url}`);
   }
 
   async getSharedspace(
@@ -392,7 +388,20 @@ export class SharedspacesService {
     await qr.startTransaction();
 
     try {
-      const space = await this.getSharedspaceByUrl(url, 'full');
+      const space = await this.sharedspacesRepository.findOne({
+        select: {
+          id: true,
+          Space: {
+            type: true,
+          },
+        },
+        where: {
+          url,
+        },
+        relations: {
+          Space: true,
+        },
+      }) // full
 
       const isOwner = await this.rolesService.requireOwner(UserId, space.id);
 
@@ -414,7 +423,7 @@ export class SharedspacesService {
         BatchScheduler,
         {
           job_name: JOB_NAMES.SHAREDSPACE_DELETE,
-          job_params: JSON.stringify({ SpaceId: space.id, SpaceType: space.type }),
+          job_params: JSON.stringify({ SpaceId: space.id, SpaceType: space.Space.type }),
           status: JOB_STATUS.PENDING,
         },
       );

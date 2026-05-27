@@ -64,9 +64,7 @@ export type TRefreshTokenPayload = {
   exp: number,
 };
 
-export type SharedspaceReturnMap<T> = T extends 'full' ? Spaces & Sharedspaces :
-  T extends 'standard' ? Pick<Sharedspaces, 'id' | 'name' | 'url' | 'private' | 'OwnerId'> & { Space: Pick<Spaces, 'createdAt'> } :
-  never;
+export type TSharedspaceDefault = Pick<Spaces, 'createdAt'> & Pick<Sharedspaces, 'id' | 'name' | 'url' | 'private' | 'OwnerId'>;
 
 export type TUserStandardType = Pick<Users, 'id' | 'email' | 'nickname' | 'provider' | 'status'> & {
   ProfileImage: string,
