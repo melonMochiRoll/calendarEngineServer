@@ -17,7 +17,7 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { RolesService } from "src/roles/roles.service";
 import dayjs from "dayjs";
-import { JOB_NAMES, JOB_STATUS, SHAREDSPACE_URL_LENGTH, SHAREDSPACE_ROLE, SUBSCRIBEDSPACES_SORT, USER_STATUS, SPACE_TYPE } from "src/common/constant/constants";
+import { JOB_NAMES, JOB_STATUS, SPACE_URL_LENGTH, SHAREDSPACE_ROLE, SUBSCRIBEDSPACES_SORT, USER_STATUS, SPACE_TYPE } from "src/common/constant/constants";
 import { Todos } from "src/entities/Todos";
 import { JoinRequests } from "src/entities/JoinRequests";
 import { Invites } from "src/entities/Invites";
@@ -263,7 +263,7 @@ export class SharedspacesService {
 
     try {
       const SpaceId = uuidv7();
-      const url = nanoid(SHAREDSPACE_URL_LENGTH);
+      const url = nanoid(SPACE_URL_LENGTH);
 
       await qr.manager.insert(Spaces, {
         id: SpaceId,
