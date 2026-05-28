@@ -261,7 +261,7 @@ export class UsersService {
     const users = userRecords.map((user) => {
       return {
         ...user,
-        ProfileImage: `${getR2PublicURL()}/${user.ProfileImage?.Image?.path}`,
+        ProfileImage: user.ProfileImage ? `${getR2PublicURL()}/${user.ProfileImage?.Image?.path}` : '',
         permission: {
           isParticipant: memberSet.has(user.id),
         },

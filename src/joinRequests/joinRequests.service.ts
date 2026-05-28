@@ -11,6 +11,7 @@ import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { RolesService } from "src/roles/roles.service";
 import { JOINREQUEST_STATUS, SHAREDSPACE_ROLE } from "src/common/constant/constants";
 import { uuidv7 } from "uuidv7";
+import { getR2PublicURL } from "src/common/function/getStorageURL";
 
 @Injectable()
 export class JoinRequestsService {
@@ -74,7 +75,7 @@ export class JoinRequestsService {
         ...request,
         Requestor: {
           ...request.Requestor,
-          ProfileImage: request.Requestor.ProfileImage?.Image?.path,
+          ProfileImage: request.Requestor.ProfileImage ? `${getR2PublicURL()}/${request.Requestor.ProfileImage?.Image?.path}` : '',
         },
       };
     });

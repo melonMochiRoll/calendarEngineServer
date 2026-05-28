@@ -13,6 +13,7 @@ import { SpaceMembers } from "src/entities/SpaceMembers";
 import { AcceptInviteDTO } from "./dto/accept.invite.dto";
 import { DeclineInviteDTO } from "./dto/decline.invite.dto";
 import { uuidv7 } from "uuidv7";
+import { getR2PublicURL } from "src/common/function/getStorageURL";
 
 @Injectable()
 export class InvitesService {
@@ -88,7 +89,7 @@ export class InvitesService {
         SharedspaceName: Sharedspace.name,
         Owner: {
           ...Sharedspace.Owner,
-          ProfileImage: Sharedspace.Owner.ProfileImage?.Image?.path,
+          ProfileImage: Sharedspace.Owner.ProfileImage ? `${getR2PublicURL()}/${Sharedspace.Owner.ProfileImage?.Image?.path}` : '',
         },
         url: Sharedspace.Space.url,
       };

@@ -143,7 +143,7 @@ export class ChatsService {
         ChatImages: imagesMap[`${chat.id}`] || [],
         Sender: {
           ...chat.Sender,
-          ProfileImage: `${getR2PublicURL()}/${chat.Sender.ProfileImage?.Image?.path}`,
+          ProfileImage: chat.Sender.ProfileImage ? `${getR2PublicURL()}/${chat.Sender.ProfileImage?.Image?.path}`: '',
         },
         permission: {
           isSender: chat.SenderId === UserId,
@@ -259,7 +259,7 @@ export class ChatsService {
         ...result,
         Sender: {
           ...result.Sender,
-          ProfileImage: `${getR2PublicURL()}/${result.Sender.ProfileImage?.Image?.path}`,
+          ProfileImage: result.Sender.ProfileImage ? `${getR2PublicURL()}/${result.Sender.ProfileImage?.Image?.path}` : '',
         },
         ChatImages: getPublicUrlAndFlattening,
       };
