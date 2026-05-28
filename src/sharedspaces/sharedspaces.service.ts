@@ -191,10 +191,8 @@ export class SharedspacesService {
     const user_roles = await this.spaceMembersRepository.find({
       select: {
         id: true,
-        SpaceId: true,
         createdAt: true,
         Space: {
-          id: true,
           url: true,
           Sharedspace: {
             id: true,
@@ -233,10 +231,11 @@ export class SharedspacesService {
       take: limit,
     });
 
-    const spaces = user_roles.map((space) => {
-      const { OwnerId, ...rest } = space.Space.Sharedspace;
+    const spaces = user_roles.map((spacemember) => {
+      const { OwnerId, ...rest } = spacemember.Space.Sharedspace;
       return {
         ...rest,
+        url: spacemember.Space.url,
         Owner: {
           ...rest.Owner,
           ProfileImage: rest.Owner.ProfileImage ? `${getR2PublicURL()}/${rest.Owner.ProfileImage?.Image?.path}` : '',
