@@ -80,8 +80,8 @@ export class TaskService {
 
     for (const chunk of taskChunks) {
       const batch = chunk.map(task => {
-        const params: { SpaceId: string, SpaceType: string } = JSON.parse(task.job_params);
-        return this.sharedspacesService.deleteSharedspace(task.id, params.SpaceId, params.SpaceType);
+        const params: { SpaceId: string } = JSON.parse(task.job_params);
+        return this.sharedspacesService.deleteSharedspace(task.id, params.SpaceId);
       });
       await Promise.all(batch);
     }

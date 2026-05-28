@@ -393,7 +393,6 @@ export class SharedspacesService {
       const space = await this.spacesRepository.findOne({
         select: {
           id: true,
-          type: true,
         },
         where: {
           url,
@@ -420,7 +419,7 @@ export class SharedspacesService {
         BatchScheduler,
         {
           job_name: JOB_NAMES.SHAREDSPACE_DELETE,
-          job_params: JSON.stringify({ SpaceId: space.id, SpaceType: space.type }),
+          job_params: JSON.stringify({ SpaceId: space.id }),
           status: JOB_STATUS.PENDING,
         },
       );
@@ -440,7 +439,6 @@ export class SharedspacesService {
   async deleteSharedspace(
     TaskId: number,
     SpaceId: string,
-    SpaceType: string,
   ) {
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
