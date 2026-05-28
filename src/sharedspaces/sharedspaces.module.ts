@@ -8,10 +8,12 @@ import { Roles } from 'src/entities/Roles';
 import { RefreshTokens } from 'src/entities/RefreshTokens';
 import { Users } from 'src/entities/Users';
 import { RolesModule } from 'src/roles/roles.module';
+import { Spaces } from 'src/entities/Spaces';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
+      Spaces,
       Sharedspaces,
       SpaceMembers,
       Roles,
