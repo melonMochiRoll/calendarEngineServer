@@ -81,17 +81,17 @@ export class UsersService {
       },
     });
 
+    const minute = 60000;
+
+    if (!result) {
+      await this.cacheManager.set(cacheKey, CACHE_EMPTY_SYMBOL, 1 * minute);
+      return null;
+    }
+
     const user = {
       ...result,
       ProfileImage: `${getR2PublicURL()}/${result.ProfileImage?.Image?.path}`,
     };
-
-    const minute = 60000;
-
-    if (!user) {
-      await this.cacheManager.set(cacheKey, CACHE_EMPTY_SYMBOL, 1 * minute);
-      return null;
-    }
 
     await this.cacheManager.set(cacheKey, user, 10 * minute);
     return user;
@@ -130,17 +130,17 @@ export class UsersService {
       },
     });
 
+    const minute = 60000;
+
+    if (!result) {
+      await this.cacheManager.set(cacheKey, CACHE_EMPTY_SYMBOL, 1 * minute);
+      return null;
+    }
+
     const user = {
       ...result,
       ProfileImage: `${getR2PublicURL()}/${result.ProfileImage?.Image?.path}`,
     };
-
-    const minute = 60000;
-
-    if (!user) {
-      await this.cacheManager.set(cacheKey, CACHE_EMPTY_SYMBOL, 1 * minute);
-      return null;
-    }
 
     await this.cacheManager.set(cacheKey, user, 10 * minute);
     return user;
@@ -179,17 +179,17 @@ export class UsersService {
       },
     });
 
+    const minute = 60000;
+
+    if (!result) {
+      await this.cacheManager.set(cacheKey, CACHE_EMPTY_SYMBOL, 1 * minute);
+      return null;
+    }
+
     const user = {
       ...result,
       ProfileImage: `${getR2PublicURL()}/${result.ProfileImage?.Image?.path}`,
     };
-
-    const minute = 60000;
-
-    if (!user) {
-      await this.cacheManager.set(cacheKey, CACHE_EMPTY_SYMBOL, 1 * minute);
-      return null;
-    }
 
     await this.cacheManager.set(cacheKey, user, 10 * minute);
     return user;
