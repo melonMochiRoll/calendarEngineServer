@@ -34,6 +34,8 @@ export class SharedspacesService {
     private dataSource: DataSource,
     @InjectRepository(Users)
     private usersRepository: Repository<Users>,
+    @InjectRepository(Spaces)
+    private spacesRepository: Repository<Spaces>,
     @InjectRepository(Sharedspaces)
     private sharedspacesRepository: Repository<Sharedspaces>,
     @InjectRepository(SpaceMembers)
@@ -52,25 +54,23 @@ export class SharedspacesService {
 
     const fetchSharedspaceAndWrite = async (cacheKey: string) => {
       const start = dayjs();
-      const result = await this.sharedspacesRepository.findOne({
+      const result = await this.spacesRepository.findOne({
         select: {
           id: true,
-          name: true,
           url: true,
-          private: true,
-          Space: {
-            createdAt: true,
+          createdAt: true,
+          Sharedspace: {
+            name: true,
+            private: true,
+            OwnerId: true,
           },
-          OwnerId: true,
         },
         where: {
           url,
-          Space: {
-            removedAt: IsNull(),
-          },
+          removedAt: IsNull(),
         },
         relations: {
-          Space: true,
+          Sharedspace: true,
         },
       });
       const delta = dayjs().diff(start);
@@ -79,11 +79,13 @@ export class SharedspacesService {
         throw new NotFoundException(NOT_FOUND_SPACE_MESSAGE);
       }
 
-      const { Space, ...rest } = result;
+      const { Sharedspace, ...rest } = result;
 
       const space: TSharedspaceDefault = {
         ...rest,
-        createdAt: Space.createdAt,
+        name: Sharedspace.name,
+        private: Sharedspace.private,
+        OwnerId: Sharedspace.OwnerId,
       };
 
       const minute = 60000;
@@ -193,10 +195,10 @@ export class SharedspacesService {
         createdAt: true,
         Space: {
           id: true,
+          url: true,
           Sharedspace: {
             id: true,
             name: true,
-            url: true,
             private: true,
             OwnerId: true,
             Owner: {
@@ -263,13 +265,13 @@ export class SharedspacesService {
 
       await qr.manager.insert(Spaces, {
         id: SpaceId,
+        url,
         type: SPACE_TYPE.SHARED,
       });
 
       await qr.manager.insert(Sharedspaces, {
         id: SpaceId,
         name: '새 스페이스',
-        url,
         OwnerId: UserId,
       });
 
@@ -388,20 +390,15 @@ export class SharedspacesService {
     await qr.startTransaction();
 
     try {
-      const space = await this.sharedspacesRepository.findOne({
+      const space = await this.spacesRepository.findOne({
         select: {
           id: true,
-          Space: {
-            type: true,
-          },
+          type: true,
         },
         where: {
           url,
         },
-        relations: {
-          Space: true,
-        },
-      }) // full
+      });
 
       const isOwner = await this.rolesService.requireOwner(UserId, space.id);
 
@@ -423,7 +420,7 @@ export class SharedspacesService {
         BatchScheduler,
         {
           job_name: JOB_NAMES.SHAREDSPACE_DELETE,
-          job_params: JSON.stringify({ SpaceId: space.id, SpaceType: space.Space.type }),
+          job_params: JSON.stringify({ SpaceId: space.id, SpaceType: space.type }),
           status: JOB_STATUS.PENDING,
         },
       );

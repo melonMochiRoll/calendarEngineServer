@@ -4,7 +4,6 @@ import { Todos } from "./Todos";
 import { JoinRequests } from "./JoinRequests";
 import { Invites } from "./Invites";
 import { UUIDV7Transformer } from "src/common/function/uuidv7Transformer";
-import { SPACE_URL_LENGTH } from "src/common/constant/constants";
 import { Spaces } from "./Spaces";
 
 @Entity({ name: 'sharedspaces' })
@@ -14,9 +13,6 @@ export class Sharedspaces {
 
   @Column({ type: 'varchar', name: 'name', length: 30, default: '새 스페이스' })
   name: string;
-
-  @Column({ type: 'char', name: 'url', length: SPACE_URL_LENGTH, unique: true })
-  url: string;
 
   @Column({ type: 'boolean', default: 1 })
   private: boolean;
