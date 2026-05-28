@@ -90,7 +90,7 @@ export class UsersService {
 
     const user = {
       ...result,
-      ProfileImage: `${getR2PublicURL()}/${result.ProfileImage?.Image?.path}`,
+      ProfileImage: result.ProfileImage ? `${getR2PublicURL()}/${result.ProfileImage?.Image?.path}` : '',
     };
 
     await this.cacheManager.set(cacheKey, user, 10 * minute);
@@ -139,7 +139,7 @@ export class UsersService {
 
     const user = {
       ...result,
-      ProfileImage: `${getR2PublicURL()}/${result.ProfileImage?.Image?.path}`,
+      ProfileImage: result.ProfileImage ? `${getR2PublicURL()}/${result.ProfileImage?.Image?.path}` : '',
     };
 
     await this.cacheManager.set(cacheKey, user, 10 * minute);
@@ -188,7 +188,7 @@ export class UsersService {
 
     const user = {
       ...result,
-      ProfileImage: `${getR2PublicURL()}/${result.ProfileImage?.Image?.path}`,
+      ProfileImage: result.ProfileImage ? `${getR2PublicURL()}/${result.ProfileImage?.Image?.path}` : '',
     };
 
     await this.cacheManager.set(cacheKey, user, 10 * minute);

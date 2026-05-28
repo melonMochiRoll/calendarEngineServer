@@ -239,7 +239,7 @@ export class SharedspacesService {
         ...rest,
         Owner: {
           ...rest.Owner,
-          ProfileImage: `${getR2PublicURL()}/${rest.Owner.ProfileImage?.Image?.path}`,
+          ProfileImage: rest.Owner.ProfileImage ? `${getR2PublicURL()}/${rest.Owner.ProfileImage?.Image?.path}` : '',
         },
         permission: {
           isOwner: UserId === OwnerId,
@@ -540,7 +540,7 @@ export class SharedspacesService {
         email: User.email,
         nickname: User.nickname,
         RoleName: Role.name,
-        ProfileImage: `${getR2PublicURL()}/${User.ProfileImage?.Image?.path}`,
+        ProfileImage: User.ProfileImage ? `${getR2PublicURL()}/${User.ProfileImage?.Image?.path}` : '',
       };
     });
 
