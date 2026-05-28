@@ -49,7 +49,7 @@ export class UsersService {
   ) {}
 
   async getUserById(id: string): Promise<TUserDefault> {
-    const cacheKey = `user:${id}:standard`;
+    const cacheKey = `user:${id}`;
 
     const cachedItem = await this.cacheManager.get<TUserDefault | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
@@ -98,7 +98,7 @@ export class UsersService {
   }
 
   async getUserByEmail(email: string): Promise<TUserDefault> {
-    const cacheKey = `user:${email}:standard`;
+    const cacheKey = `user:${email}`;
 
     const cachedItem = await this.cacheManager.get<TUserDefault | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
@@ -147,7 +147,7 @@ export class UsersService {
   }
 
   async getUserByNickname(nickname: string): Promise<TUserDefault> {
-    const cacheKey = `user:${nickname}:standard`;
+    const cacheKey = `user:${nickname}`;
 
     const cachedItem = await this.cacheManager.get<TUserDefault | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
@@ -308,12 +308,9 @@ export class UsersService {
       status: USER_STATUS.ACTIVE,
     });
 
-    await this.cacheManager.del(`user:${id}:standard`);
-    await this.cacheManager.del(`user:${id}:full`);
-    await this.cacheManager.del(`user:${email}:standard`);
-    await this.cacheManager.del(`user:${email}:full`);
-    await this.cacheManager.del(`user:${nickname}:standard`);
-    await this.cacheManager.del(`user:${nickname}:full`);
+    await this.cacheManager.del(`user:${id}`);
+    await this.cacheManager.del(`user:${email}`);
+    await this.cacheManager.del(`user:${nickname}`);
   }
 
   async scheduleUserDeletion(UserId: string) {
