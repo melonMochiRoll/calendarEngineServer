@@ -36,7 +36,9 @@ export class InvitesService {
         createdAt: true,
         Sharedspace: {
           name: true,
-          url: true,
+          Space: {
+            url: true,
+          },
           Owner: {
             email: true,
             nickname: true,
@@ -51,6 +53,7 @@ export class InvitesService {
       },
       relations: {
         Sharedspace: {
+          Space: true,
           Owner: {
             ProfileImage: {
               Image: true,
@@ -87,7 +90,7 @@ export class InvitesService {
           ...Sharedspace.Owner,
           ProfileImage: Sharedspace.Owner.ProfileImage?.Image?.path,
         },
-        url: Sharedspace.url,
+        url: Sharedspace.Space.url,
       };
     });
 
