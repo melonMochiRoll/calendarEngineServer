@@ -21,6 +21,7 @@ import { uuidv7 } from "node_modules/uuidv7/dist/index.cjs";
 import { nanoid } from "nanoid";
 import { ChatSpaces } from "src/entities/ChatSpaces";
 import { SpaceMembers } from "src/entities/SpaceMembers";
+import { CreatChatspaceDTO } from "./dto/create.chatspace.dto";
 
 @Injectable()
 export class ChatsService {
@@ -353,8 +354,10 @@ export class ChatsService {
 
   async createChatSpace(
     UserId: string,
-    targetUserId: string,
+    dto: CreatChatspaceDTO,
   ) {
+    const { targetUserId } = dto;
+
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
