@@ -4,14 +4,14 @@ import { JwtAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
 import { GeneratePresignedPutUrlDTO } from "./dto/generate.presigned.put.url.dto";
 
-@Controller('api/sharedspaces')
+@Controller('api/chats')
 export class ChatsController {
   constructor(
     private chatsService: ChatsService,
   ) {}
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Post(':url/chats/images/presigned-url')
+  @Post(':url/images/presigned-url')
   generatePresignedPutUrl(
     @Param('url') url: string,
     @Body() dto: GeneratePresignedPutUrlDTO,
