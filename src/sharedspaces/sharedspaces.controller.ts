@@ -119,4 +119,18 @@ export class SharedspacesController {
   ) {
     return this.sharedspacesService.deleteSharedspaceMembers(url, targetUserId, user.id);
   }
+
+  @UseGuards(PublicAuthGuard)
+  @Get(':url/chats')
+  getSharedspaceChats(
+    @Param('url') url: string,
+    @Query('before') beforeChatId: string,
+    @User() user: Users,
+  ) {
+    return this.sharedspacesService.getSharedspaceChats(
+      url,
+      beforeChatId || null,
+      user?.id,
+    );
+  }
 }

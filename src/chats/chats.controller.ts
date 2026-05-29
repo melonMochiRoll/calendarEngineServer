@@ -1,8 +1,6 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Param, Post, UseGuards } from "@nestjs/common";
 import { ChatsService } from "./chats.service";
-import { JwtAuthGuard, PublicAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
-import { User } from "src/common/decorator/user.decorator";
-import { Users } from "src/entities/Users";
+import { JwtAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
 import { GeneratePresignedPutUrlDTO } from "./dto/generate.presigned.put.url.dto";
 
@@ -11,20 +9,6 @@ export class ChatsController {
   constructor(
     private chatsService: ChatsService,
   ) {}
-
-  @UseGuards(PublicAuthGuard)
-  @Get(':url/chats')
-  getSharedspaceChats(
-    @Param('url') url: string,
-    @Query('before') beforeChatId: string,
-    @User() user: Users,
-  ) {
-    return this.chatsService.getSharedspaceChats(
-      url,
-      beforeChatId || null,
-      user?.id
-    );
-  }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post(':url/chats/images/presigned-url')

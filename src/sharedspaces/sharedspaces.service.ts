@@ -1,6 +1,6 @@
 import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { DataSource, FindOptionsWhere, In, IsNull, Repository } from "typeorm";
+import { DataSource, FindOptionsWhere, In, IsNull, LessThan, Repository } from "typeorm";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import { nanoid } from "nanoid";
 import { UpdateSharedspaceNameDTO } from "./dto/update.sharedspace.name.dto";
@@ -17,7 +17,7 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { RolesService } from "src/roles/roles.service";
 import dayjs from "dayjs";
-import { JOB_NAMES, JOB_STATUS, SPACE_URL_LENGTH, SHAREDSPACE_ROLE, SUBSCRIBEDSPACES_SORT, USER_STATUS, SPACE_TYPE } from "src/common/constant/constants";
+import { JOB_NAMES, JOB_STATUS, SPACE_URL_LENGTH, SHAREDSPACE_ROLE, SUBSCRIBEDSPACES_SORT, USER_STATUS, SPACE_TYPE, IMAGE_STATUS } from "src/common/constant/constants";
 import { Todos } from "src/entities/Todos";
 import { JoinRequests } from "src/entities/JoinRequests";
 import { Invites } from "src/entities/Invites";
@@ -25,6 +25,7 @@ import { BatchScheduler } from "src/entities/BatchScheduler";
 import { uuidv7 } from "uuidv7";
 import { Spaces } from "src/entities/Spaces";
 import { getR2PublicURL } from "src/common/function/getStorageURL";
+import { ChatImages } from "src/entities/ChatImages";
 
 @Injectable()
 export class SharedspacesService {
@@ -40,6 +41,10 @@ export class SharedspacesService {
     private sharedspacesRepository: Repository<Sharedspaces>,
     @InjectRepository(SpaceMembers)
     private spaceMembersRepository: Repository<SpaceMembers>,
+    @InjectRepository(Chats)
+    private chatsRepository: Repository<Chats>,
+    @InjectRepository(ChatImages)
+    private chatImagesRepository: Repository<ChatImages>,
     private rolesService: RolesService,
   ) {}
   private refreshLock = new Set<String>();
@@ -697,5 +702,138 @@ export class SharedspacesService {
     );
 
     await this.rolesService.invalidateUserRoleCache(targetUserId, space.id);
+  }
+
+  async getSharedspaceChats(
+    url: string,
+    beforeChatId: string,
+    UserId?: string,
+    limit = 100,
+  ) {
+    const space = await this.getSharedspaceByUrl(url);
+
+    if (!space) {
+      throw new BadRequestException(BAD_REQUEST_MESSAGE);
+    }
+
+    if (space.private) {
+      const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
+
+      if (!isParticipant) {
+        throw new ForbiddenException({
+          message: ACCESS_DENIED_MESSAGE,
+          metaData: { spaceUrl: space.url },
+        });
+      }
+    }
+
+    const chatRecords = await this.chatsRepository.find({
+      select: {
+        id: true,
+        content: true,
+        SenderId: true,
+        createdAt: true,
+        updatedAt: true,
+        Sender: {
+          email: true,
+          nickname: true,
+          ProfileImage: {
+            id: true,
+            Image: {
+              path: true,
+            },
+          },
+        },
+      },
+      relations: {
+        Sender: {
+          ProfileImage: {
+            Image: true,
+          },
+        },
+      },
+      where: beforeChatId ? {
+        SpaceId: space.id,
+        id: LessThan(beforeChatId),
+        removedAt: IsNull(),
+      } : {
+        SpaceId: space.id,
+        removedAt: IsNull(),
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+      take: limit,
+    });
+
+    if (!chatRecords.length) {
+      return {
+        chats: [],
+        hasMoreData: false,
+      };
+    }
+
+    const result = await this.chatImagesRepository.find({
+      select: {
+        id: true,
+        ChatId: true,
+        Image: {
+          path: true,
+        },
+      },
+      where: {
+        ChatId: In(chatRecords.map((chat) => chat.id)),
+        Image: {
+          status: IMAGE_STATUS.ACTIVE,
+          removedAt: IsNull(),
+        },
+      },
+      relations: {
+        Image: true,
+      },
+    });
+
+    const images = result.map((image) => {
+      const { Image, ...rest } = image;
+      return {
+        ...rest,
+        path: `${getR2PublicURL()}/${Image.path}`,
+      };
+    });
+
+    const imagesMap = images.reduce((acc, image) => {
+      if (!acc[image.ChatId]) {
+        acc[image.ChatId] = [];
+      }
+      acc[image.ChatId].push(image);
+      return acc;
+    }, {});
+
+    const chats = chatRecords.map((chat) => {
+      return {
+        ...chat,
+        ChatImages: imagesMap[`${chat.id}`] || [],
+        Sender: {
+          ...chat.Sender,
+          ProfileImage: chat.Sender.ProfileImage ? `${getR2PublicURL()}/${chat.Sender.ProfileImage?.Image?.path}`: '',
+        },
+        permission: {
+          isSender: chat.SenderId === UserId,
+        },
+      };
+    });
+
+    const totalCount = await this.chatsRepository.count({
+      where: {
+        SpaceId: space.id,
+        id: LessThan(chats[chats.length-1].id),
+        removedAt: IsNull(),
+      },
+    });
+
+    return {
+      chats,
+      hasMoreData: Boolean(totalCount),
+    };
   }
 }
