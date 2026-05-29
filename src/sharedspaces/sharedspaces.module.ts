@@ -9,6 +9,8 @@ import { RefreshTokens } from 'src/entities/RefreshTokens';
 import { Users } from 'src/entities/Users';
 import { RolesModule } from 'src/roles/roles.module';
 import { Spaces } from 'src/entities/Spaces';
+import { Chats } from 'src/entities/Chats';
+import { ChatImages } from 'src/entities/ChatImages';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { Spaces } from 'src/entities/Spaces';
       Roles,
       RefreshTokens,
       Users,
+      Chats,
+      ChatImages,
     ]),
     RolesModule,
   ],
