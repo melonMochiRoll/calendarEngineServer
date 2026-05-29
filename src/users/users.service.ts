@@ -100,10 +100,14 @@ export class UsersService {
   async getUserByEmail(email: string): Promise<TUserDefault> {
     const cacheKey = `user:${email}`;
 
-    const cachedItem = await this.cacheManager.get<TUserDefault | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
+    const targetUserId = await this.cacheManager.get<string | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
-    if (cachedItem) {
-      return cachedItem === CACHE_EMPTY_SYMBOL ? null : cachedItem;
+    if (targetUserId === CACHE_EMPTY_SYMBOL) {
+      return null;
+    }
+
+    if (targetUserId) {
+      return await this.getUserById(targetUserId);
     }
 
     const result = await this.usersRepository.findOne({
@@ -142,17 +146,21 @@ export class UsersService {
       ProfileImage: result.ProfileImage ? `${getR2PublicURL()}/${result.ProfileImage?.Image?.path}` : '',
     };
 
-    await this.cacheManager.set(cacheKey, user, 10 * minute);
+    await this.cacheManager.set(cacheKey, user.id, 10 * minute);
     return user;
   }
 
   async getUserByNickname(nickname: string): Promise<TUserDefault> {
     const cacheKey = `user:${nickname}`;
 
-    const cachedItem = await this.cacheManager.get<TUserDefault | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
+    const targetUserId = await this.cacheManager.get<string | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
-    if (cachedItem) {
-      return cachedItem === CACHE_EMPTY_SYMBOL ? null : cachedItem;
+    if (targetUserId === CACHE_EMPTY_SYMBOL) {
+      return null;
+    }
+
+    if (targetUserId) {
+      return await this.getUserById(targetUserId);
     }
 
     const result = await this.usersRepository.findOne({
@@ -191,7 +199,7 @@ export class UsersService {
       ProfileImage: result.ProfileImage ? `${getR2PublicURL()}/${result.ProfileImage?.Image?.path}` : '',
     };
 
-    await this.cacheManager.set(cacheKey, user, 10 * minute);
+    await this.cacheManager.set(cacheKey, user.id, 10 * minute);
     return user;
   }
 
@@ -309,8 +317,6 @@ export class UsersService {
     });
 
     await this.cacheManager.del(`user:${id}`);
-    await this.cacheManager.del(`user:${email}`);
-    await this.cacheManager.del(`user:${nickname}`);
   }
 
   async scheduleUserDeletion(UserId: string) {
@@ -501,6 +507,8 @@ export class UsersService {
       await qr.manager.upsert(ProfileImages, { id: ImageId, UserId }, ['id', 'UserId']);
 
       await qr.commitTransaction();
+
+      await this.cacheManager.del(`user:${UserId}`);
     } catch (err) {
       await qr.rollbackTransaction();
 
