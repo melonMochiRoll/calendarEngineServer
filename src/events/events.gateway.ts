@@ -44,7 +44,6 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     socket.join(url);
   }
 
-  @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
   @SubscribeMessage(ChatToServer.SHAREDSPACE_LEAVE_ROOM)
   leavePublicChat(
     @ConnectedSocket() socket: Socket,
