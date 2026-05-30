@@ -9,7 +9,6 @@ import { TodosModule } from './todos/todos.module';
 import { SharedspacesModule } from './sharedspaces/sharedspaces.module';
 import { JoinRequestsModule } from './joinRequests/joinRequests.module';
 import { RolesModule } from './roles/roles.module';
-import { EventsModule } from './events/events.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import path from 'path';
 import { ThrottlerModule } from '@nestjs/throttler';
@@ -46,7 +45,6 @@ import { TaskModule } from './task/task.module';
     SharedspacesModule,
     JoinRequestsModule,
     RolesModule,
-    EventsModule,
     StorageModule,
     ChatsModule,
     InvitesModule,
