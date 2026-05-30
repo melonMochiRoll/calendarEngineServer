@@ -49,7 +49,7 @@ export class ChatsService {
     await qr.startTransaction();
 
     try {
-      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+      const space = await this.sharedspacesService.getSpaceByUrl(url);
 
       if (!space) {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
@@ -156,7 +156,7 @@ export class ChatsService {
   ) {
     const { url, id, content } = dto;
 
-    const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+    const space = await this.sharedspacesService.getSpaceByUrl(url);
 
     const updatedAt = dayjs().toDate();
 
@@ -190,7 +190,7 @@ export class ChatsService {
     const { url, id } = dto;
 
     try {
-      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+      const space = await this.sharedspacesService.getSpaceByUrl(url);
 
       const targetChat = await this.chatsRepository.findOne({
         select: {
@@ -242,7 +242,7 @@ export class ChatsService {
     UserId: string,
   ) {
     const { url, ChatId, ImageId } = dto;
-    const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+    const space = await this.sharedspacesService.getSpaceByUrl(url);
 
     const result = await this.chatsRepository.findOne({
       select: {
