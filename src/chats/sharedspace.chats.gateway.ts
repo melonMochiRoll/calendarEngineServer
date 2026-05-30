@@ -34,7 +34,7 @@ export class SharedspaceChatsGateway {
 
   @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
   @SubscribeMessage(ChatToServer.JOIN_ROOM)
-  joinPublicChat(
+  joinRoom(
     @ConnectedSocket() socket: Socket,
     @MessageBody() url: string,
   ) {
@@ -42,7 +42,7 @@ export class SharedspaceChatsGateway {
   }
 
   @SubscribeMessage(ChatToServer.LEAVE_ROOM)
-  leavePublicChat(
+  leaveRoom(
     @ConnectedSocket() socket: Socket,
     @MessageBody() url: string,
   ) {
