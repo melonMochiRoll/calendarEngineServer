@@ -22,8 +22,9 @@ import { TChatPayload } from "src/typings/types";
   connectionStateRecovery: {
     maxDisconnectionDuration: 1 * 60 * 1000,
   },
+  namespace: 'sharedspace',
 })
-export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class SharedspaceChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private chatsService: ChatsService,
   ) {}

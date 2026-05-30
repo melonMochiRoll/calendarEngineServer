@@ -9,7 +9,7 @@ import { Images } from "src/entities/Images";
 import { StorageModule } from "src/storage/storage.module";
 import { RefreshTokens } from "src/entities/RefreshTokens";
 import { ChatImages } from "src/entities/ChatImages";
-import { EventsGateway } from "./events.gateway";
+import { SharedspaceChatsGateway } from "./sharedspace.chats.gateway";
 import { UsersModule } from "src/users/users.module";
 
 @Module({
@@ -28,7 +28,7 @@ import { UsersModule } from "src/users/users.module";
   controllers: [ ChatsController ],
   providers: [
     ChatsService,
-    EventsGateway,
+    SharedspaceChatsGateway,
   ],
   exports: [ ChatsService ],
 })
