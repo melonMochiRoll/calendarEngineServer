@@ -10,7 +10,7 @@ import { RedirectingExceptionFilter } from './common/exception/redirecting-excep
 import helmet from 'helmet';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
-import { RedisIoAdapter } from './events/redis.io.adapter';
+import { RedisIoAdapter } from './chats/redis.io.adapter';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
