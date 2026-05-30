@@ -17,7 +17,7 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { RolesService } from "src/roles/roles.service";
 import dayjs from "dayjs";
-import { JOB_NAMES, JOB_STATUS, SPACE_URL_LENGTH, SHAREDSPACE_ROLE, SUBSCRIBEDSPACES_SORT, USER_STATUS, SPACE_TYPE, IMAGE_STATUS } from "src/common/constant/constants";
+import { JOB_NAMES, JOB_STATUS, SPACE_URL_LENGTH, SHAREDSPACE_ROLE, SUBSCRIBEDSPACES_SORT, USER_STATUS, SPACE_TYPE, IMAGE_STATUS, CACHE_EMPTY_SYMBOL } from "src/common/constant/constants";
 import { Todos } from "src/entities/Todos";
 import { JoinRequests } from "src/entities/JoinRequests";
 import { Invites } from "src/entities/Invites";
@@ -48,6 +48,37 @@ export class SharedspacesService {
     private rolesService: RolesService,
   ) {}
   private refreshLock = new Set<String>();
+
+  async getSpaceByUrl(url: string) {
+    const cacheKey = `space:${url}`;
+
+    const cachedItem = await this.cacheManager.get<{ id: string, url: string, type: string } | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
+
+    if (cachedItem) {
+      return cachedItem === CACHE_EMPTY_SYMBOL ? null : cachedItem;
+    }
+
+    const space = await this.spacesRepository.findOne({
+      select: {
+        id: true,
+        url: true,
+        type: true,
+      },
+      where: {
+        url,
+      },
+    });
+
+    const minute = 60000;
+
+    if (!space) {
+      await this.cacheManager.set(cacheKey, CACHE_EMPTY_SYMBOL, 1 * minute);
+      return null;
+    }
+
+    await this.cacheManager.set(cacheKey, space, 10 * minute);
+    return space;
+  }
 
   async getSharedspaceByUrl(
     url: string,
