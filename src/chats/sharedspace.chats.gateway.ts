@@ -24,17 +24,13 @@ import { TChatPayload } from "src/typings/types";
   },
   namespace: 'sharedspace',
 })
-export class SharedspaceChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class SharedspaceChatsGateway {
   constructor(
     private chatsService: ChatsService,
   ) {}
 
   @WebSocketServer()
   server: Server;
-
-  handleConnection(@ConnectedSocket() socket: Socket) {}
-
-  handleDisconnect(@ConnectedSocket() socket: Socket) {}
 
   @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
   @SubscribeMessage(ChatToServer.JOIN_ROOM)
