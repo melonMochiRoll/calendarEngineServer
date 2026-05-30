@@ -298,7 +298,7 @@ export class ChatsService {
         await qr.commitTransaction();
 
         return {
-          event: ChatToClient.SHAREDSPACE_CHAT_DELETED,
+          event: ChatToClient.CHAT_DELETED,
           data: { id: ChatId },
         };
       }
@@ -308,7 +308,7 @@ export class ChatsService {
       await qr.commitTransaction();
 
       return {
-        action: ChatToClient.SHAREDSPACE_CHAT_IMAGE_DELETED,
+        action: ChatToClient.CHAT_IMAGE_DELETED,
         data: { ChatId, ImageId },
       };
     } catch (err) {
