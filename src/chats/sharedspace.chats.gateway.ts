@@ -22,7 +22,6 @@ import { TChatPayload } from "src/typings/types";
   connectionStateRecovery: {
     maxDisconnectionDuration: 1 * 60 * 1000,
   },
-  namespace: 'sharedspace',
 })
 export class SharedspaceChatsGateway {
   constructor(
@@ -61,7 +60,7 @@ export class SharedspaceChatsGateway {
       const chatWithUser = await this.chatsService.createSharedspaceChat(dto, user.id);
 
       socket
-        .to(`/sharedspace-${dto.url}`)
+        .to(dto.url)
         .emit(ChatToClient.CHAT_CREATED, chatWithUser.receiver);
 
       ack({ status: ChatAckStatus.SUCCESS, data: chatWithUser.sender });
@@ -82,7 +81,7 @@ export class SharedspaceChatsGateway {
       const updatedProperty = await this.chatsService.updateSharedspaceChat(dto, user.id);
 
       socket
-        .to(`/sharedspace-${dto.url}`)
+        .to(dto.url)
         .emit(ChatToClient.CHAT_UPDATED, updatedProperty);
 
       ack({ status: ChatAckStatus.SUCCESS, data: updatedProperty });
@@ -103,7 +102,7 @@ export class SharedspaceChatsGateway {
       const deletedChatId = await this.chatsService.deleteSharedspaceChat(dto, user.id);
 
       socket
-        .to(`/sharedspace-${dto.url}`)
+        .to(dto.url)
         .emit(ChatToClient.CHAT_DELETED, { id: deletedChatId });
 
       ack({ status: ChatAckStatus.SUCCESS, data: { id: deletedChatId } });
@@ -124,7 +123,7 @@ export class SharedspaceChatsGateway {
       const { event, data } = await this.chatsService.deleteSharedspaceChatImage(dto, user.id);
 
       socket
-        .to(`/sharedspace-${dto.url}`)
+        .to(dto.url)
         .emit(event, data);
 
       ack({ status: ChatAckStatus.SUCCESS, data: { ...data, action: event } });
