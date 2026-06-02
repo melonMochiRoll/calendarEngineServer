@@ -31,7 +31,7 @@ export class SocketJwtAuthGuard implements CanActivate {
 
     const accessTokenPayload = await this.jwtService.verifyAsync<TAccessTokenPayload>(accessToken, {
       secret: process.env.JWT_SECRET,
-      ignoreExpiration: false,
+      ignoreExpiration: true,
     });
 
     if (now.isSameOrAfter(dayjs(accessTokenPayload.exp, 'X'))) {
