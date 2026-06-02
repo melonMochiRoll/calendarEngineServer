@@ -1,8 +1,8 @@
-import { Ack, ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
+import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { ChatsService } from "src/chats/chats.service";
 import { SendSharedspacechatDTO } from "./dto/send.sharedspace.chat.dto";
-import { ChatAckStatus, ChatToClient, ChatToServer } from "src/common/constant/constants";
+import { ChatToClient, ChatToServer } from "src/common/constant/constants";
 import { UseGuards } from "@nestjs/common";
 import { SocketJwtAuthGuard } from "src/auth/authGuard/socket.jwt.auth.guard";
 import { SocketCSRFAuthGuard } from "src/auth/authGuard/socket.csrf.auth.guard";
@@ -11,8 +11,6 @@ import { Users } from "src/entities/Users";
 import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
 import { DeleteSharedspaceChatDTO } from "./dto/delete.sharedspace.chat.dto";
 import { DeleteSharedspaceChatImageDTO } from "./dto/delete.sharedspace.chat.image.dto";
-import { Chats } from "src/entities/Chats";
-import { TChatPayload } from "src/typings/types";
 
 @WebSocketGateway({
   cors: process.env.NODE_ENV === 'development' && {
@@ -54,18 +52,19 @@ export class SharedspaceChatsGateway {
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: SendSharedspacechatDTO,
     @User() user: Users,
-    @Ack() ack: (response: { status: string; data: TChatPayload | null }) => void,
   ) {
     try {
       const chatWithUser = await this.chatsService.createSharedspaceChat(dto, user.id);
 
       socket
+        .emit(ChatToClient.CHAT_CREATED, chatWithUser.sender);
+
+      socket
+        .broadcast
         .to(dto.url)
         .emit(ChatToClient.CHAT_CREATED, chatWithUser.receiver);
-
-      ack({ status: ChatAckStatus.SUCCESS, data: chatWithUser.sender });
     } catch (err) {
-      ack({ status: ChatAckStatus.ERROR, data: null });
+      socket.emit(ChatToClient.CHAT_ERROR, { event: ChatToClient.CHAT_CREATED, ChatId: dto.id });
     }
   }
 
@@ -75,18 +74,15 @@ export class SharedspaceChatsGateway {
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: UpdateSharedspaceChatDTO,
     @User() user: Users,
-    @Ack() ack: (response: { status: string; data: Pick<Chats, 'id' | 'content' | 'updatedAt'> | null }) => void,
   ) {
     try {
       const updatedProperty = await this.chatsService.updateSharedspaceChat(dto, user.id);
 
-      socket
+      this.server
         .to(dto.url)
         .emit(ChatToClient.CHAT_UPDATED, updatedProperty);
-
-      ack({ status: ChatAckStatus.SUCCESS, data: updatedProperty });
     } catch (err) {
-      ack({ status: ChatAckStatus.ERROR, data: null });
+      socket.emit(ChatToClient.CHAT_ERROR, { event: ChatToClient.CHAT_UPDATED, ChatId: dto.id });
     }
   }
 
@@ -96,18 +92,15 @@ export class SharedspaceChatsGateway {
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: DeleteSharedspaceChatDTO,
     @User() user: Users,
-    @Ack() ack: (response: { status: string; data: Pick<Chats, 'id'> | null }) => void,
   ) {
     try {
       const deletedChatId = await this.chatsService.deleteSharedspaceChat(dto, user.id);
 
-      socket
+      this.server
         .to(dto.url)
         .emit(ChatToClient.CHAT_DELETED, { id: deletedChatId });
-
-      ack({ status: ChatAckStatus.SUCCESS, data: { id: deletedChatId } });
     } catch (err) {
-      ack({ status: ChatAckStatus.ERROR, data: null });
+      socket.emit(ChatToClient.CHAT_ERROR, { event: ChatToClient.CHAT_DELETED, ChatId: dto.id });
     }
   }
 
@@ -117,18 +110,15 @@ export class SharedspaceChatsGateway {
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: DeleteSharedspaceChatImageDTO,
     @User() user: Users,
-    @Ack() ack: (response: { status: string; data: Pick<Chats, 'id'> & { action: string } | { action: string, ChatId: string, ImageId: string } | null }) => void,
   ) {
     try {
       const { event, data } = await this.chatsService.deleteSharedspaceChatImage(dto, user.id);
 
-      socket
+      this.server
         .to(dto.url)
         .emit(event, data);
-
-      ack({ status: ChatAckStatus.SUCCESS, data: { ...data, action: event } });
     } catch (err) {
-      ack({ status: ChatAckStatus.ERROR, data: null });
+      socket.emit(ChatToClient.CHAT_ERROR, { event: ChatToClient.CHAT_IMAGE_DELETED, ChatId: dto.ChatId });
     }
   }
 }
