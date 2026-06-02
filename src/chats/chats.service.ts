@@ -391,7 +391,9 @@ export class ChatsService {
         },
       },
       relations: {
-        ChatImages: true,
+        ChatImages: {
+          Image: true,
+        },
       },
       where: {
         id: ChatId,
