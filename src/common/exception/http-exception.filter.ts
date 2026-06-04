@@ -20,7 +20,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const responseJson = {
       code: `${status}-${request.url}`,
       message: exception.message,
-      timestamp: dayjs.utc().tz('Asia/Seoul').format('YYYY-MM-DD HH:mm:ss'),
+      timestamp: dayjs().format('YYYY-MM-DD HH:mm:ss'),
       path: request.url,
       metaData: this.hasMetaData(exceptionResponse) ? exceptionResponse.metaData : {},
     };
