@@ -60,7 +60,6 @@ export class SharedspaceChatsGateway {
         .emit(ChatToClient.CHAT_CREATED, chatWithUser.sender);
 
       socket
-        .broadcast
         .to(dto.url)
         .emit(ChatToClient.CHAT_CREATED, chatWithUser.receiver);
     } catch (err) {
