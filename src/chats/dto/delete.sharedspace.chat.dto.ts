@@ -7,5 +7,5 @@ export class DeleteSharedspaceChatDTO {
 
   @IsNotEmpty()
   @IsUUID(7)
-  id: string;
+  ChatId: string;
 }

@@ -8,7 +8,7 @@ export class UpdateSharedspaceChatDTO {
 
   @IsNotEmpty()
   @IsUUID(7)
-  id: string;
+  ChatId: string;
   
   @IsNotEmpty()
   @IsString()

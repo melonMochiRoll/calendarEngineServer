@@ -63,7 +63,7 @@ export class SharedspaceChatsGateway {
         .to(dto.url)
         .emit(ChatToClient.CHAT_CREATED, chatWithUser.receiver);
     } catch (err) {
-      socket.emit(ChatToClient.CHAT_ERROR, { event: ChatToClient.CHAT_CREATED, ChatId: dto.id });
+      socket.emit(ChatToClient.CHAT_ERROR, { event: ChatToClient.CHAT_CREATED, ChatId: dto.ChatId });
     }
   }
 
@@ -81,7 +81,7 @@ export class SharedspaceChatsGateway {
         .to(dto.url)
         .emit(ChatToClient.CHAT_UPDATED, updatedProperty);
     } catch (err) {
-      socket.emit(ChatToClient.CHAT_ERROR, { event: ChatToClient.CHAT_UPDATED, ChatId: dto.id });
+      socket.emit(ChatToClient.CHAT_ERROR, { event: ChatToClient.CHAT_UPDATED, ChatId: dto.ChatId });
     }
   }
 
@@ -99,7 +99,7 @@ export class SharedspaceChatsGateway {
         .to(dto.url)
         .emit(ChatToClient.CHAT_DELETED, { id: deletedChatId });
     } catch (err) {
-      socket.emit(ChatToClient.CHAT_ERROR, { event: ChatToClient.CHAT_DELETED, ChatId: dto.id });
+      socket.emit(ChatToClient.CHAT_ERROR, { event: ChatToClient.CHAT_DELETED, ChatId: dto.ChatId });
     }
   }
 

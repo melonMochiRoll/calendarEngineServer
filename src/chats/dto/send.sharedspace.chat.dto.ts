@@ -8,7 +8,7 @@ export class SendSharedspacechatDTO {
 
   @IsNotEmpty()
   @IsUUID(7)
-  id: string;
+  ChatId: string;
 
   @IsString()
   content: string;

@@ -175,7 +175,7 @@ export class ChatsService {
     dto: SendSharedspacechatDTO,
     UserId: string,
   ) {
-    const { url, id, content, imageIds } = dto;
+    const { url, ChatId, content, imageIds } = dto;
 
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
@@ -198,7 +198,7 @@ export class ChatsService {
       }
 
       await qr.manager.insert(Chats, {
-        id,
+        id: ChatId,
         content,
         SenderId: UserId,
         SpaceId: space.id,
@@ -207,7 +207,7 @@ export class ChatsService {
       if (imageIds.length) {
         const updatePromises = imageIds.map(async (imageId) => {
           await qr.manager.update(Images, { id: imageId }, { status: IMAGE_STATUS.ACTIVE });
-          await qr.manager.insert(ChatImages, { id: imageId, ChatId: id });
+          await qr.manager.insert(ChatImages, { id: imageId, ChatId, });
         });
 
         await Promise.all(updatePromises);
@@ -250,7 +250,7 @@ export class ChatsService {
           },
         },
         where: {
-          id,
+          id: ChatId,
         },
       });
 
@@ -287,7 +287,7 @@ export class ChatsService {
     dto: UpdateSharedspaceChatDTO,
     UserId: string,
   ) {
-    const { url, id, content } = dto;
+    const { url, ChatId, content } = dto;
 
     const space = await this.sharedspacesService.getSpaceByUrl(url);
 
@@ -295,7 +295,7 @@ export class ChatsService {
 
     const result = await this.chatsRepository.update(
       {
-        id,
+        id: ChatId,
         SenderId: UserId,
         SpaceId: space.id,
       },
@@ -309,7 +309,7 @@ export class ChatsService {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
-    return { id, content, updatedAt };
+    return { ChatId, content, updatedAt };
   };
 
   async deleteSharedspaceChat(
@@ -320,7 +320,7 @@ export class ChatsService {
     await qr.connect();
     await qr.startTransaction();
 
-    const { url, id } = dto;
+    const { url, ChatId } = dto;
 
     try {
       const space = await this.sharedspacesService.getSpaceByUrl(url);
@@ -338,7 +338,7 @@ export class ChatsService {
           ChatImages: true,
         },
         where: {
-          id,
+          id: ChatId,
         },
       });
 
@@ -360,7 +360,7 @@ export class ChatsService {
 
       await qr.commitTransaction();
 
-      return id;
+      return ChatId;
     } catch (err) {
       await qr.rollbackTransaction();
 
