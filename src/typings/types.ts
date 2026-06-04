@@ -16,6 +16,11 @@ export interface IErrorResponse {
   },
 };
 
+export interface IWsErrorDetail {
+  code: string,
+  message: string,
+};
+
 export type TGoogleProfile = {
   id: string,
   displayName: string,
