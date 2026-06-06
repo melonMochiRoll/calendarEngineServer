@@ -1,7 +1,7 @@
 import { BadRequestException, CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import dayjs from "dayjs";
-import { ACCESS_TOKEN_COOKIE_NAME, ERROR_TYPE } from "src/common/constant/auth.constants";
+import { AUTHORIZATION_HEADER_NAME, ERROR_TYPE } from "src/common/constant/auth.constants";
 import { USER_STATUS } from "src/common/constant/constants";
 import { NOT_FOUND_USER, TOKEN_EXPIRED, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
 import { TAccessTokenPayload } from "src/typings/types";
@@ -17,15 +17,13 @@ export class SocketJwtAuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext) {
     const client = context.switchToWs().getClient();
     
-    const cookieArray = client.handshake.headers.cookie
-      .split('; ')
-      .map((cookie: string) => cookie.split('='));
-    const cookies = Object.fromEntries(cookieArray);
-    const accessToken = cookies[ACCESS_TOKEN_COOKIE_NAME];
+    const authorizationHeader = client.handshake.auth[AUTHORIZATION_HEADER_NAME];
 
-    if (!accessToken) {
+    if (!authorizationHeader || !authorizationHeader.startsWith('Bearer ')) {
       throw new UnauthorizedException(UNAUTHORIZED_MESSAGE);
     }
+
+    const accessToken = authorizationHeader.split(' ')[1];
 
     const now = dayjs();
 

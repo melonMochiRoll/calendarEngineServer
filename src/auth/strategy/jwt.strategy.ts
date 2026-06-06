@@ -3,7 +3,7 @@ import { JwtService } from "@nestjs/jwt";
 import { PassportStrategy } from "@nestjs/passport";
 import { Request } from "express";
 import { Strategy } from "passport-custom";
-import { ACCESS_TOKEN_COOKIE_NAME, ERROR_TYPE } from "src/common/constant/auth.constants";
+import { AUTHORIZATION_HEADER_NAME, ERROR_TYPE } from "src/common/constant/auth.constants";
 import { NOT_FOUND_USER, TOKEN_EXPIRED, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
 import { TAccessTokenPayload } from "src/typings/types";
 import { UsersService } from "src/users/users.service";
@@ -12,7 +12,7 @@ import { USER_STATUS } from "src/common/constant/constants";
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-  constructor(
+  constructor( 
     private jwtService: JwtService,
     private usersService: UsersService,
   ) {
@@ -20,11 +20,13 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(request: Request) {
-    const accessToken = request?.cookies[ACCESS_TOKEN_COOKIE_NAME];
+    const authorizationHeader = request.headers[AUTHORIZATION_HEADER_NAME];
     
-    if (!accessToken) {
+    if (!authorizationHeader || !authorizationHeader.startsWith('Bearer ')) {
       throw new UnauthorizedException(UNAUTHORIZED_MESSAGE);
     }
+
+    const accessToken = authorizationHeader.split(' ')[1];
 
     const now = dayjs();
 

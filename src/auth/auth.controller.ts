@@ -25,18 +25,17 @@ export class AuthController {
   ) {
     const { accessToken, refreshToken } = await this.authService.jwtLogin(user.id);
 
-    res.cookie(
-      accessToken.name,
-      accessToken.token, 
-      accessToken.option,
-    );
-    res.cookie(
-      refreshToken.name,
-      refreshToken.token, 
-      refreshToken.option,
-    );
-
-    res.status(201).send(user);
+    res
+      .status(201)
+      .cookie(
+        refreshToken.name,
+        refreshToken.token, 
+        refreshToken.option,
+      )
+      .send({
+        accessToken,
+        userData: user,
+      });
   }
 
   @UseGuards(IsNotJwtAuthenicatedGuard)
@@ -58,18 +57,17 @@ export class AuthController {
   ) {
     const { accessToken, refreshToken } = await this.authService.jwtLogin(user.id);
 
-    res.cookie(
-      accessToken.name,
-      accessToken.token, 
-      accessToken.option,
-    );
-    res.cookie(
-      refreshToken.name,
-      refreshToken.token, 
-      refreshToken.option,
-    );
-
-    res.status(201).send(user);
+    res
+      .status(201)
+      .cookie(
+        refreshToken.name,
+        refreshToken.token, 
+        refreshToken.option,
+      )
+      .send({
+        accessToken,
+        userData: user,
+      });
   }
 
   @UseGuards(IsNotJwtAuthenicatedGuard)
@@ -91,18 +89,17 @@ export class AuthController {
   ) {
     const { accessToken, refreshToken } = await this.authService.jwtLogin(user.id);
 
-    res.cookie(
-      accessToken.name,
-      accessToken.token, 
-      accessToken.option,
-    );
-    res.cookie(
-      refreshToken.name,
-      refreshToken.token, 
-      refreshToken.option,
-    );
-
-    res.status(201).send(user);
+    res
+      .status(201)
+      .cookie(
+        refreshToken.name,
+        refreshToken.token, 
+        refreshToken.option,
+      )
+      .send({
+        accessToken,
+        userData: user,
+      });
   }
 
   @UseGuards(JwtAuthGuard)
@@ -137,22 +134,18 @@ export class AuthController {
     @Res() res: Response,
   ) {
     const refreshToken = req?.cookies[REFRESH_TOKEN_COOKIE_NAME];
+
     const {
       accessToken,
       refreshToken: newRefreshToken,
     } = await this.authService.refreshAuthToken(refreshToken);
 
-    res.cookie(
-      accessToken.name,
-      accessToken.token, 
-      accessToken.option,
-    );
-    res.cookie(
-      newRefreshToken.name,
-      newRefreshToken.token, 
-      newRefreshToken.option,
-    );
-
-    res.send('ok');
+    res
+      .cookie(
+        newRefreshToken.name,
+        newRefreshToken.token, 
+        newRefreshToken.option,
+      )
+      .send({ accessToken });
   }
 }

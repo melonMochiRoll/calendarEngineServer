@@ -1,5 +1,4 @@
 import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
-import bcrypt from 'bcrypt';
 import { InjectRepository } from "@nestjs/typeorm";
 import { Users } from "src/entities/Users";
 import { DataSource, Repository } from "typeorm";
@@ -8,7 +7,7 @@ import { Response } from "express";
 import { RefreshTokens } from "src/entities/RefreshTokens";
 import dayjs from "dayjs";
 import { JwtService } from "@nestjs/jwt";
-import { ACCESS_TOKEN_COOKIE_NAME, CSRF_TOKEN_COOKIE_NAME, OAUTH2_CSRF_STATE_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } from "src/common/constant/auth.constants";
+import { CSRF_TOKEN_COOKIE_NAME, OAUTH2_CSRF_STATE_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } from "src/common/constant/auth.constants";
 import { REFRESH_TOKEN_JTI_LENGTH, USER_STATUS } from "src/common/constant/constants";
 import { TRefreshTokenPayload } from "src/typings/types";
 import { NOT_FOUND_USER, TOKEN_EXPIRED, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
@@ -67,11 +66,7 @@ export class AuthService {
       await qr.commitTransaction();
 
       return {
-        accessToken: {
-          name: ACCESS_TOKEN_COOKIE_NAME,
-          token: accessToken,
-          option: this.tokenCookieOption,
-        },
+        accessToken: accessToken,
         refreshToken: {
           name: REFRESH_TOKEN_COOKIE_NAME,
           token: refreshToken,
@@ -144,7 +139,6 @@ export class AuthService {
     await this.refreshTokensRepository.delete({ UserId });
 
     return [
-      { name: ACCESS_TOKEN_COOKIE_NAME, option: this.tokenCookieOption },
       { name: REFRESH_TOKEN_COOKIE_NAME, option: this.tokenCookieOption },
       { name: CSRF_TOKEN_COOKIE_NAME, option: this.tokenCookieOption },
     ];
