@@ -21,7 +21,7 @@ import { Chats } from "src/entities/Chats";
 import { BatchScheduler } from "src/entities/BatchScheduler";
 import dayjs from "dayjs";
 import { uuidv7 } from "uuidv7";
-import { uuidToString } from "src/common/function/uuidv7Transformer"
+import { uuidToString } from "src/common/transformer/uuidv7Transformer";
 import { ProfileImages } from "src/entities/ProfileImages";
 import { Images } from "src/entities/Images";
 import { GenerateProfileImagePresignedPutUrlDTO } from "./dto/generate.profileImage.presigned.put.url.dto";
