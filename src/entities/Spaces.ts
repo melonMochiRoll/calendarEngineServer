@@ -1,4 +1,4 @@
-import { UUIDV7Transformer } from "src/common/function/uuidv7Transformer";
+import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
 import { Column, CreateDateColumn, Entity, Index, ManyToMany, OneToMany, OneToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { SpaceMembers } from "./SpaceMembers";
 import { Chats } from "./Chats";

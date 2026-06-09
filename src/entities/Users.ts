@@ -6,7 +6,7 @@ import { JoinRequests } from "./JoinRequests";
 import { Chats } from "./Chats";
 import { RefreshTokens } from "./RefreshTokens";
 import { Invites } from "./Invites";
-import { UUIDV7Transformer } from "src/common/function/uuidv7Transformer";
+import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
 import { Spaces } from "./Spaces";
 import { ProfileImages } from "./ProfileImages";
 

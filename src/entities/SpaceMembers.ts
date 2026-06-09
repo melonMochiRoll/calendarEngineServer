@@ -1,7 +1,7 @@
 import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { Users } from "./Users";
 import { Roles } from "./Roles";
-import { UUIDV7Transformer } from "src/common/function/uuidv7Transformer";
+import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
 import { Spaces } from "./Spaces";
 
 @Index('userid_spaceid_unique_idx', ['UserId', 'SpaceId'], { unique: true })

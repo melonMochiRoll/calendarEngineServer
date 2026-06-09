@@ -1,4 +1,4 @@
-import { UUIDV7Transformer } from "src/common/function/uuidv7Transformer";
+import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
 import { Entity, JoinColumn, OneToOne, PrimaryColumn } from "typeorm";
 import { Spaces } from "./Spaces";
 

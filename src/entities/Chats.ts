@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, OneToMany, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { Users } from "./Users";
-import { UUIDV7Transformer } from "src/common/function/uuidv7Transformer";
+import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
 import { Spaces } from "./Spaces";
 import { ChatImages } from "./ChatImages";
 

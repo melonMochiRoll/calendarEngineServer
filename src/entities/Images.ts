@@ -1,5 +1,5 @@
 import { Column, CreateDateColumn, Entity, Index, OneToOne, PrimaryColumn } from "typeorm";
-import { UUIDV7Transformer } from "src/common/function/uuidv7Transformer";
+import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
 import { ChatImages } from "./ChatImages";
 import { ProfileImages } from "./ProfileImages";
 

@@ -3,7 +3,7 @@ import { Users } from "./Users";
 import { Todos } from "./Todos";
 import { JoinRequests } from "./JoinRequests";
 import { Invites } from "./Invites";
-import { UUIDV7Transformer } from "src/common/function/uuidv7Transformer";
+import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
 import { Spaces } from "./Spaces";
 
 @Entity({ name: 'sharedspaces' })

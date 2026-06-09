@@ -2,7 +2,7 @@ import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, Primary
 import { Users } from "./Users";
 import { Sharedspaces } from "./Sharedspaces";
 import { INVITE_STATUS } from "src/common/constant/constants";
-import { UUIDV7Transformer } from "src/common/function/uuidv7Transformer";
+import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
 
 @Index('invites_createdAt_idx', ['createdAt'])
 @Entity({ name: 'invites' })
