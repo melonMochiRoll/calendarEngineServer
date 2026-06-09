@@ -127,7 +127,6 @@ export class AuthController {
     .json({ csrfToken });
   }
 
-  @UseGuards(IsNotJwtAuthenicatedGuard)
   @Post('refresh')
   async refreshAuthToken(
     @Req() req: Request,
