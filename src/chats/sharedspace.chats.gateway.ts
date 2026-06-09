@@ -36,6 +36,7 @@ export class SharedspaceChatsGateway {
     @MessageBody() url: string,
   ) {
     socket.join(url);
+    socket.emit(ChatToClient.READY, 'ok');
   }
 
   @SubscribeMessage(ChatToServer.LEAVE_ROOM)
