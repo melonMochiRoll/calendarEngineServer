@@ -82,6 +82,7 @@ export const ChatToClient = {
   CHAT_DELETED: 'chat_deleted',
   CHAT_IMAGE_DELETED: 'chat_image_deleted',
   CHAT_ERROR: 'chat_error',
+  READY: 'ready',
 } as const;
 
 export const CACHE_EMPTY_SYMBOL = '$$EMPTY$$';
