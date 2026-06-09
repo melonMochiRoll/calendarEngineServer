@@ -15,7 +15,6 @@ import { UpdateSharedspaceChatDTO } from "src/chats/dto/update.sharedspace.chat.
 import { DeleteSharedspaceChatDTO } from "src/chats/dto/delete.sharedspace.chat.dto";
 import { DeleteSharedspaceChatImageDTO } from "src/chats/dto/delete.sharedspace.chat.image.dto";
 import { ChatImages } from "src/entities/ChatImages";
-import { getR2PublicURL } from "src/common/function/getStorageURL";
 import { Spaces } from "src/entities/Spaces";
 import { uuidv7 } from "node_modules/uuidv7/dist/index.cjs";
 import { nanoid } from "nanoid";
@@ -131,7 +130,7 @@ export class ChatsService {
       const { Image, ...rest } = image;
       return {
         ...rest,
-        path: `${getR2PublicURL()}/${Image.path}`,
+        path: Image.path,
       };
     });
 
@@ -149,7 +148,7 @@ export class ChatsService {
         ChatImages: imagesMap[`${chat.id}`] || [],
         Sender: {
           ...chat.Sender,
-          ProfileImage: chat.Sender.ProfileImage ? `${getR2PublicURL()}/${chat.Sender.ProfileImage?.Image?.path}`: '',
+          ProfileImage: chat.Sender.ProfileImage?.Image?.path,
         },
         permission: {
           isSender: chat.SenderId === UserId,
@@ -258,14 +257,14 @@ export class ChatsService {
         const { Image, ...rest } = chatImage;
         return {
           ...rest,
-          path: `${getR2PublicURL()}/${Image.path}`,
+          path: Image.path,
         };
       });
       const chatWithUser = {
         ...result,
         Sender: {
           ...result.Sender,
-          ProfileImage: result.Sender.ProfileImage ? `${getR2PublicURL()}/${result.Sender.ProfileImage?.Image?.path}` : '',
+          ProfileImage: result.Sender.ProfileImage?.Image?.path,
         },
         ChatImages: getPublicUrlAndFlattening,
       };

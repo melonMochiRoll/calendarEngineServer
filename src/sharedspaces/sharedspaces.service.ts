@@ -24,7 +24,6 @@ import { Invites } from "src/entities/Invites";
 import { BatchScheduler } from "src/entities/BatchScheduler";
 import { uuidv7 } from "uuidv7";
 import { Spaces } from "src/entities/Spaces";
-import { getR2PublicURL } from "src/common/function/getStorageURL";
 import { ChatImages } from "src/entities/ChatImages";
 
 @Injectable()
@@ -274,7 +273,7 @@ export class SharedspacesService {
         url: spacemember.Space.url,
         Owner: {
           ...rest.Owner,
-          ProfileImage: rest.Owner.ProfileImage ? `${getR2PublicURL()}/${rest.Owner.ProfileImage?.Image?.path}` : '',
+          ProfileImage: rest.Owner.ProfileImage?.Image?.path,
         },
         permission: {
           isOwner: UserId === OwnerId,
@@ -575,7 +574,7 @@ export class SharedspacesService {
         email: User.email,
         nickname: User.nickname,
         RoleName: Role.name,
-        ProfileImage: User.ProfileImage ? `${getR2PublicURL()}/${User.ProfileImage?.Image?.path}` : '',
+        ProfileImage: User.ProfileImage?.Image?.path,
       };
     });
 

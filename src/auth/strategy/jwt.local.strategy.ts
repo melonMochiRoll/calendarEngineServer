@@ -7,7 +7,6 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Users } from "src/entities/Users";
 import { Repository } from "typeorm";
 import bcrypt from 'bcrypt';
-import { getR2PublicURL } from "src/common/function/getStorageURL";
 
 @Injectable()
 export class JwtLocalStrategy extends PassportStrategy(Strategy, 'jwt-local') {
@@ -63,7 +62,7 @@ export class JwtLocalStrategy extends PassportStrategy(Strategy, 'jwt-local') {
       ...rest,
       ProfileImage: {
         id: result.ProfileImage?.id,
-        path: result.ProfileImage ? `${getR2PublicURL()}/${result.ProfileImage?.Image?.path}` : '',
+        path: result.ProfileImage?.Image?.path,
       },
     };
 

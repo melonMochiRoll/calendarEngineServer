@@ -27,7 +27,6 @@ import { Images } from "src/entities/Images";
 import { GenerateProfileImagePresignedPutUrlDTO } from "./dto/generate.profileImage.presigned.put.url.dto";
 import { StorageR2Service } from "src/storage/storage.r2.service";
 import { UpdateProfileImageDTO } from "./dto/update.profile.image.dto";
-import { getR2PublicURL } from "src/common/function/getStorageURL";
 
 @Injectable()
 export class UsersService {
@@ -90,7 +89,7 @@ export class UsersService {
 
     const user = {
       ...result,
-      ProfileImage: result.ProfileImage ? `${getR2PublicURL()}/${result.ProfileImage?.Image?.path}` : '',
+      ProfileImage: result.ProfileImage?.Image?.path,
     };
 
     await this.cacheManager.set(cacheKey, user, 10 * minute);
@@ -143,7 +142,7 @@ export class UsersService {
 
     const user = {
       ...result,
-      ProfileImage: result.ProfileImage ? `${getR2PublicURL()}/${result.ProfileImage?.Image?.path}` : '',
+      ProfileImage: result.ProfileImage?.Image?.path,
     };
 
     await this.cacheManager.set(cacheKey, user.id, 10 * minute);
@@ -196,7 +195,7 @@ export class UsersService {
 
     const user = {
       ...result,
-      ProfileImage: result.ProfileImage ? `${getR2PublicURL()}/${result.ProfileImage?.Image?.path}` : '',
+      ProfileImage: result.ProfileImage?.Image?.path,
     };
 
     await this.cacheManager.set(cacheKey, user.id, 10 * minute);
@@ -269,7 +268,7 @@ export class UsersService {
     const users = userRecords.map((user) => {
       return {
         ...user,
-        ProfileImage: user.ProfileImage ? `${getR2PublicURL()}/${user.ProfileImage?.Image?.path}` : '',
+        ProfileImage: user.ProfileImage?.Image?.path,
         permission: {
           isParticipant: memberSet.has(user.id),
         },
