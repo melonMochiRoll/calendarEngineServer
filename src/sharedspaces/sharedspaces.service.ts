@@ -204,6 +204,7 @@ export class SharedspacesService {
       UserId,
       Space: {
         type: SPACE_TYPE.SHARED,
+        removedAt: IsNull(),
       },
       removedAt: IsNull(),
     };
