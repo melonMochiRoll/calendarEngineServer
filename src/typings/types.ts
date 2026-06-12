@@ -17,7 +17,7 @@ export interface IErrorResponse {
 };
 
 export interface IWsErrorDetail {
-  code: string,
+  type: string,
   message: string,
 };
 
