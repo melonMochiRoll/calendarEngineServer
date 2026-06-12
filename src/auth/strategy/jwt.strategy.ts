@@ -39,7 +39,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       throw new UnauthorizedException({
         message: TOKEN_EXPIRED,
         metaData: {
-          type: ERROR_TYPE.TOKEN_EXPIRED,
+          type: ERROR_TYPE.AUTH_TOKEN_EXPIRED,
         },
       });
     }

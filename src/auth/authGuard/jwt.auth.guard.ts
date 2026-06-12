@@ -18,7 +18,7 @@ export class PublicAuthGuard extends AuthGuard('jwt') {
   }
 
   handleRequest<TUser = Users>(err: any, user: TUser | null) {
-    if (err?.response?.metaData?.type === ERROR_TYPE.TOKEN_EXPIRED) {
+    if (err?.response?.metaData?.type === ERROR_TYPE.AUTH_TOKEN_EXPIRED) {
       throw err;
     }
 
