@@ -1,6 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CHAT_IMAGE_TOO_LARGE_MESSAGE, CHAT_IMAGE_TOO_MANY_MESSAGE } from "src/common/constant/error.message";
+import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CHAT_IMAGE_TOO_LARGE_MESSAGE, CHAT_IMAGE_TOO_MANY_MESSAGE, INTERNAL_SERVER_MESSAGE, NOT_FOUND_RESOURCE } from "src/common/constant/error.message";
 import { Chats } from "src/entities/Chats";
 import { Images } from "src/entities/Images";
 import { RolesService } from "src/roles/roles.service";
@@ -21,6 +21,8 @@ import { nanoid } from "nanoid";
 import { ChatSpaces } from "src/entities/ChatSpaces";
 import { SpaceMembers } from "src/entities/SpaceMembers";
 import { CreatChatspaceDTO } from "./dto/create.chatspace.dto";
+import { WsException } from "@nestjs/websockets";
+import { ERROR_TYPE } from "src/common/constant/auth.constants";
 
 @Injectable()
 export class ChatsService {
@@ -184,15 +186,18 @@ export class ChatsService {
       const space = await this.sharedspacesService.getSpaceByUrl(url);
 
       if (!space) {
-        throw new BadRequestException(BAD_REQUEST_MESSAGE);
+        throw new WsException({
+          type: ERROR_TYPE.BAD_REQUEST_ERROR,
+          message: BAD_REQUEST_MESSAGE,
+        });
       }
 
       const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
 
       if (!isParticipant) {
-        throw new ForbiddenException({
+        throw new WsException({
+          type: ERROR_TYPE.UNAUTHORIZED_ERROR,
           message: ACCESS_DENIED_MESSAGE,
-          metaData: { spaceUrl: space.url },
         });
       }
 
@@ -276,6 +281,13 @@ export class ChatsService {
     } catch (err) {
       await qr.rollbackTransaction();
 
+      if (!(err instanceof WsException)) {
+        throw new WsException({
+          type: ERROR_TYPE.INTERNAL_SERVER_ERROR,
+          message: INTERNAL_SERVER_MESSAGE,
+        });
+      }
+
       throw err;
     } finally {
       await qr.release();
@@ -288,27 +300,41 @@ export class ChatsService {
   ) {
     const { url, ChatId, content } = dto;
 
-    const space = await this.sharedspacesService.getSpaceByUrl(url);
+    try {
+      const space = await this.sharedspacesService.getSpaceByUrl(url);
 
-    const updatedAt = dayjs().toDate();
+      const updatedAt = dayjs().toDate();
 
-    const result = await this.chatsRepository.update(
-      {
-        id: ChatId,
-        SenderId: UserId,
-        SpaceId: space.id,
-      },
-      {
-        content,
-        updatedAt,
+      const result = await this.chatsRepository.update(
+        {
+          id: ChatId,
+          SenderId: UserId,
+          SpaceId: space.id,
+        },
+        {
+          content,
+          updatedAt,
+        }
+      );
+
+      if (!result.affected) {
+        throw new WsException({
+          type: ERROR_TYPE.BAD_REQUEST_ERROR,
+          message: BAD_REQUEST_MESSAGE,
+        });
       }
-    );
 
-    if (!result.affected) {
-      throw new BadRequestException(BAD_REQUEST_MESSAGE);
+      return { ChatId, content, updatedAt };
+    } catch (err) {
+      if (!(err instanceof WsException)) {
+        throw new WsException({
+          type: ERROR_TYPE.INTERNAL_SERVER_ERROR,
+          message: INTERNAL_SERVER_MESSAGE,
+        });
+      }
+
+      throw err;
     }
-
-    return { ChatId, content, updatedAt };
   };
 
   async deleteSharedspaceChat(
@@ -345,7 +371,10 @@ export class ChatsService {
         targetChat?.SenderId !== UserId ||
         targetChat?.SpaceId !== space.id
       ) {
-        throw new BadRequestException(BAD_REQUEST_MESSAGE);
+        throw new WsException({
+          type: ERROR_TYPE.BAD_REQUEST_ERROR,
+          message: BAD_REQUEST_MESSAGE,
+        });
       }
 
       const now = dayjs().toDate();
@@ -362,6 +391,13 @@ export class ChatsService {
       return ChatId;
     } catch (err) {
       await qr.rollbackTransaction();
+
+      if (!(err instanceof WsException)) {
+        throw new WsException({
+          type: ERROR_TYPE.INTERNAL_SERVER_ERROR,
+          message: INTERNAL_SERVER_MESSAGE,
+        });
+      }
 
       throw err;
     } finally {
@@ -415,7 +451,10 @@ export class ChatsService {
       targetChat?.SpaceId !== space.id ||
       !targetChat.ChatImages.find(chatImage => chatImage.id === ImageId)
     ) {
-      throw new BadRequestException(BAD_REQUEST_MESSAGE);
+      throw new WsException({
+        type: ERROR_TYPE.BAD_REQUEST_ERROR,
+        message: BAD_REQUEST_MESSAGE,
+      });
     }
 
     const qr = this.dataSource.createQueryRunner();
@@ -447,6 +486,13 @@ export class ChatsService {
       };
     } catch (err) {
       await qr.rollbackTransaction();
+
+      if (!(err instanceof WsException)) {
+        throw new WsException({
+          type: ERROR_TYPE.INTERNAL_SERVER_ERROR,
+          message: INTERNAL_SERVER_MESSAGE,
+        });
+      }
 
       throw err;
     } finally {

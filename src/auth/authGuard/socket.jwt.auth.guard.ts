@@ -1,9 +1,10 @@
-import { BadRequestException, CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
+import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
+import { WsException } from "@nestjs/websockets";
 import dayjs from "dayjs";
 import { AUTHORIZATION_HEADER_NAME, ERROR_TYPE } from "src/common/constant/auth.constants";
 import { USER_STATUS } from "src/common/constant/constants";
-import { NOT_FOUND_USER, TOKEN_EXPIRED, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
+import { NOT_FOUND_RESOURCE, TOKEN_EXPIRED } from "src/common/constant/error.message";
 import { TAccessTokenPayload } from "src/typings/types";
 import { UsersService } from "src/users/users.service";
 
@@ -20,7 +21,10 @@ export class SocketJwtAuthGuard implements CanActivate {
     const authorizationHeader = client.handshake.auth[AUTHORIZATION_HEADER_NAME];
 
     if (!authorizationHeader || !authorizationHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedException(UNAUTHORIZED_MESSAGE);
+      throw new WsException({
+        type: ERROR_TYPE.UNAUTHORIZED_ERROR,
+        message: TOKEN_EXPIRED,
+      });
     }
 
     const accessToken = authorizationHeader.split(' ')[1];
@@ -33,18 +37,19 @@ export class SocketJwtAuthGuard implements CanActivate {
     });
 
     if (now.isSameOrAfter(dayjs(accessTokenPayload.exp, 'X'))) {
-      throw new UnauthorizedException({
+      throw new WsException({
+        type: ERROR_TYPE.AUTH_TOKEN_EXPIRED,
         message: TOKEN_EXPIRED,
-        metaData: {
-          type: ERROR_TYPE.TOKEN_EXPIRED,
-        },
       });
     }
 
     const user = await this.usersService.getUserById(accessTokenPayload.UserId);
 
     if (!user || user.status !== USER_STATUS.ACTIVE) {
-      throw new BadRequestException(NOT_FOUND_USER);
+      throw new WsException({
+        type: ERROR_TYPE.UNAUTHORIZED_ERROR,
+        message: NOT_FOUND_RESOURCE,
+      });
     }
 
     client.user = user;

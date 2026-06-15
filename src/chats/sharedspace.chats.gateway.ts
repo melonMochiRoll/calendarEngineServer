@@ -3,7 +3,7 @@ import { Server, Socket } from "socket.io";
 import { ChatsService } from "src/chats/chats.service";
 import { SendSharedspacechatDTO } from "./dto/send.sharedspace.chat.dto";
 import { ChatToClient, ChatToServer } from "src/common/constant/constants";
-import { UseGuards } from "@nestjs/common";
+import { UseFilters, UseGuards } from "@nestjs/common";
 import { SocketJwtAuthGuard } from "src/auth/authGuard/socket.jwt.auth.guard";
 import { SocketCSRFAuthGuard } from "src/auth/authGuard/socket.csrf.auth.guard";
 import { User } from "src/common/decorator/socket.user.decorator";
@@ -11,6 +11,7 @@ import { Users } from "src/entities/Users";
 import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
 import { DeleteSharedspaceChatDTO } from "./dto/delete.sharedspace.chat.dto";
 import { DeleteSharedspaceChatImageDTO } from "./dto/delete.sharedspace.chat.image.dto";
+import { WsExceptionFilter } from "src/common/exception/ws-exception.filter";
 
 @WebSocketGateway({
   cors: process.env.NODE_ENV === 'development' && {
@@ -47,6 +48,7 @@ export class SharedspaceChatsGateway {
     socket.leave(url);
   }
 
+  @UseFilters(WsExceptionFilter)
   @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
   @SubscribeMessage(ChatToServer.SEND_CHAT)
   async sendSharedspaceChat(
@@ -54,20 +56,17 @@ export class SharedspaceChatsGateway {
     @MessageBody() dto: SendSharedspacechatDTO,
     @User() user: Users,
   ) {
-    try {
-      const chatWithUser = await this.chatsService.createSharedspaceChat(dto, user.id);
+    const chatWithUser = await this.chatsService.createSharedspaceChat(dto, user.id);
 
-      socket
-        .emit(ChatToClient.CHAT_CREATED, chatWithUser.sender);
+    socket
+      .emit(ChatToClient.CHAT_CREATED, chatWithUser.sender);
 
-      socket
-        .to(dto.url)
-        .emit(ChatToClient.CHAT_CREATED, chatWithUser.receiver);
-    } catch (err) {
-      socket.emit(ChatToClient.CHAT_ERROR, { event: ChatToClient.CHAT_CREATED, ChatId: dto.ChatId });
-    }
+    socket
+      .to(dto.url)
+      .emit(ChatToClient.CHAT_CREATED, chatWithUser.receiver);
   }
 
+  @UseFilters(WsExceptionFilter)
   @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
   @SubscribeMessage(ChatToServer.UPDATE_CHAT)
   async updateSharedspaceChat(
@@ -75,17 +74,14 @@ export class SharedspaceChatsGateway {
     @MessageBody() dto: UpdateSharedspaceChatDTO,
     @User() user: Users,
   ) {
-    try {
-      const updatedProperty = await this.chatsService.updateSharedspaceChat(dto, user.id);
+    const updatedProperty = await this.chatsService.updateSharedspaceChat(dto, user.id);
 
-      this.server
-        .to(dto.url)
-        .emit(ChatToClient.CHAT_UPDATED, updatedProperty);
-    } catch (err) {
-      socket.emit(ChatToClient.CHAT_ERROR, { event: ChatToClient.CHAT_UPDATED, ChatId: dto.ChatId });
-    }
+    this.server
+      .to(dto.url)
+      .emit(ChatToClient.CHAT_UPDATED, updatedProperty);
   }
 
+  @UseFilters(WsExceptionFilter)
   @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
   @SubscribeMessage(ChatToServer.DELETE_CHAT)
   async deleteSharedspaceChat(
@@ -93,17 +89,14 @@ export class SharedspaceChatsGateway {
     @MessageBody() dto: DeleteSharedspaceChatDTO,
     @User() user: Users,
   ) {
-    try {
-      const deletedChatId = await this.chatsService.deleteSharedspaceChat(dto, user.id);
+    const deletedChatId = await this.chatsService.deleteSharedspaceChat(dto, user.id);
 
-      this.server
-        .to(dto.url)
-        .emit(ChatToClient.CHAT_DELETED, { id: deletedChatId });
-    } catch (err) {
-      socket.emit(ChatToClient.CHAT_ERROR, { event: ChatToClient.CHAT_DELETED, ChatId: dto.ChatId });
-    }
+    this.server
+      .to(dto.url)
+      .emit(ChatToClient.CHAT_DELETED, { id: deletedChatId });
   }
 
+  @UseFilters(WsExceptionFilter)
   @UseGuards(SocketJwtAuthGuard, SocketCSRFAuthGuard)
   @SubscribeMessage(ChatToServer.DELETE_CHAT_IMAGE)
   async deleteSharedspaceChatImage(
@@ -111,14 +104,10 @@ export class SharedspaceChatsGateway {
     @MessageBody() dto: DeleteSharedspaceChatImageDTO,
     @User() user: Users,
   ) {
-    try {
-      const { event, data } = await this.chatsService.deleteSharedspaceChatImage(dto, user.id);
+    const { event, data } = await this.chatsService.deleteSharedspaceChatImage(dto, user.id);
 
-      this.server
-        .to(dto.url)
-        .emit(event, data);
-    } catch (err) {
-      socket.emit(ChatToClient.CHAT_ERROR, { event: ChatToClient.CHAT_IMAGE_DELETED, ChatId: dto.ChatId });
-    }
+    this.server
+      .to(dto.url)
+      .emit(event, data);
   }
 }
