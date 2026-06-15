@@ -481,7 +481,7 @@ export class ChatsService {
       await qr.commitTransaction();
 
       return {
-        action: ChatToClient.CHAT_IMAGE_DELETED,
+        event: ChatToClient.CHAT_IMAGE_DELETED,
         data: { ChatId, ImageId },
       };
     } catch (err) {
