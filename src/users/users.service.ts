@@ -80,10 +80,11 @@ export class UsersService {
       },
     });
 
+    const second = 1000;
     const minute = 60000;
 
     if (!result) {
-      await this.cacheManager.set(cacheKey, CACHE_EMPTY_SYMBOL, 1 * minute);
+      await this.cacheManager.set(cacheKey, CACHE_EMPTY_SYMBOL, 3 * second);
       return null;
     }
 
@@ -133,10 +134,11 @@ export class UsersService {
       },
     });
 
+    const second = 1000;
     const minute = 60000;
 
     if (!result) {
-      await this.cacheManager.set(cacheKey, CACHE_EMPTY_SYMBOL, 1 * minute);
+      await this.cacheManager.set(cacheKey, CACHE_EMPTY_SYMBOL, 3 * second);
       return null;
     }
 
@@ -186,10 +188,11 @@ export class UsersService {
       },
     });
 
+    const second = 1000;
     const minute = 60000;
 
     if (!result) {
-      await this.cacheManager.set(cacheKey, CACHE_EMPTY_SYMBOL, 1 * minute);
+      await this.cacheManager.set(cacheKey, CACHE_EMPTY_SYMBOL, 3 * second);
       return null;
     }
 
