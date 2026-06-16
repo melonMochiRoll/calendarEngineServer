@@ -102,12 +102,8 @@ export class UsersService {
 
     const targetUserId = await this.cacheManager.get<string | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
-    if (targetUserId === CACHE_EMPTY_SYMBOL) {
-      return null;
-    }
-
     if (targetUserId) {
-      return await this.getUserById(targetUserId);
+      return targetUserId === CACHE_EMPTY_SYMBOL ? null : this.getUserById(targetUserId);
     }
 
     const result = await this.usersRepository.findOne({
@@ -156,12 +152,8 @@ export class UsersService {
 
     const targetUserId = await this.cacheManager.get<string | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
-    if (targetUserId === CACHE_EMPTY_SYMBOL) {
-      return null;
-    }
-
     if (targetUserId) {
-      return await this.getUserById(targetUserId);
+      return targetUserId === CACHE_EMPTY_SYMBOL ? null : this.getUserById(targetUserId);
     }
 
     const result = await this.usersRepository.findOne({
