@@ -60,10 +60,7 @@ export class JwtLocalStrategy extends PassportStrategy(Strategy, 'jwt-local') {
 
     const user = {
       ...rest,
-      ProfileImage: {
-        id: result.ProfileImage?.id,
-        path: result.ProfileImage?.Image?.path,
-      },
+      ProfileImage: result.ProfileImage?.Image?.path,
     };
 
     return user;
