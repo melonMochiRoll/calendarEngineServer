@@ -178,29 +178,29 @@ export class ChatsService {
   ) {
     const { url, ChatId, content, imageIds } = dto;
 
+    const space = await this.sharedspacesService.getSpaceByUrl(url);
+
+    if (!space) {
+      throw new WsException({
+        type: ERROR_TYPE.BAD_REQUEST_ERROR,
+        message: BAD_REQUEST_MESSAGE,
+      });
+    }
+
+    const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
+
+    if (!isParticipant) {
+      throw new WsException({
+        type: ERROR_TYPE.UNAUTHORIZED_ERROR,
+        message: ACCESS_DENIED_MESSAGE,
+      });
+    }
+
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
 
     try {
-      const space = await this.sharedspacesService.getSpaceByUrl(url);
-
-      if (!space) {
-        throw new WsException({
-          type: ERROR_TYPE.BAD_REQUEST_ERROR,
-          message: BAD_REQUEST_MESSAGE,
-        });
-      }
-
-      const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
-
-      if (!isParticipant) {
-        throw new WsException({
-          type: ERROR_TYPE.UNAUTHORIZED_ERROR,
-          message: ACCESS_DENIED_MESSAGE,
-        });
-      }
-
       await qr.manager.insert(Chats, {
         id: ChatId,
         content,
