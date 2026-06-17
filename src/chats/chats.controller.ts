@@ -6,6 +6,7 @@ import { GeneratePresignedPutUrlDTO } from "./dto/generate.presigned.put.url.dto
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
 import { CreatChatspaceDTO } from "./dto/create.chatspace.dto";
+import { UUIDv7OrEmptyPipe } from "src/common/pipe/uuidv7OrEmpty.pipe";
 
 @Controller('api')
 export class ChatsController {
@@ -24,6 +25,20 @@ export class ChatsController {
       url,
       beforeChatId || null,
       user?.id,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('chatspaces/:url/chats')
+  getChatspaceChats(
+    @Param('url') url: string,
+    @Query('before', UUIDv7OrEmptyPipe) beforeChatId: string,
+    @User() user: Users,
+  ) {
+    return this.chatsService.getChatspaceChats(
+      url,
+      beforeChatId,
+      user.id,
     );
   }
 

@@ -532,6 +532,132 @@ export class ChatsService {
     return keyAndUrls;
   }
 
+  async getChatspaceChats(
+    url: string,
+    beforeChatId: string,
+    UserId: string,
+    limit = 100,
+  ) {
+    const space = await this.sharedspacesService.getSpaceByUrl(url);
+
+    if (!space) {
+      throw new BadRequestException(BAD_REQUEST_MESSAGE);
+    }
+
+    const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
+
+    if (!isParticipant) {
+      throw new ForbiddenException({
+        message: ACCESS_DENIED_MESSAGE,
+        metaData: { spaceUrl: space.url },
+      });
+    }
+
+    const chatRecords = await this.chatsRepository.find({
+      select: {
+        id: true,
+        content: true,
+        SenderId: true,
+        createdAt: true,
+        updatedAt: true,
+        Sender: {
+          email: true,
+          nickname: true,
+          ProfileImage: {
+            id: true,
+            Image: {
+              path: true,
+            },
+          },
+        },
+      },
+      relations: {
+        Sender: {
+          ProfileImage: {
+            Image: true,
+          },
+        },
+      },
+      where: beforeChatId ? {
+        SpaceId: space.id,
+        id: LessThan(beforeChatId),
+        removedAt: IsNull(),
+      } : {
+        SpaceId: space.id,
+        removedAt: IsNull(),
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+      take: limit,
+    });
+
+    if (!chatRecords.length) {
+      return {
+        chats: [],
+        hasMoreData: false,
+      };
+    }
+
+    const result = await this.chatImagesRepository.find({
+      select: {
+        id: true,
+        ChatId: true,
+        Image: {
+          path: true,
+        },
+      },
+      where: {
+        ChatId: In(chatRecords.map((chat) => chat.id)),
+        Image: {
+          status: IMAGE_STATUS.ACTIVE,
+          removedAt: IsNull(),
+        },
+      },
+      relations: {
+        Image: true,
+      },
+    });
+
+    const imagesMap = result.reduce((acc, image) => {
+      const { Image, ChatId } = image;
+
+      if (!acc[ChatId]) {
+        acc[ChatId] = [];
+      }
+
+      acc[ChatId].push({ id: image.id, path: Image.path });
+      return acc;
+    }, {});
+
+    const chats = chatRecords.map((chat) => {
+      return {
+        ...chat,
+        ChatImages: imagesMap[`${chat.id}`] || [],
+        Sender: {
+          ...chat.Sender,
+          ProfileImage: chat.Sender.ProfileImage?.Image?.path,
+        },
+        permission: {
+          isSender: chat.SenderId === UserId,
+        },
+      };
+    });
+
+    const totalCount = await this.chatsRepository.count({
+      where: {
+        SpaceId: space.id,
+        id: LessThan(chats[chats.length-1].id),
+        removedAt: IsNull(),
+      },
+    });
+
+    return {
+      chats,
+      hasMoreData: Boolean(totalCount),
+    };
+  }
+
   async createChatSpace(
     UserId: string,
     dto: CreatChatspaceDTO,
