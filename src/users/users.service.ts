@@ -441,8 +441,9 @@ export class UsersService {
     UserId: string,
   ) {
     const { id, fileName, fileSize, contentType } = dto;
+    const MB = 1024 * 1024;
 
-    if (fileSize >= 3 * 1024 * 1024) {
+    if (fileSize >= 3 * MB) {
       throw new BadRequestException(PROFILE_IMAGE_TOO_LARGE_MESSAGE);
     }
 
