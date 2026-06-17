@@ -18,12 +18,12 @@ export class ChatsController {
   @Get('sharedspaces/:url/chats')
   getSharedspaceChats(
     @Param('url') url: string,
-    @Query('before') beforeChatId: string,
+    @Query('before', UUIDv7OrEmptyPipe) beforeChatId: string,
     @User() user: Users,
   ) {
     return this.chatsService.getSharedspaceChats(
       url,
-      beforeChatId || null,
+      beforeChatId,
       user?.id,
     );
   }
