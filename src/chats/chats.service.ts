@@ -324,7 +324,7 @@ export class ChatsService {
         });
       }
 
-      return { ChatId, content, updatedAt };
+      return { id: ChatId, content, updatedAt };
     } catch (err) {
       if (!(err instanceof WsException)) {
         throw new WsException({
