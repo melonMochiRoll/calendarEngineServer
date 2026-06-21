@@ -1,5 +1,6 @@
-import { PipeTransform } from "@nestjs/common";
+import { Injectable, PipeTransform } from "@nestjs/common";
 
+@Injectable()
 export class UUIDv7OrEmptyPipe implements PipeTransform<string> {
   transform(value: string): string {
     if (!value || typeof value !== 'string') {
