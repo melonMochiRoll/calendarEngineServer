@@ -1,8 +1,8 @@
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsNotEmpty, IsUUID } from "class-validator";
 
 export class CreatChatspaceDTO {
 
-  @IsString()
   @IsNotEmpty()
+  @IsUUID(7)
   targetUserId: string;
 }

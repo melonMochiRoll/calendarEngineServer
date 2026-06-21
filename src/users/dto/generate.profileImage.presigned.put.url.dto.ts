@@ -1,9 +1,9 @@
-import { IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { IsNotEmpty, IsNumber, IsString, IsUUID } from "class-validator";
 
 export class GenerateProfileImagePresignedPutUrlDTO {
   
-  @IsString()
   @IsNotEmpty()
+  @IsUUID(7)
   id: string;
 
   @IsString()
