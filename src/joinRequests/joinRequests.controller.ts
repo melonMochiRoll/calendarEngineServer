@@ -6,6 +6,7 @@ import { CreateJoinRequestDTO } from "./dto/create.joinRequest.dto";
 import { ResolveJoinRequestDTO } from "./dto/resolve.joinRequest.dto";
 import { JwtAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
+import { UUIDv7ValidationPipe } from "src/common/pipe/uuidv7.validation.pipe";
 
 @Controller('api/sharedspaces')
 export class JoinRequestsController {
@@ -26,7 +27,7 @@ export class JoinRequestsController {
   @Post(':url/joinrequest/:id/resolve')
   resolveJoinRequest(
     @Param('url') url: string,
-    @Param('id') joinRequestId: string,
+    @Param('id', UUIDv7ValidationPipe) joinRequestId: string,
     @Body() dto: ResolveJoinRequestDTO,
     @User() user: Users,
   ) {
@@ -52,7 +53,7 @@ export class JoinRequestsController {
   @Post(':url/joinrequest/:id')
   rejectJoinRequest(
     @Param('url') url: string,
-    @Param('id') joinRequestId: string,
+    @Param('id', UUIDv7ValidationPipe) joinRequestId: string,
     @User() user: Users,
   ) {
     return this.joinRequestsService.rejectJoinRequest(url, joinRequestId, user.id);

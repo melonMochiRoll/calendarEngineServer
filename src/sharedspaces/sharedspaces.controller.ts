@@ -9,6 +9,7 @@ import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dt
 import { UpdateSharedspacePrivateDTO } from "./dto/update.sharedspace.private.dto";
 import { JwtAuthGuard, PublicAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
+import { UUIDv7ValidationPipe } from "src/common/pipe/uuidv7.validation.pipe";
 
 @Controller('api/sharedspaces')
 export class SharedspacesController {
@@ -114,7 +115,7 @@ export class SharedspacesController {
   @Delete(':url/members/:id')
   deleteSharedspaceMembers(
     @Param('url') url: string,
-    @Param('id') targetUserId: string,
+    @Param('id', UUIDv7ValidationPipe) targetUserId: string,
     @User() user: Users,
   ) {
     return this.sharedspacesService.deleteSharedspaceMembers(url, targetUserId, user.id);

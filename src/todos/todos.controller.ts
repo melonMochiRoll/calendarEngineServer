@@ -7,6 +7,7 @@ import { JwtAuthGuard, PublicAuthGuard } from 'src/auth/authGuard/jwt.auth.guard
 import { CSRFAuthGuard } from 'src/auth/authGuard/csrf.auth.guard';
 import { Users } from 'src/entities/Users';
 import { User } from 'src/common/decorator/user.decorator';
+import { UUIDv7ValidationPipe } from 'src/common/pipe/uuidv7.validation.pipe';
 
 @Controller('api/sharedspaces')
 export class TodosController {
@@ -53,7 +54,7 @@ export class TodosController {
   @Delete(':url/todos/:id')
   deleteTodo(
     @Param('url') url: string,
-    @Param('id') todoId: string,
+    @Param('id', UUIDv7ValidationPipe) todoId: string,
     @User() user: Users,
   ) {
     return this.todosService.deleteTodo(url, todoId, user.id);

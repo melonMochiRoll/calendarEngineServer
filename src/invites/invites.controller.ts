@@ -6,6 +6,7 @@ import { User } from "src/common/decorator/user.decorator";
 import { SendInviteDTO } from "./dto/send.invite.dto";
 import { AcceptInviteDTO } from "./dto/accept.invite.dto";
 import { DeclineInviteDTO } from "./dto/decline.invite.dto";
+import { UUIDv7ValidationPipe } from "src/common/pipe/uuidv7.validation.pipe";
 
 @Controller('api/invites')
 export class InvitesController {
@@ -52,7 +53,7 @@ export class InvitesController {
   @UseGuards(JwtAuthGuard)
   @Delete('cancel/:id')
   cancelInvite(
-    @Param('id') targetInviteId: string,
+    @Param('id', UUIDv7ValidationPipe) targetInviteId: string,
     @Query('url') url: string,
     @User() user: Users,
   ) {
