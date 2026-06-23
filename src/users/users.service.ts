@@ -29,6 +29,7 @@ import { StorageR2Service } from "src/storage/storage.r2.service";
 import { UpdateProfileImageDTO } from "./dto/update.profile.image.dto";
 import { SendFriendshipDTO } from "./dto/send.friendship.dto";
 import { Friendships } from "src/entities/Friendships";
+import { AcceptFriendshipDTO } from "./dto/accept.friendship.dto";
 
 @Injectable()
 export class UsersService {
@@ -556,5 +557,45 @@ export class UsersService {
       RequesteeId,
       status: FRIENDSHIPS_STATUS.PENDING,
     }, ['RequesterId', 'RequesteeId']);
+  }
+
+  async acceptFriendship(
+    dto: AcceptFriendshipDTO,
+    UserId: string,
+  ) {
+    const { id, RequesterId } = dto;
+
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+
+    try {
+      await qr.manager.update(Friendships,
+        {
+          id,
+          RequesterId,
+          RequesteeId: UserId,
+        },
+        {
+          status: FRIENDSHIPS_STATUS.ACCEPTED,
+        }
+      );
+
+      await qr.manager.delete(Friendships,
+        {
+          RequesterId: UserId,
+          RequesteeId: RequesterId,
+          status: FRIENDSHIPS_STATUS.PENDING,
+        }
+      );
+
+      await qr.commitTransaction();
+    } catch (err) {
+      await qr.rollbackTransaction();
+
+      throw err;
+    } finally {
+      await qr.release();
+    }
   }
 }
