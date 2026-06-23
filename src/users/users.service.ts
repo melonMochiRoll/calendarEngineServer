@@ -571,6 +571,21 @@ export class UsersService {
     await qr.startTransaction();
 
     try {
+      await qr.manager.find(Friendships, {
+        where: [
+            {
+              RequesterId: UserId,
+              RequesteeId: RequesterId,
+            },
+            {
+              RequesterId,
+              RequesteeId: UserId,
+            },
+        ],
+        order: { id: 'ASC' },
+        lock: { mode: 'pessimistic_write' },
+      });
+
       await qr.manager.update(Friendships,
         {
           id,
@@ -586,7 +601,6 @@ export class UsersService {
         {
           RequesterId: UserId,
           RequesteeId: RequesterId,
-          status: FRIENDSHIPS_STATUS.PENDING,
         }
       );
 
