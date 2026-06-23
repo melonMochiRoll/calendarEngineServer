@@ -9,6 +9,7 @@ import { Invites } from "./Invites";
 import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
 import { Spaces } from "./Spaces";
 import { ProfileImages } from "./ProfileImages";
+import { Friendships } from "./Friendships";
 
 @Index('users_createdAt_idx', ['createdAt'])
 @Entity({ name: 'users' })
@@ -69,6 +70,12 @@ export class Users {
 
   @OneToMany(() => Invites, invites => invites.Invitee)
   ReceivedInvites: Invites[];
+
+  @OneToMany(() => Friendships, friendships => friendships.Requester)
+  SentFriendships: Invites[];
+
+  @OneToMany(() => Friendships, friendships => friendships.Requestee)
+  ReceivedFriendships: Invites[];
 
   @ManyToMany(() => Spaces, spaces => spaces.Members)
   @JoinTable({
