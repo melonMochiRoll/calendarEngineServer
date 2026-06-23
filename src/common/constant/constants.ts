@@ -50,6 +50,12 @@ export const JOINREQUEST_STATUS = {
   REJECTED: 'rejected',
 } as const;
 
+export const FRIENDSHIPS_STATUS = {
+  PENDING: 'pending',
+  ACCEPTED: 'accepted',
+  REJECTED: 'rejected',
+} as const;
+
 export const USER_STATUS = {
   ACTIVE: 'active',
   INACTIVE: 'inactive',
