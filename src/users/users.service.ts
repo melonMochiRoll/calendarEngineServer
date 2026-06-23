@@ -30,6 +30,7 @@ import { UpdateProfileImageDTO } from "./dto/update.profile.image.dto";
 import { SendFriendshipDTO } from "./dto/send.friendship.dto";
 import { Friendships } from "src/entities/Friendships";
 import { AcceptFriendshipDTO } from "./dto/accept.friendship.dto";
+import { RejectFriendshipDTO } from "./dto/reject.friendship.dto";
 
 @Injectable()
 export class UsersService {
@@ -597,5 +598,24 @@ export class UsersService {
     } finally {
       await qr.release();
     }
+  }
+
+  async rejectFriendship(
+    dto: RejectFriendshipDTO,
+    UserId: string,
+  ) {
+    const { id, RequesterId } = dto;
+
+    await this.friendshipsRepository.update(
+      {
+        id,
+        RequesterId,
+        RequesteeId: UserId,
+        status: FRIENDSHIPS_STATUS.PENDING,
+      },
+      {
+        status: FRIENDSHIPS_STATUS.REJECTED,
+      }
+    );
   }
 }

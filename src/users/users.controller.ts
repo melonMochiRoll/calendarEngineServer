@@ -9,6 +9,7 @@ import { GenerateProfileImagePresignedPutUrlDTO } from "./dto/generate.profileIm
 import { UpdateProfileImageDTO } from "./dto/update.profile.image.dto";
 import { SendFriendshipDTO } from "./dto/send.friendship.dto";
 import { AcceptFriendshipDTO } from "./dto/accept.friendship.dto";
+import { RejectFriendshipDTO } from "./dto/reject.friendship.dto";
 
 @Controller('api/users')
 export class UsersController {
@@ -78,5 +79,14 @@ export class UsersController {
     @User() user: Users,
   ) {
     return this.usersService.acceptFriendship(dto, user.id);
+  }
+
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
+  @Post('friendships/reject')
+  rejectFriendship(
+    @Body() dto: RejectFriendshipDTO,
+    @User() user: Users,
+  ) {
+    return this.usersService.rejectFriendship(dto, user.id);
   }
 }
