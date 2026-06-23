@@ -1,15 +1,21 @@
 import { ForbiddenException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { USER_STATUS } from "src/common/constant/constants";
+import { nanoid } from "nanoid";
+import { SHAREDSPACE_ROLE, SPACE_TYPE, SPACE_URL_LENGTH, USER_STATUS } from "src/common/constant/constants";
 import { ACCESS_DENIED_MESSAGE } from "src/common/constant/error.message";
+import { ChatSpaces } from "src/entities/ChatSpaces";
 import { SpaceMembers } from "src/entities/SpaceMembers";
+import { Spaces } from "src/entities/Spaces";
 import { RolesService } from "src/roles/roles.service";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
-import { IsNull, Repository } from "typeorm";
+import { DataSource, IsNull, Repository } from "typeorm";
+import { uuidv7 } from "uuidv7";
+import { CreatChatspaceDTO } from "./dto/create.chatspace.dto";
 
 @Injectable()
 export class ChatspacesService {
   constructor(
+    private dataSource: DataSource,
     @InjectRepository(SpaceMembers)
     private spaceMembersRepository: Repository<SpaceMembers>,
     private rolesService: RolesService,
@@ -98,5 +104,52 @@ export class ChatspacesService {
       memberCount: totalCount,
       hasMoreData: !Boolean(page * limit >= totalCount),
     };
+  }
+
+  async createChatSpace(
+    UserId: string,
+    dto: CreatChatspaceDTO,
+  ) {
+    const { targetUserId } = dto;
+
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+
+    try {
+      const SpaceId = uuidv7();
+      const url = nanoid(SPACE_URL_LENGTH);
+
+      await qr.manager.insert(Spaces, {
+        id: SpaceId,
+        url,
+        type: SPACE_TYPE.CHAT,
+      });
+      await qr.manager.insert(ChatSpaces, { id: SpaceId });
+
+      const memberInfo = await this.rolesService.getRoleInfo(SHAREDSPACE_ROLE.MEMBER);
+      
+      await qr.manager.insert(SpaceMembers, {
+        id: uuidv7(),
+        UserId,
+        SpaceId,
+        RoleId: memberInfo.id,
+      });
+
+      await qr.manager.insert(SpaceMembers, {
+        id: uuidv7(),
+        UserId: targetUserId,
+        SpaceId,
+        RoleId: memberInfo.id,
+      });
+
+      await qr.commitTransaction();
+    } catch (err) {
+      await qr.rollbackTransaction();
+
+      throw err;
+    } finally {
+      await qr.release();
+    }
   }
 }

@@ -8,7 +8,7 @@ import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { DataSource, In, IsNull, LessThan, Repository } from "typeorm";
 import dayjs from "dayjs";
 import { GeneratePresignedPutUrlDTO } from "./dto/generate.presigned.put.url.dto";
-import { ChatToClient, IMAGE_STATUS, IMAGE_TYPE, SHAREDSPACE_ROLE, SPACE_TYPE, SPACE_URL_LENGTH } from "src/common/constant/constants";
+import { ChatToClient, IMAGE_STATUS, IMAGE_TYPE } from "src/common/constant/constants";
 import { StorageR2Service } from "src/storage/storage.r2.service";
 import { SendSharedspacechatDTO } from "src/chats/dto/send.sharedspace.chat.dto";
 import { UpdateSharedspaceChatDTO } from "src/chats/dto/update.sharedspace.chat.dto";
@@ -16,11 +16,7 @@ import { DeleteSharedspaceChatDTO } from "src/chats/dto/delete.sharedspace.chat.
 import { DeleteSharedspaceChatImageDTO } from "src/chats/dto/delete.sharedspace.chat.image.dto";
 import { ChatImages } from "src/entities/ChatImages";
 import { Spaces } from "src/entities/Spaces";
-import { uuidv7 } from "node_modules/uuidv7/dist/index.cjs";
-import { nanoid } from "nanoid";
-import { ChatSpaces } from "src/entities/ChatSpaces";
 import { SpaceMembers } from "src/entities/SpaceMembers";
-import { CreatChatspaceDTO } from "./dto/create.chatspace.dto";
 import { WsException } from "@nestjs/websockets";
 import { ERROR_TYPE } from "src/common/constant/auth.constants";
 
@@ -656,52 +652,5 @@ export class ChatsService {
       chats,
       hasMoreData: Boolean(totalCount),
     };
-  }
-
-  async createChatSpace(
-    UserId: string,
-    dto: CreatChatspaceDTO,
-  ) {
-    const { targetUserId } = dto;
-
-    const qr = this.dataSource.createQueryRunner();
-    await qr.connect();
-    await qr.startTransaction();
-
-    try {
-      const SpaceId = uuidv7();
-      const url = nanoid(SPACE_URL_LENGTH);
-
-      await qr.manager.insert(Spaces, {
-        id: SpaceId,
-        url,
-        type: SPACE_TYPE.CHAT,
-      });
-      await qr.manager.insert(ChatSpaces, { id: SpaceId });
-
-      const memberInfo = await this.rolesService.getRoleInfo(SHAREDSPACE_ROLE.MEMBER);
-      
-      await qr.manager.insert(SpaceMembers, {
-        id: uuidv7(),
-        UserId,
-        SpaceId,
-        RoleId: memberInfo.id,
-      });
-
-      await qr.manager.insert(SpaceMembers, {
-        id: uuidv7(),
-        UserId: targetUserId,
-        SpaceId,
-        RoleId: memberInfo.id,
-      });
-
-      await qr.commitTransaction();
-    } catch (err) {
-      await qr.rollbackTransaction();
-
-      throw err;
-    } finally {
-      await qr.release();
-    }
   }
 }
