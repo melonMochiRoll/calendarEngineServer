@@ -19,6 +19,7 @@ import { ChatsModule } from './chats/chats.module';
 import { InvitesModule } from './invites/invites.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TaskModule } from './task/task.module';
+import { ChatspacesModule } from './chatspaces/chatspaces.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { TaskModule } from './task/task.module';
     ChatsModule,
     InvitesModule,
     TaskModule,
+    ChatspacesModule,
   ],
   controllers: [],
   providers: [
