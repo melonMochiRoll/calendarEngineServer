@@ -7,11 +7,11 @@ import { CreateUserDTO } from "./dto/create.user.dto";
 import { TUserDefault } from "src/typings/types";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
-import { CONFLICT_ACCOUNT_MESSAGE, CONFLICT_MESSAGE, PROFILE_IMAGE_TOO_LARGE_MESSAGE } from "src/common/constant/error.message";
+import { CONFLICT_ACCOUNT_MESSAGE, CONFLICT_FRIENDSHIP_MESSAGE, CONFLICT_MESSAGE, NOT_FOUND_USER, PROFILE_IMAGE_TOO_LARGE_MESSAGE } from "src/common/constant/error.message";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { SpaceMembers } from "src/entities/SpaceMembers";
 import { RolesService } from "src/roles/roles.service";
-import { CACHE_EMPTY_SYMBOL, IMAGE_STATUS, IMAGE_TYPE, JOB_NAMES, JOB_STATUS, SHAREDSPACE_ROLE, USER_PROVIDER, USER_STATUS } from "src/common/constant/constants";
+import { CACHE_EMPTY_SYMBOL, FRIENDSHIPS_STATUS, IMAGE_STATUS, IMAGE_TYPE, JOB_NAMES, JOB_STATUS, SHAREDSPACE_ROLE, USER_PROVIDER, USER_STATUS } from "src/common/constant/constants";
 import { RefreshTokens } from "src/entities/RefreshTokens";
 import { JoinRequests } from "src/entities/JoinRequests";
 import { Invites } from "src/entities/Invites";
@@ -27,6 +27,8 @@ import { Images } from "src/entities/Images";
 import { GenerateProfileImagePresignedPutUrlDTO } from "./dto/generate.profileImage.presigned.put.url.dto";
 import { StorageR2Service } from "src/storage/storage.r2.service";
 import { UpdateProfileImageDTO } from "./dto/update.profile.image.dto";
+import { SendFriendshipDTO } from "./dto/send.friendship.dto";
+import { Friendships } from "src/entities/Friendships";
 
 @Injectable()
 export class UsersService {
@@ -42,6 +44,8 @@ export class UsersService {
     private imagesRepository: Repository<Images>,
     @InjectRepository(ProfileImages)
     private profileImagesRepository: Repository<ProfileImages>,
+    @InjectRepository(Friendships)
+    private friendshipsRepository: Repository<Friendships>,
     private sharedspacesService: SharedspacesService,
     private rolesService: RolesService,
     private storageR2Service: StorageR2Service,
@@ -511,5 +515,46 @@ export class UsersService {
     } finally {
       await qr.release();
     }
+  }
+
+  async sendFriendship(
+    dto: SendFriendshipDTO,
+    UserId: string,
+  ) {
+    const { RequesteeId } = dto;
+
+    const Requestee = await this.getUserById(RequesteeId);
+
+    if (!Requestee) {
+      throw new BadRequestException(NOT_FOUND_USER);
+    }
+
+    const isFriendship = await this.friendshipsRepository.findOne({
+      select: {
+        id: true,
+      },
+      where: [
+        {
+          RequesterId: UserId,
+          RequesteeId: Requestee.id,
+          status: FRIENDSHIPS_STATUS.ACCEPTED,
+        },
+        {
+          RequesterId: Requestee.id,
+          RequesteeId: UserId,
+          status: FRIENDSHIPS_STATUS.ACCEPTED,
+        }
+      ]
+    });
+
+    if (isFriendship) {
+      throw new ConflictException(CONFLICT_FRIENDSHIP_MESSAGE);
+    }
+    
+    await this.friendshipsRepository.upsert({
+      RequesterId: UserId,
+      RequesteeId,
+      status: FRIENDSHIPS_STATUS.PENDING,
+    }, ['RequesterId', 'RequesteeId']);
   }
 }

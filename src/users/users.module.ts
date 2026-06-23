@@ -11,6 +11,7 @@ import { RolesModule } from 'src/roles/roles.module';
 import { Images } from 'src/entities/Images';
 import { ProfileImages } from 'src/entities/ProfileImages';
 import { StorageModule } from 'src/storage/storage.module';
+import { Friendships } from 'src/entities/Friendships';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { StorageModule } from 'src/storage/storage.module';
       SpaceMembers,
       Images,
       ProfileImages,
+      Friendships,
     ]),
     SharedspacesModule,
     RolesModule,

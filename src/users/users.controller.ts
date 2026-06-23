@@ -7,6 +7,7 @@ import { IsNotJwtAuthenicatedGuard, JwtAuthGuard, PublicAuthGuard } from "src/au
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
 import { GenerateProfileImagePresignedPutUrlDTO } from "./dto/generate.profileImage.presigned.put.url.dto";
 import { UpdateProfileImageDTO } from "./dto/update.profile.image.dto";
+import { SendFriendshipDTO } from "./dto/send.friendship.dto";
 
 @Controller('api/users')
 export class UsersController {
@@ -58,5 +59,14 @@ export class UsersController {
     @User() user: Users,
   ) {
     return this.usersService.updateProfileImage(dto, user.id);
+  }
+
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
+  @Post('friendships')
+  sendFriendship(
+    @Body() dto: SendFriendshipDTO,
+    @User() user: Users,
+  ) {
+    return this.usersService.sendFriendship(dto, user.id);
   }
 }
