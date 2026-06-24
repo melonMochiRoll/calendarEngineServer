@@ -5,7 +5,6 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { JoinRequests } from "src/entities/JoinRequests";
 import { SpaceMembers } from "src/entities/SpaceMembers";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_REQUEST_MESSAGE } from "src/common/constant/error.message";
-import { Roles } from "src/entities/Roles";
 import { ResolveJoinRequestDTO } from "./dto/resolve.joinRequest.dto";
 import { RolesService } from "src/roles/roles.service";
 import { JOINREQUEST_STATUS, SHAREDSPACE_ROLE } from "src/common/constant/constants";
@@ -18,10 +17,6 @@ export class JoinRequestsService {
     private dataSource: DataSource,
     @InjectRepository(JoinRequests)
     private joinRequestsRepository: Repository<JoinRequests>,
-    @InjectRepository(SpaceMembers)
-    private spaceMembersRepository: Repository<SpaceMembers>,
-    @InjectRepository(Roles)
-    private rolesRepository: Repository<Roles>,
     private rolesService: RolesService,
     private sharedspaceFetcher: SharedspaceFetcher,
   ) {}

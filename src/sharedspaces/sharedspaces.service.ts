@@ -7,7 +7,7 @@ import { UpdateSharedspaceNameDTO } from "./dto/update.sharedspace.name.dto";
 import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { SpaceMembers } from "src/entities/SpaceMembers";
 import { Users } from "src/entities/Users";
-import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, CONFLICT_OWNER_MESSAGE, NOT_FOUND_RESOURCE, NOT_FOUND_SPACE_MESSAGE, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
+import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, CONFLICT_OWNER_MESSAGE, NOT_FOUND_RESOURCE, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
 import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
 import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dto";
 import { UpdateSharedspacePrivateDTO } from "./dto/update.sharedspace.private.dto";
@@ -16,14 +16,13 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { RolesService } from "src/roles/roles.service";
 import dayjs from "dayjs";
-import { JOB_NAMES, JOB_STATUS, SPACE_URL_LENGTH, SHAREDSPACE_ROLE, SUBSCRIBEDSPACES_SORT, USER_STATUS, SPACE_TYPE, IMAGE_STATUS, CACHE_EMPTY_SYMBOL } from "src/common/constant/constants";
+import { JOB_NAMES, JOB_STATUS, SPACE_URL_LENGTH, SHAREDSPACE_ROLE, SUBSCRIBEDSPACES_SORT, USER_STATUS, SPACE_TYPE } from "src/common/constant/constants";
 import { Todos } from "src/entities/Todos";
 import { JoinRequests } from "src/entities/JoinRequests";
 import { Invites } from "src/entities/Invites";
 import { BatchScheduler } from "src/entities/BatchScheduler";
 import { uuidv7 } from "uuidv7";
 import { Spaces } from "src/entities/Spaces";
-import { ChatImages } from "src/entities/ChatImages";
 import { SharedspaceFetcher } from "./sharedspaces.fetcher";
 
 @Injectable()
@@ -40,10 +39,6 @@ export class SharedspacesService {
     private sharedspacesRepository: Repository<Sharedspaces>,
     @InjectRepository(SpaceMembers)
     private spaceMembersRepository: Repository<SpaceMembers>,
-    @InjectRepository(Chats)
-    private chatsRepository: Repository<Chats>,
-    @InjectRepository(ChatImages)
-    private chatImagesRepository: Repository<ChatImages>,
     private rolesService: RolesService,
     private sharedspaceFetcher: SharedspaceFetcher,
   ) {}

@@ -45,8 +45,6 @@ export class UsersService {
     private spaceMembersRepository: Repository<SpaceMembers>,
     @InjectRepository(Images)
     private imagesRepository: Repository<Images>,
-    @InjectRepository(ProfileImages)
-    private profileImagesRepository: Repository<ProfileImages>,
     @InjectRepository(Friendships)
     private friendshipsRepository: Repository<Friendships>,
     private rolesService: RolesService,

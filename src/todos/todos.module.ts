@@ -3,9 +3,6 @@ import { TodosController } from './todos.controller';
 import { TodosService } from './todos.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Todos } from 'src/entities/Todos';
-import { Sharedspaces } from 'src/entities/Sharedspaces';
-import { RefreshTokens } from 'src/entities/RefreshTokens';
-import { SpaceMembers } from 'src/entities/SpaceMembers';
 import { SharedspacesModule } from 'src/sharedspaces/sharedspaces.module';
 import { RolesModule } from 'src/roles/roles.module';
 import { UsersModule } from 'src/users/users.module';
@@ -14,9 +11,6 @@ import { UsersModule } from 'src/users/users.module';
   imports: [
     TypeOrmModule.forFeature([
       Todos,
-      Sharedspaces,
-      RefreshTokens,
-      SpaceMembers,
     ]),
     SharedspacesModule,
     RolesModule,
