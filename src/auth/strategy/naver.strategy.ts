@@ -7,7 +7,7 @@ import { USER_PROVIDER } from "src/common/constant/constants";
 import { CONFLICT_ACCOUNT_MESSAGE } from "src/common/constant/error.message";
 import { Users } from "src/entities/Users";
 import { TNaverProfile } from "src/typings/types";
-import { UsersService } from "src/users/users.service";
+import { UsersFetcher } from "src/users/users.fetcher";
 import { Repository } from "typeorm";
 
 @Injectable()
@@ -15,7 +15,7 @@ export class NaverStrategy extends PassportStrategy(Strategy, 'naver') {
   constructor(
     @InjectRepository(Users)
     private usersRepository: Repository<Users>,
-    private usersService: UsersService,
+    private usersFetcher: UsersFetcher,
   ) {
     super({
       clientID: process.env.NAVER_CLIENT_ID,
@@ -28,7 +28,7 @@ export class NaverStrategy extends PassportStrategy(Strategy, 'naver') {
   }
 
   async validate(req: Request, accessToken: string, refreshToken: string, profile: TNaverProfile) {
-    const exUser = await this.usersService.getUserByEmail(profile.emails[0].value);
+    const exUser = await this.usersFetcher.getUserByEmail(profile.emails[0].value);
 
     if (exUser) {
       if (exUser.provider !== USER_PROVIDER.NAVER) {
@@ -44,7 +44,7 @@ export class NaverStrategy extends PassportStrategy(Strategy, 'naver') {
       provider: USER_PROVIDER.NAVER,
     });
 
-    const newUser = await this.usersService.getUserByEmail(profile.emails[0].value);
+    const newUser = await this.usersFetcher.getUserByEmail(profile.emails[0].value);
 
     return newUser;
   }

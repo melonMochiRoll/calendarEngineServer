@@ -8,11 +8,11 @@ import { SendInviteDTO } from "./dto/send.invite.dto";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_REQUEST_MESSAGE, CONFLICT_USER_MESSAGE, NOT_FOUND_USER } from "src/common/constant/error.message";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { RolesService } from "src/roles/roles.service";
-import { UsersService } from "src/users/users.service";
 import { SpaceMembers } from "src/entities/SpaceMembers";
 import { AcceptInviteDTO } from "./dto/accept.invite.dto";
 import { DeclineInviteDTO } from "./dto/decline.invite.dto";
 import { uuidv7 } from "uuidv7";
+import { UsersFetcher } from "src/users/users.fetcher";
 
 @Injectable()
 export class InvitesService {
@@ -20,7 +20,7 @@ export class InvitesService {
     private dataSource: DataSource,
     @InjectRepository(Invites)
     private invitesRepository: Repository<Invites>,
-    private usersService: UsersService,
+    private usersFetcher: UsersFetcher,
     private sharedspacesService: SharedspacesService,
     private rolesService: RolesService,
   ) {}
@@ -114,7 +114,7 @@ export class InvitesService {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
-    const invitee = await this.usersService.getUserByEmail(inviteeEmail);
+    const invitee = await this.usersFetcher.getUserByEmail(inviteeEmail);
 
     if (!invitee) {
       throw new BadRequestException(NOT_FOUND_USER);

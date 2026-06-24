@@ -11,7 +11,7 @@ import { CSRF_TOKEN_COOKIE_NAME, OAUTH2_CSRF_STATE_COOKIE_NAME, REFRESH_TOKEN_CO
 import { REFRESH_TOKEN_JTI_LENGTH, USER_STATUS } from "src/common/constant/constants";
 import { TRefreshTokenPayload } from "src/typings/types";
 import { NOT_FOUND_USER, TOKEN_EXPIRED, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
-import { UsersService } from "src/users/users.service";
+import { UsersFetcher } from "src/users/users.fetcher";
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 
@@ -20,7 +20,7 @@ export class AuthService {
   constructor(
     private dataSource: DataSource,
     private jwtService: JwtService,
-    private usersService: UsersService,
+    private usersFetcher: UsersFetcher,
     @InjectRepository(Users)
     private usersRepository: Repository<Users>,
     @InjectRepository(RefreshTokens)
@@ -182,7 +182,7 @@ export class AuthService {
       throw new UnauthorizedException(TOKEN_EXPIRED);
     }
 
-    const user = await this.usersService.getUserById(refreshTokenPayload.UserId);
+    const user = await this.usersFetcher.getUserById(refreshTokenPayload.UserId);
 
     if (!user || user.status !== USER_STATUS.ACTIVE) {
       throw new BadRequestException(NOT_FOUND_USER);

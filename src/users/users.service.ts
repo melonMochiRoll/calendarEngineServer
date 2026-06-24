@@ -4,14 +4,13 @@ import { Users } from "src/entities/Users";
 import { DataSource, In, Like, Repository } from "typeorm";
 import bcrypt from 'bcrypt';
 import { CreateUserDTO } from "./dto/create.user.dto";
-import { TUserDefault } from "src/typings/types";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { CONFLICT_ACCOUNT_MESSAGE, CONFLICT_FRIENDSHIP_MESSAGE, CONFLICT_MESSAGE, NOT_FOUND_USER, PROFILE_IMAGE_TOO_LARGE_MESSAGE } from "src/common/constant/error.message";
 import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { SpaceMembers } from "src/entities/SpaceMembers";
 import { RolesService } from "src/roles/roles.service";
-import { CACHE_EMPTY_SYMBOL, FRIENDSHIPS_STATUS, IMAGE_STATUS, IMAGE_TYPE, JOB_NAMES, JOB_STATUS, SHAREDSPACE_ROLE, USER_PROVIDER, USER_STATUS } from "src/common/constant/constants";
+import { FRIENDSHIPS_STATUS, IMAGE_STATUS, IMAGE_TYPE, JOB_NAMES, JOB_STATUS, SHAREDSPACE_ROLE, USER_PROVIDER, USER_STATUS } from "src/common/constant/constants";
 import { RefreshTokens } from "src/entities/RefreshTokens";
 import { JoinRequests } from "src/entities/JoinRequests";
 import { Invites } from "src/entities/Invites";
@@ -31,6 +30,7 @@ import { SendFriendshipDTO } from "./dto/send.friendship.dto";
 import { Friendships } from "src/entities/Friendships";
 import { AcceptFriendshipDTO } from "./dto/accept.friendship.dto";
 import { RejectFriendshipDTO } from "./dto/reject.friendship.dto";
+import { UsersFetcher } from "./users.fetcher";
 
 @Injectable()
 export class UsersService {
@@ -38,6 +38,7 @@ export class UsersService {
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
     private dataSource: DataSource,
+    private usersFetcher: UsersFetcher,
     @InjectRepository(Users)
     private usersRepository: Repository<Users>,
     @InjectRepository(SpaceMembers)
@@ -53,163 +54,13 @@ export class UsersService {
     private storageR2Service: StorageR2Service,
   ) {}
 
-  async getUserById(id: string): Promise<TUserDefault> {
-    const cacheKey = `user:${id}`;
-
-    const cachedItem = await this.cacheManager.get<TUserDefault | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
-
-    if (cachedItem) {
-      return cachedItem === CACHE_EMPTY_SYMBOL ? null : cachedItem;
-    }
-
-    const result = await this.usersRepository.findOne({
-      select: {
-        id: true,
-        email: true,
-        nickname: true,
-        provider: true,
-        ProfileImage: {
-          id: true,
-          Image: {
-            path: true,
-          },
-        },
-        status: true,
-      },
-      where: {
-        id,
-      },
-      relations: {
-        ProfileImage: {
-          Image: true,
-        },
-      },
-    });
-
-    const second = 1000;
-    const minute = 60000;
-
-    if (!result) {
-      await this.cacheManager.set(cacheKey, CACHE_EMPTY_SYMBOL, 3 * second);
-      return null;
-    }
-
-    const user = {
-      ...result,
-      ProfileImage: result.ProfileImage?.Image?.path,
-    };
-
-    await this.cacheManager.set(cacheKey, user, 10 * minute);
-    return user;
-  }
-
-  async getUserByEmail(email: string): Promise<TUserDefault> {
-    const cacheKey = `user:${email}`;
-
-    const targetUserId = await this.cacheManager.get<string | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
-
-    if (targetUserId) {
-      return targetUserId === CACHE_EMPTY_SYMBOL ? null : this.getUserById(targetUserId);
-    }
-
-    const result = await this.usersRepository.findOne({
-      select: {
-        id: true,
-        email: true,
-        nickname: true,
-        provider: true,
-        ProfileImage: {
-          id: true,
-          Image: {
-            path: true,
-          },
-        },
-        status: true,
-      },
-      where: {
-        email,
-      },
-      relations: {
-        ProfileImage: {
-          Image: true,
-        },
-      },
-    });
-
-    const second = 1000;
-    const minute = 60000;
-
-    if (!result) {
-      await this.cacheManager.set(cacheKey, CACHE_EMPTY_SYMBOL, 3 * second);
-      return null;
-    }
-
-    const user = {
-      ...result,
-      ProfileImage: result.ProfileImage?.Image?.path,
-    };
-
-    await this.cacheManager.set(cacheKey, user.id, 10 * minute);
-    return user;
-  }
-
-  async getUserByNickname(nickname: string): Promise<TUserDefault> {
-    const cacheKey = `user:${nickname}`;
-
-    const targetUserId = await this.cacheManager.get<string | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
-
-    if (targetUserId) {
-      return targetUserId === CACHE_EMPTY_SYMBOL ? null : this.getUserById(targetUserId);
-    }
-
-    const result = await this.usersRepository.findOne({
-      select: {
-        id: true,
-        email: true,
-        nickname: true,
-        provider: true,
-        ProfileImage: {
-          id: true,
-          Image: {
-            path: true,
-          },
-        },
-        status: true,
-      },
-      where: {
-        nickname,
-      },
-      relations: {
-        ProfileImage: {
-          Image: true,
-        },
-      },
-    });
-
-    const second = 1000;
-    const minute = 60000;
-
-    if (!result) {
-      await this.cacheManager.set(cacheKey, CACHE_EMPTY_SYMBOL, 3 * second);
-      return null;
-    }
-
-    const user = {
-      ...result,
-      ProfileImage: result.ProfileImage?.Image?.path,
-    };
-
-    await this.cacheManager.set(cacheKey, user.id, 10 * minute);
-    return user;
-  }
-
   async existsByEmail(email: string) {
-    const user = await this.getUserByEmail(email);
+    const user = await this.usersFetcher.getUserByEmail(email);
     return user ? true : false;
   }
 
   async existsByNickname(nickname: string) {
-    const user = await this.getUserByNickname(nickname);
+    const user = await this.usersFetcher.getUserByNickname(nickname);
     return user ? true : false;
   }
 
@@ -525,7 +376,7 @@ export class UsersService {
   ) {
     const { RequesteeId } = dto;
 
-    const Requestee = await this.getUserById(RequesteeId);
+    const Requestee = await this.usersFetcher.getUserById(RequesteeId);
 
     if (!Requestee) {
       throw new BadRequestException(NOT_FOUND_USER);

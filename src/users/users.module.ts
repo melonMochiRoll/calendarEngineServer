@@ -12,6 +12,7 @@ import { Images } from 'src/entities/Images';
 import { ProfileImages } from 'src/entities/ProfileImages';
 import { StorageModule } from 'src/storage/storage.module';
 import { Friendships } from 'src/entities/Friendships';
+import { UsersFetcher } from './users.fetcher';
 
 @Module({
   imports: [
@@ -33,8 +34,12 @@ import { Friendships } from 'src/entities/Friendships';
   ],
   providers: [
     UsersService,
+    UsersFetcher,
   ],
-  exports: [ UsersService ],
+  exports: [
+    UsersService,
+    UsersFetcher,
+  ],
 })
 
 export class UsersModule {}
