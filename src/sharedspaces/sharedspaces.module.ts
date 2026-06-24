@@ -11,6 +11,7 @@ import { RolesModule } from 'src/roles/roles.module';
 import { Spaces } from 'src/entities/Spaces';
 import { Chats } from 'src/entities/Chats';
 import { ChatImages } from 'src/entities/ChatImages';
+import { SharedspaceFetcher } from './sharedspaces.fetcher';
 
 @Module({
   imports: [
@@ -29,9 +30,11 @@ import { ChatImages } from 'src/entities/ChatImages';
   controllers: [ SharedspacesController ],
   providers: [
     SharedspacesService,
+    SharedspaceFetcher,
   ],
   exports: [
     SharedspacesService,
+    SharedspaceFetcher,
   ],
 })
 

@@ -7,10 +7,10 @@ import { ChatSpaces } from "src/entities/ChatSpaces";
 import { SpaceMembers } from "src/entities/SpaceMembers";
 import { Spaces } from "src/entities/Spaces";
 import { RolesService } from "src/roles/roles.service";
-import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { DataSource, IsNull, Repository } from "typeorm";
 import { uuidv7 } from "uuidv7";
 import { CreatChatspaceDTO } from "./dto/create.chatspace.dto";
+import { SharedspaceFetcher } from "src/sharedspaces/sharedspaces.fetcher";
 
 @Injectable()
 export class ChatspacesService {
@@ -19,7 +19,7 @@ export class ChatspacesService {
     @InjectRepository(SpaceMembers)
     private spaceMembersRepository: Repository<SpaceMembers>,
     private rolesService: RolesService,
-    private sharedspacesService: SharedspacesService,
+    private sharedspaceFetcher: SharedspaceFetcher,
   ) {}
 
   async getChatspaceMembers(
@@ -28,7 +28,7 @@ export class ChatspacesService {
     UserId?: string,
     limit = 10,
   ) {
-    const space = await this.sharedspacesService.getSpaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSpaceByUrl(url);
 
     const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
 

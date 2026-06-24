@@ -7,7 +7,6 @@ import { CreateUserDTO } from "./dto/create.user.dto";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { CONFLICT_ACCOUNT_MESSAGE, CONFLICT_FRIENDSHIP_MESSAGE, CONFLICT_MESSAGE, NOT_FOUND_USER, PROFILE_IMAGE_TOO_LARGE_MESSAGE } from "src/common/constant/error.message";
-import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { SpaceMembers } from "src/entities/SpaceMembers";
 import { RolesService } from "src/roles/roles.service";
 import { FRIENDSHIPS_STATUS, IMAGE_STATUS, IMAGE_TYPE, JOB_NAMES, JOB_STATUS, SHAREDSPACE_ROLE, USER_PROVIDER, USER_STATUS } from "src/common/constant/constants";
@@ -31,6 +30,7 @@ import { Friendships } from "src/entities/Friendships";
 import { AcceptFriendshipDTO } from "./dto/accept.friendship.dto";
 import { RejectFriendshipDTO } from "./dto/reject.friendship.dto";
 import { UsersFetcher } from "./users.fetcher";
+import { SharedspaceFetcher } from "src/sharedspaces/sharedspaces.fetcher";
 
 @Injectable()
 export class UsersService {
@@ -49,9 +49,9 @@ export class UsersService {
     private profileImagesRepository: Repository<ProfileImages>,
     @InjectRepository(Friendships)
     private friendshipsRepository: Repository<Friendships>,
-    private sharedspacesService: SharedspacesService,
     private rolesService: RolesService,
     private storageR2Service: StorageR2Service,
+    private sharedspaceFetcher: SharedspaceFetcher,
   ) {}
 
   async existsByEmail(email: string) {
@@ -70,7 +70,7 @@ export class UsersService {
     page = 1,
     limit = 10,
   ) {
-    const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
 
     const userRecords = await this.usersRepository.find({
       select: {

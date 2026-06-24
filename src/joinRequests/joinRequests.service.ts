@@ -7,10 +7,10 @@ import { SpaceMembers } from "src/entities/SpaceMembers";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_REQUEST_MESSAGE } from "src/common/constant/error.message";
 import { Roles } from "src/entities/Roles";
 import { ResolveJoinRequestDTO } from "./dto/resolve.joinRequest.dto";
-import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { RolesService } from "src/roles/roles.service";
 import { JOINREQUEST_STATUS, SHAREDSPACE_ROLE } from "src/common/constant/constants";
 import { uuidv7 } from "uuidv7";
+import { SharedspaceFetcher } from "src/sharedspaces/sharedspaces.fetcher";
 
 @Injectable()
 export class JoinRequestsService {
@@ -22,15 +22,15 @@ export class JoinRequestsService {
     private spaceMembersRepository: Repository<SpaceMembers>,
     @InjectRepository(Roles)
     private rolesRepository: Repository<Roles>,
-    private sharedspacesService: SharedspacesService,
     private rolesService: RolesService,
+    private sharedspaceFetcher: SharedspaceFetcher,
   ) {}
 
   async getJoinRequests(
     url: string,
     UserId: string,
   ) {
-    const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
 
     const isOwner = await this.rolesService.requireOwner(UserId, space.id);
 
@@ -93,7 +93,7 @@ export class JoinRequestsService {
     await qr.startTransaction();
 
     try {
-      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+      const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
 
       const isOwner = await this.rolesService.requireOwner(UserId, space.id);
 
@@ -143,7 +143,7 @@ export class JoinRequestsService {
     dto: CreateJoinRequestDTO,
     UserId: string,
   ) {
-    const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
 
     const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
 
@@ -171,7 +171,7 @@ export class JoinRequestsService {
     joinRequestId: string,
     UserId: string,
   ) {
-    const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
 
     const isOwner = await this.rolesService.requireOwner(UserId, space.id);
 

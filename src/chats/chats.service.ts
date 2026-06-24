@@ -4,7 +4,6 @@ import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CHAT_IMAGE_TOO_LARGE_MESSAG
 import { Chats } from "src/entities/Chats";
 import { Images } from "src/entities/Images";
 import { RolesService } from "src/roles/roles.service";
-import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { DataSource, In, IsNull, LessThan, Repository } from "typeorm";
 import dayjs from "dayjs";
 import { GeneratePresignedPutUrlDTO } from "./dto/generate.presigned.put.url.dto";
@@ -19,6 +18,7 @@ import { Spaces } from "src/entities/Spaces";
 import { SpaceMembers } from "src/entities/SpaceMembers";
 import { WsException } from "@nestjs/websockets";
 import { ERROR_TYPE } from "src/common/constant/auth.constants";
+import { SharedspaceFetcher } from "src/sharedspaces/sharedspaces.fetcher";
 
 @Injectable()
 export class ChatsService {
@@ -32,7 +32,7 @@ export class ChatsService {
     private chatImagesRepository: Repository<ChatImages>,
     private rolesService: RolesService,
     private storageR2Service: StorageR2Service,
-    private sharedspacesService: SharedspacesService,
+    private sharedspaceFetcher: SharedspaceFetcher,
   ) {}
 
   async getSharedspaceChats(
@@ -41,7 +41,7 @@ export class ChatsService {
     UserId?: string,
     limit = 100,
   ) {
-    const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
 
     if (!space) {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
@@ -174,7 +174,7 @@ export class ChatsService {
   ) {
     const { url, ChatId, content, imageIds } = dto;
 
-    const space = await this.sharedspacesService.getSpaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSpaceByUrl(url);
 
     if (!space) {
       throw new WsException({
@@ -297,7 +297,7 @@ export class ChatsService {
     const { url, ChatId, content } = dto;
 
     try {
-      const space = await this.sharedspacesService.getSpaceByUrl(url);
+      const space = await this.sharedspaceFetcher.getSpaceByUrl(url);
 
       const updatedAt = dayjs().toDate();
 
@@ -344,7 +344,7 @@ export class ChatsService {
     const { url, ChatId } = dto;
 
     try {
-      const space = await this.sharedspacesService.getSpaceByUrl(url);
+      const space = await this.sharedspaceFetcher.getSpaceByUrl(url);
 
       const targetChat = await this.chatsRepository.findOne({
         select: {
@@ -406,7 +406,7 @@ export class ChatsService {
     UserId: string,
   ) {
     const { url, ChatId, ImageId } = dto;
-    const space = await this.sharedspacesService.getSpaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSpaceByUrl(url);
 
     const result = await this.chatsRepository.findOne({
       select: {
@@ -534,7 +534,7 @@ export class ChatsService {
     UserId: string,
     limit = 100,
   ) {
-    const space = await this.sharedspacesService.getSpaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSpaceByUrl(url);
 
     if (!space) {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);

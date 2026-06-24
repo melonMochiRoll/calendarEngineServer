@@ -6,13 +6,13 @@ import dayjs from "dayjs";
 import { INVITE_STATUS, SHAREDSPACE_ROLE } from "src/common/constant/constants";
 import { SendInviteDTO } from "./dto/send.invite.dto";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_REQUEST_MESSAGE, CONFLICT_USER_MESSAGE, NOT_FOUND_USER } from "src/common/constant/error.message";
-import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { RolesService } from "src/roles/roles.service";
 import { SpaceMembers } from "src/entities/SpaceMembers";
 import { AcceptInviteDTO } from "./dto/accept.invite.dto";
 import { DeclineInviteDTO } from "./dto/decline.invite.dto";
 import { uuidv7 } from "uuidv7";
 import { UsersFetcher } from "src/users/users.fetcher";
+import { SharedspaceFetcher } from "src/sharedspaces/sharedspaces.fetcher";
 
 @Injectable()
 export class InvitesService {
@@ -20,9 +20,9 @@ export class InvitesService {
     private dataSource: DataSource,
     @InjectRepository(Invites)
     private invitesRepository: Repository<Invites>,
-    private usersFetcher: UsersFetcher,
-    private sharedspacesService: SharedspacesService,
     private rolesService: RolesService,
+    private usersFetcher: UsersFetcher,
+    private sharedspaceFetcher: SharedspaceFetcher,
   ) {}
 
   async getInvites(
@@ -106,7 +106,7 @@ export class InvitesService {
   ) {
     const { url, inviteeEmail } = dto;
 
-    const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
 
     const isMember = await this.rolesService.requireMember(UserId, space.id);
     
@@ -162,7 +162,7 @@ export class InvitesService {
     await qr.startTransaction();
 
     try {
-      const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+      const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
 
       const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
 
@@ -236,7 +236,7 @@ export class InvitesService {
     url: string,
     UserId: string,
   ) {
-    const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
 
     const isMember = await this.rolesService.requireMember(UserId, space.id);
     

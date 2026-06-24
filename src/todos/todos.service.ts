@@ -6,12 +6,12 @@ import { Todos } from "src/entities/Todos";
 import { CreateTodoDTO } from "./dto/create.todo.dto";
 import { UpdateTodoDto } from "./dto/update.todo.dto";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE } from "src/common/constant/error.message";
-import { SharedspacesService } from "src/sharedspaces/sharedspaces.service";
 import { RolesService } from "src/roles/roles.service";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { CACHE_EMPTY_SYMBOL } from "src/common/constant/constants";
 import { uuidv7 } from "uuidv7";
+import { SharedspaceFetcher } from "src/sharedspaces/sharedspaces.fetcher";
 
 @Injectable()
 export class TodosService {
@@ -20,8 +20,8 @@ export class TodosService {
     private cacheManager: Cache,
     @InjectRepository(Todos)
     private todosRepository: Repository<Todos>,
-    private sharedspacesService: SharedspacesService,
     private rolesService: RolesService,
+    private sharedspaceFetcher: SharedspaceFetcher,
   ) {}
 
   async getTodosByMonth(
@@ -33,7 +33,7 @@ export class TodosService {
     const startDate = dayjs(`${year}-${month}-01`).toDate();
     const endDate = dayjs(`${year}-${month}-31`).toDate();
 
-    const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
 
     if (space.private) {
       const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
@@ -122,7 +122,7 @@ export class TodosService {
     dto: CreateTodoDTO,
     UserId: string,
   ) {
-    const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
 
     const isMember = await this.rolesService.requireMember(UserId, space.id);
 
@@ -150,7 +150,7 @@ export class TodosService {
   ) {
     const { id: todoId, ...rest } = dto;
 
-    const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
 
     const isMember = await this.rolesService.requireMember(UserId, space.id);
 
@@ -178,7 +178,7 @@ export class TodosService {
     todoId: string,
     UserId: string,
   ) {
-    const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
 
     const isMember = await this.rolesService.requireMember(UserId, space.id);
 
@@ -209,7 +209,7 @@ export class TodosService {
     UserId?: string,
     limit = 10,
   ) {
-    const space = await this.sharedspacesService.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
 
     if (space.private) {
       const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
