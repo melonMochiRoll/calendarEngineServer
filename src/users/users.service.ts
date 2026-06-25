@@ -380,33 +380,25 @@ export class UsersService {
       throw new BadRequestException(NOT_FOUND_USER);
     }
 
-    const isFriendship = await this.friendshipsRepository.findOne({
+    const isRequestOrFriendship = await this.friendshipsRepository.findOne({
       select: {
         id: true,
       },
-      where: [
-        {
-          RequesterId: UserId,
-          RequesteeId: Requestee.id,
-          status: FRIENDSHIPS_STATUS.ACCEPTED,
-        },
-        {
-          RequesterId: Requestee.id,
-          RequesteeId: UserId,
-          status: FRIENDSHIPS_STATUS.ACCEPTED,
-        }
-      ]
+      where: {
+        RequesterId: UserId,
+        RequesteeId: Requestee.id,
+      },
     });
 
-    if (isFriendship) {
+    if (isRequestOrFriendship) {
       throw new ConflictException(CONFLICT_FRIENDSHIP_MESSAGE);
     }
-    
-    await this.friendshipsRepository.upsert({
+
+    await this.friendshipsRepository.insert({
       RequesterId: UserId,
       RequesteeId,
       status: FRIENDSHIPS_STATUS.PENDING,
-    }, ['RequesterId', 'RequesteeId']);
+    });
   }
 
   async acceptFriendship(
@@ -420,21 +412,6 @@ export class UsersService {
     await qr.startTransaction();
 
     try {
-      await qr.manager.find(Friendships, {
-        where: [
-            {
-              RequesterId: UserId,
-              RequesteeId: RequesterId,
-            },
-            {
-              RequesterId,
-              RequesteeId: UserId,
-            },
-        ],
-        order: { id: 'ASC' },
-        lock: { mode: 'pessimistic_write' },
-      });
-
       await qr.manager.update(Friendships,
         {
           id,
@@ -446,11 +423,13 @@ export class UsersService {
         }
       );
 
-      await qr.manager.delete(Friendships,
+      await qr.manager.upsert(Friendships,
         {
           RequesterId: UserId,
           RequesteeId: RequesterId,
-        }
+          status: FRIENDSHIPS_STATUS.ACCEPTED,
+        },
+        ['RequesterId', 'RequesteeId'],
       );
 
       await qr.commitTransaction();
@@ -469,16 +448,36 @@ export class UsersService {
   ) {
     const { id, RequesterId } = dto;
 
-    await this.friendshipsRepository.update(
-      {
-        id,
-        RequesterId,
-        RequesteeId: UserId,
-        status: FRIENDSHIPS_STATUS.PENDING,
-      },
-      {
-        status: FRIENDSHIPS_STATUS.REJECTED,
-      }
-    );
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+
+    try {
+      await qr.manager.delete(Friendships,
+        {
+          id,
+          RequesterId,
+          RequesteeId: UserId,
+          status: FRIENDSHIPS_STATUS.PENDING,
+        },
+      );
+
+      await qr.manager.delete(Friendships,
+        {
+          id,
+          RequesterId: UserId,
+          RequesteeId: RequesterId,
+          status: FRIENDSHIPS_STATUS.PENDING,
+        },
+      );
+
+      await qr.commitTransaction();
+    } catch (err) {
+      await qr.rollbackTransaction();
+
+      throw err;
+    } finally {
+      await qr.release();
+    }
   }
 }
