@@ -70,17 +70,13 @@ export class ChatsService {
           nickname: true,
           ProfileImage: {
             id: true,
-            Image: {
-              path: true,
-            },
+            path: true,
           },
         },
       },
       relations: {
         Sender: {
-          ProfileImage: {
-            Image: true,
-          },
+          ProfileImage: true,
         },
       },
       where: beforeChatId ? {
@@ -104,13 +100,11 @@ export class ChatsService {
       };
     }
 
-    const result = await this.chatImagesRepository.find({
+    const images = await this.chatImagesRepository.find({
       select: {
         id: true,
         ChatId: true,
-        Image: {
-          path: true,
-        },
+        path: true,
       },
       where: {
         ChatId: In(chatRecords.map((chat) => chat.id)),
@@ -119,24 +113,15 @@ export class ChatsService {
           removedAt: IsNull(),
         },
       },
-      relations: {
-        Image: true,
-      },
-    });
-
-    const images = result.map((image) => {
-      const { Image, ...rest } = image;
-      return {
-        ...rest,
-        path: Image.path,
-      };
     });
 
     const imagesMap = images.reduce((acc, image) => {
-      if (!acc[image.ChatId]) {
-        acc[image.ChatId] = [];
+      const { ChatId } = image;
+
+      if (!acc[ChatId]) {
+        acc[ChatId] = [];
       }
-      acc[image.ChatId].push(image);
+      acc[ChatId].push(image);
       return acc;
     }, {});
 
@@ -146,7 +131,7 @@ export class ChatsService {
         ChatImages: imagesMap[`${chat.id}`] || [],
         Sender: {
           ...chat.Sender,
-          ProfileImage: chat.Sender.ProfileImage?.Image?.path,
+          ProfileImage: chat.Sender.ProfileImage?.path,
         },
         permission: {
           isSender: chat.SenderId === UserId,
@@ -172,7 +157,7 @@ export class ChatsService {
     dto: SendSharedspacechatDTO,
     UserId: string,
   ) {
-    const { url, ChatId, content, imageIds } = dto;
+    const { url, ChatId, content, imageIds, imageKeys } = dto;
 
     const space = await this.sharedspaceFetcher.getSpaceByUrl(url);
 
@@ -205,9 +190,9 @@ export class ChatsService {
       });
 
       if (imageIds.length) {
-        const updatePromises = imageIds.map(async (imageId) => {
+        const updatePromises = imageIds.map(async (imageId, i) => {
           await qr.manager.update(Images, { id: imageId }, { status: IMAGE_STATUS.ACTIVE });
-          await qr.manager.insert(ChatImages, { id: imageId, ChatId, });
+          await qr.manager.insert(ChatImages, { id: imageId, path: imageKeys[i], ChatId, });
         });
 
         await Promise.all(updatePromises);
@@ -227,47 +212,31 @@ export class ChatsService {
             nickname: true,
             ProfileImage: {
               id: true,
-              Image: {
-                path: true,
-              },
+              path: true,
             },
           },
           ChatImages: {
             id: true,
-            Image: {
-              path: true,
-            }
+            path: true,
           },
         },
         relations: {
           Sender: {
-            ProfileImage: {
-              Image: true,
-            },
+            ProfileImage: true,
           },
-          ChatImages: {
-            Image: true,
-          },
+          ChatImages: true,
         },
         where: {
           id: ChatId,
         },
       });
 
-      const getPublicUrlAndFlattening = result.ChatImages.map((chatImage) => {
-        const { Image, ...rest } = chatImage;
-        return {
-          ...rest,
-          path: Image.path,
-        };
-      });
       const chatWithUser = {
         ...result,
         Sender: {
           ...result.Sender,
-          ProfileImage: result.Sender.ProfileImage?.Image?.path,
+          ProfileImage: result.Sender.ProfileImage?.path,
         },
-        ChatImages: getPublicUrlAndFlattening,
       };
 
       return {
@@ -408,7 +377,7 @@ export class ChatsService {
     const { url, ChatId, ImageId } = dto;
     const space = await this.sharedspaceFetcher.getSpaceByUrl(url);
 
-    const result = await this.chatsRepository.findOne({
+    const targetChat = await this.chatsRepository.findOne({
       select: {
         id: true,
         SenderId: true,
@@ -416,31 +385,16 @@ export class ChatsService {
         content: true,
         ChatImages: {
           id: true,
-          Image: {
-            path: true,
-          },
+          path: true,
         },
       },
       relations: {
-        ChatImages: {
-          Image: true,
-        },
+        ChatImages: true,
       },
       where: {
         id: ChatId,
       },
     });
-
-    const targetChat = {
-      ...result,
-      ChatImages: result.ChatImages.map(chatImage => {
-        const { Image, ...rest } = chatImage;
-        return {
-          ...rest,
-          path: Image.path,
-        };
-      }),
-    };
 
     if (
       targetChat?.SenderId !== UserId ||
@@ -515,9 +469,10 @@ export class ChatsService {
       
       const key = this.storageR2Service.generateStorageKey(url, fileName);
       const presignedUrl = await this.storageR2Service.generatePresignedPutUrl(key, contentType);
-      await this.imagesRepository.insert({ id, status: IMAGE_STATUS.PENDING, path: key, type: IMAGE_TYPE.CHAT });
+      await this.imagesRepository.insert({ id, status: IMAGE_STATUS.PENDING, type: IMAGE_TYPE.CHAT });
 
       return {
+        key,
         presignedUrl,
         contentType,
       };
@@ -561,17 +516,13 @@ export class ChatsService {
           nickname: true,
           ProfileImage: {
             id: true,
-            Image: {
-              path: true,
-            },
+            path: true,
           },
         },
       },
       relations: {
         Sender: {
-          ProfileImage: {
-            Image: true,
-          },
+          ProfileImage: true,
         },
       },
       where: beforeChatId ? {
@@ -599,9 +550,7 @@ export class ChatsService {
       select: {
         id: true,
         ChatId: true,
-        Image: {
-          path: true,
-        },
+        path: true,
       },
       where: {
         ChatId: In(chatRecords.map((chat) => chat.id)),
@@ -610,19 +559,16 @@ export class ChatsService {
           removedAt: IsNull(),
         },
       },
-      relations: {
-        Image: true,
-      },
     });
 
     const imagesMap = result.reduce((acc, image) => {
-      const { Image, ChatId } = image;
+      const { ChatId } = image;
 
       if (!acc[ChatId]) {
         acc[ChatId] = [];
       }
 
-      acc[ChatId].push({ id: image.id, path: Image.path });
+      acc[ChatId].push({ id: image.id, path: image.path });
       return acc;
     }, {});
 
@@ -632,7 +578,7 @@ export class ChatsService {
         ChatImages: imagesMap[`${chat.id}`] || [],
         Sender: {
           ...chat.Sender,
-          ProfileImage: chat.Sender.ProfileImage?.Image?.path,
+          ProfileImage: chat.Sender.ProfileImage?.path,
         },
         permission: {
           isSender: chat.SenderId === UserId,

@@ -43,17 +43,13 @@ export class JoinRequestsService {
           email: true,
           ProfileImage: {
             id: true,
-            Image: {
-              path: true,
-            },
+            path: true,
           },
         },
       },
       relations: {
         Requestor: {
-          ProfileImage: {
-            Image: true,
-          },
+          ProfileImage: true,
         },
       },
       where: {
@@ -69,7 +65,7 @@ export class JoinRequestsService {
         ...request,
         Requestor: {
           ...request.Requestor,
-          ProfileImage: request.Requestor.ProfileImage?.Image?.path,
+          ProfileImage: request.Requestor.ProfileImage?.path,
         },
       };
     });

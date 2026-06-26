@@ -47,9 +47,7 @@ export class ChatspacesService {
           nickname: true,
           ProfileImage: {
             id: true,
-            Image: {
-              path: true,
-            },
+            path: true,
           },
         },
         Role: {
@@ -65,9 +63,7 @@ export class ChatspacesService {
       },
       relations: {
         User: {
-          ProfileImage: {
-            Image: true,
-          },
+          ProfileImage: true,
         },
         Role: true,
       },
@@ -85,7 +81,7 @@ export class ChatspacesService {
         email: User.email,
         nickname: User.nickname,
         RoleName: Role.name,
-        ProfileImage: User.ProfileImage?.Image?.path,
+        ProfileImage: User.ProfileImage?.path,
       };
     });
 

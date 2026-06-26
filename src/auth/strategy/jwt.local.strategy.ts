@@ -29,10 +29,7 @@ export class JwtLocalStrategy extends PassportStrategy(Strategy, 'jwt-local') {
         password: true,
         provider: true,
         ProfileImage: {
-          id: true,
-          Image: {
-            path: true,
-          },
+          path: true,
         },
         status: true,
       },
@@ -40,9 +37,7 @@ export class JwtLocalStrategy extends PassportStrategy(Strategy, 'jwt-local') {
         email,
       },
       relations: {
-        ProfileImage: {
-          Image: true,
-        },
+        ProfileImage: true
       },
     });
 
@@ -56,11 +51,11 @@ export class JwtLocalStrategy extends PassportStrategy(Strategy, 'jwt-local') {
       throw new BadRequestException(NOT_FOUND_USER);
     }
 
-    const { password: _, ...rest } = result;
+    const { password: _, ProfileImage, ...rest } = result;
 
     const user = {
       ...rest,
-      ProfileImage: result.ProfileImage?.Image?.path,
+      ProfileImage: ProfileImage?.path,
     };
 
     return user;

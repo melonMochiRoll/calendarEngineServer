@@ -2,11 +2,15 @@ import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
 import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryColumn } from "typeorm";
 import { Chats } from "./Chats";
 import { Images } from "./Images";
+import { ImagePathTransformer } from "src/common/transformer/imagePathTransformer";
 
 @Entity({ name: 'chatimages' })
 export class ChatImages {
   @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
   id: string;
+
+  @Column({ type: 'text', transformer: new ImagePathTransformer() })
+  path: string;
 
   @Column({ type: 'binary', name: 'ChatId', length: 16, transformer: new UUIDV7Transformer() })
   ChatId: string;

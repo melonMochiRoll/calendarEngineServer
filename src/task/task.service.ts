@@ -93,7 +93,17 @@ export class TaskService {
 
     const orphanedImages = await this.imagesRepository.find({
       select: {
-        path: true,
+        id: true,
+        ChatImage: {
+          path: true,
+        },
+        ProfileImage: {
+          path: true,
+        },
+      },
+      relations: {
+        ChatImage: true,
+        ProfileImage: true,
       },
       where: {
         status: IMAGE_STATUS.PENDING,
@@ -104,7 +114,10 @@ export class TaskService {
     const imageChunks = chunking(orphanedImages, 2);
 
     for (const chunk of imageChunks) {
-      const batch = chunk.map(image => this.storageR2Service.deleteFile(image.path));
+      const batch = chunk.map(image => {
+        const path = image.ChatImage?.path || image.ProfileImage?.path;
+        return this.storageR2Service.deleteFile(path);
+      });
       await Promise.all(batch);
     }
   }
@@ -152,7 +165,16 @@ export class TaskService {
     const softDeletedImages = await this.imagesRepository.find({
       select: {
         id: true,
-        path: true,
+        ChatImage: {
+          path: true,
+        },
+        ProfileImage: {
+          path: true,
+        },
+      },
+      relations: {
+        ChatImage: true,
+        ProfileImage: true,
       },
       where: {
         status: IMAGE_STATUS.DELETED,
@@ -163,7 +185,8 @@ export class TaskService {
 
     for (const chunk of imageChunks) {
       const batch = chunk.map(async (image) => {
-        await this.storageR2Service.deleteFile(image.path);
+        const path = image.ChatImage?.path || image.ProfileImage?.path;
+        await this.storageR2Service.deleteFile(path);
         await this.imagesRepository.delete({ id: image.id });
       });
 

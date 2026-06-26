@@ -15,4 +15,7 @@ export class SendSharedspacechatDTO {
 
   @IsArray()
   imageIds: string[];
+
+  @IsArray()
+  imageKeys: string[]
 }

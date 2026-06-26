@@ -76,10 +76,7 @@ export class UsersService {
         email: true,
         nickname: true,
         ProfileImage: {
-          id: true,
-          Image: {
-            path: true,
-          },
+          path: true,
         },
       },
       where: [
@@ -118,7 +115,7 @@ export class UsersService {
     const users = userRecords.map((user) => {
       return {
         ...user,
-        ProfileImage: user.ProfileImage?.Image?.path,
+        ProfileImage: user.ProfileImage?.path,
         permission: {
           isParticipant: memberSet.has(user.id),
         },
@@ -304,9 +301,10 @@ export class UsersService {
 
     const key = this.storageR2Service.generateStorageKey(UserId, fileName);
     const presignedUrl = await this.storageR2Service.generatePresignedPutUrl(key, contentType);
-    await this.imagesRepository.insert({ id, status: IMAGE_STATUS.PENDING, path: key, type: IMAGE_TYPE.PROFILE });
+    await this.imagesRepository.insert({ id, status: IMAGE_STATUS.PENDING, type: IMAGE_TYPE.PROFILE });
 
     return {
+      key,
       presignedUrl,
       contentType,
     };
@@ -316,7 +314,7 @@ export class UsersService {
     dto: UpdateProfileImageDTO,
     UserId: string,
   ) {
-    const { ImageId } = dto;
+    const { ImageId, key } = dto;
 
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
@@ -354,7 +352,7 @@ export class UsersService {
       }
 
       await qr.manager.update(Images, { id: ImageId }, { status: IMAGE_STATUS.ACTIVE });
-      await qr.manager.upsert(ProfileImages, { id: ImageId, UserId }, ['id', 'UserId']);
+      await qr.manager.insert(ProfileImages, { id: ImageId, path: key, UserId });
 
       await qr.commitTransaction();
 

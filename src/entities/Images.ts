@@ -2,16 +2,12 @@ import { Column, CreateDateColumn, Entity, Index, OneToOne, PrimaryColumn } from
 import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
 import { ChatImages } from "./ChatImages";
 import { ProfileImages } from "./ProfileImages";
-import { ImagePathTransformer } from "src/common/transformer/imagePathTransformer";
 
 @Index('images_createdAt_idx', ['createdAt'])
 @Entity({ name: 'images' })
 export class Images {
   @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
   id: string;
-
-  @Column({ type: 'text', transformer: new ImagePathTransformer() })
-  path: string;
 
   @Column({ type: 'varchar', name: 'status', length: 30, default: 'pending' })
   status: string;
