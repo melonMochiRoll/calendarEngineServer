@@ -122,9 +122,7 @@ export class SharedspacesService {
               nickname: true,
               ProfileImage: {
                 id: true,
-                Image: {
-                  path: true,
-                },
+                path: true,
               },
             },
           },
@@ -156,7 +154,7 @@ export class SharedspacesService {
         url: spacemember.Space.url,
         Owner: {
           ...rest.Owner,
-          ProfileImage: rest.Owner.ProfileImage?.Image?.path,
+          ProfileImage: rest.Owner.ProfileImage?.path,
         },
         permission: {
           isOwner: UserId === OwnerId,
@@ -419,9 +417,7 @@ export class SharedspacesService {
           nickname: true,
           ProfileImage: {
             id: true,
-            Image: {
-              path: true,
-            },
+            path: true,
           },
         },
         Role: {
@@ -457,7 +453,7 @@ export class SharedspacesService {
         email: User.email,
         nickname: User.nickname,
         RoleName: Role.name,
-        ProfileImage: User.ProfileImage?.Image?.path,
+        ProfileImage: User.ProfileImage?.path,
       };
     });
 
