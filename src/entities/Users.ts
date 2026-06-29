@@ -11,16 +11,17 @@ import { Spaces } from "./Spaces";
 import { ProfileImages } from "./ProfileImages";
 import { Friendships } from "./Friendships";
 
-@Index('users_createdAt_idx', ['createdAt'])
+@Index('users_email_uq', ['email'], { unique: true })
+@Index('users_nickname_uq', ['nickname'], { unique: true })
 @Entity({ name: 'users' })
 export class Users {
   @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
   id: string;
 
-  @Column({ type: 'varchar', name: 'email', length: 50, unique: true })
+  @Column({ type: 'varchar', name: 'email', length: 50 })
   email: string;
 
-  @Column({ type: 'varchar', name: 'nickname', length: 20, unique: true })
+  @Column({ type: 'varchar', name: 'nickname', length: 20 })
   nickname: string;
 
   @Column({ type: 'varchar', length: 100, select: false, nullable: true })
