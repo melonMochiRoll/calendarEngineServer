@@ -11,8 +11,8 @@ import { Spaces } from "./Spaces";
 import { ProfileImages } from "./ProfileImages";
 import { Friendships } from "./Friendships";
 
-@Index('users_email_uq', ['email'], { unique: true })
-@Index('users_nickname_uq', ['nickname'], { unique: true })
+@Index('users_email_uq_idx', ['email'], { unique: true })
+@Index('users_nickname_uq_idx', ['nickname'], { unique: true })
 @Entity({ name: 'users' })
 export class Users {
   @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
