@@ -3,7 +3,7 @@ import { Users } from "./Users";
 import { Sharedspaces } from "./Sharedspaces";
 import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
 
-@Index('todos_SpaceId_date_uq', ['SpaceId', 'date'], { unique: true })
+@Index('todos_SpaceId_date_uq_idx', ['SpaceId', 'date'], { unique: true })
 @Entity({ name: 'todos' })
 export class Todos {
   @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
@@ -39,6 +39,7 @@ export class Todos {
   @Column({ type: 'binary', name: 'SpaceId', length: 16, transformer: new UUIDV7Transformer() })
   SpaceId: string;
   
+  @Index('todos_AuthorId_fk_idx')
   @ManyToOne(() => Users, users => users.Todos)
   @JoinColumn({
     name: 'AuthorId',
@@ -47,6 +48,7 @@ export class Todos {
   })
   Author: Users;
 
+  @Index('todos_EditorId_fk_idx')
   @ManyToOne(() => Users, users => users.EditedTodos)
   @JoinColumn({
     name: 'EditorId',
@@ -55,6 +57,7 @@ export class Todos {
   })
   Editor: Users;
 
+  @Index('todos_Spaceid_fk_idx')
   @ManyToOne(() => Sharedspaces, sharedspaces => sharedspaces.Todos)
   @JoinColumn({
     name: 'SpaceId',
