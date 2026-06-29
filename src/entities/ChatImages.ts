@@ -1,5 +1,5 @@
 import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryColumn } from "typeorm";
+import { Column, Entity, Index, JoinColumn, ManyToOne, OneToOne, PrimaryColumn } from "typeorm";
 import { Chats } from "./Chats";
 import { Images } from "./Images";
 import { ImagePathTransformer } from "src/common/transformer/imagePathTransformer";
@@ -15,6 +15,7 @@ export class ChatImages {
   @Column({ type: 'binary', name: 'ChatId', length: 16, transformer: new UUIDV7Transformer() })
   ChatId: string;
 
+  @Index('chatimages_ChatId_fk_idx')
   @ManyToOne(() => Chats, chats => chats.ChatImages)
   @JoinColumn({
     name: 'ChatId',
@@ -29,6 +30,7 @@ export class ChatImages {
   @JoinColumn({
     name: 'id',
     referencedColumnName: 'id',
+    foreignKeyConstraintName: 'chatimages_id_fk',
   })
   Image: Images;
 }

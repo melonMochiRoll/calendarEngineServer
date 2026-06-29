@@ -1,5 +1,5 @@
 import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
-import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from "typeorm";
+import { Column, Entity, Index, JoinColumn, OneToOne, PrimaryColumn } from "typeorm";
 import { Users } from "./Users";
 import { Images } from "./Images";
 import { ImagePathTransformer } from "src/common/transformer/imagePathTransformer";
@@ -15,6 +15,7 @@ export class ProfileImages {
   @Column({ type: 'binary', name: 'UserId', length: 16, transformer: new UUIDV7Transformer() })
   UserId: string;
 
+  @Index('profileimages_UserId_fk_idx')
   @OneToOne(() => Users, users => users.ProfileImage)
   @JoinColumn({
     name: 'UserId',
@@ -29,6 +30,7 @@ export class ProfileImages {
   @JoinColumn({
     name: 'id',
     referencedColumnName: 'id',
+    foreignKeyConstraintName: 'profileimages_id_fk'
   })
   Image: Images;
 }

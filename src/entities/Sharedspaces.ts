@@ -1,4 +1,4 @@
-import { Column, Entity,JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryColumn } from "typeorm";
+import { Column, Entity,Index,JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryColumn } from "typeorm";
 import { Users } from "./Users";
 import { Todos } from "./Todos";
 import { JoinRequests } from "./JoinRequests";
@@ -26,9 +26,11 @@ export class Sharedspaces {
   @JoinColumn({
     name: 'id',
     referencedColumnName: 'id',
+    foreignKeyConstraintName: 'sharedspaces_id_fk'
   })
   Space: Spaces;
 
+  @Index('sharedspaces_OwnerId_fk_idx')
   @ManyToOne(() => Users, users => users.OwnedSharedspaces, {
     onUpdate: 'CASCADE',
     onDelete: 'SET NULL',
