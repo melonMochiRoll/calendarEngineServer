@@ -33,9 +33,7 @@ export class UsersFetcher {
         provider: true,
         ProfileImage: {
           id: true,
-          Image: {
-            path: true,
-          },
+          path: true,
         },
         status: true,
       },
@@ -59,7 +57,7 @@ export class UsersFetcher {
 
     const user = {
       ...result,
-      ProfileImage: result.ProfileImage?.Image?.path,
+      ProfileImage: result.ProfileImage?.path,
     };
 
     await this.cacheManager.set(cacheKey, user, 10 * minute);
@@ -83,9 +81,7 @@ export class UsersFetcher {
         provider: true,
         ProfileImage: {
           id: true,
-          Image: {
-            path: true,
-          },
+          path: true,
         },
         status: true,
       },
@@ -109,7 +105,7 @@ export class UsersFetcher {
 
     const user = {
       ...result,
-      ProfileImage: result.ProfileImage?.Image?.path,
+      ProfileImage: result.ProfileImage?.path,
     };
 
     await this.cacheManager.set(cacheKey, user.id, 10 * minute);
@@ -133,9 +129,7 @@ export class UsersFetcher {
         provider: true,
         ProfileImage: {
           id: true,
-          Image: {
-            path: true,
-          },
+          path: true,
         },
         status: true,
       },
@@ -159,7 +153,7 @@ export class UsersFetcher {
 
     const user = {
       ...result,
-      ProfileImage: result.ProfileImage?.Image?.path,
+      ProfileImage: result.ProfileImage?.path,
     };
 
     await this.cacheManager.set(cacheKey, user.id, 10 * minute);
