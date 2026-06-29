@@ -3,7 +3,6 @@ import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
 import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { Users } from "./Users";
 
-@Index('friendships_createdAt_idx', ['createdAt'])
 @Entity({ name: 'friendships' })
 export class Friendships {
   @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
@@ -24,6 +23,7 @@ export class Friendships {
   @UpdateDateColumn()
   updatedAt: Date;
 
+  @Index('friendships_RequesterId_fk_idx')
   @ManyToOne(() => Users, users => users.SentFriendships, {
     onDelete: 'CASCADE',
   })
@@ -34,6 +34,7 @@ export class Friendships {
   })
   Requester: Users;
 
+  @Index('friendships_RequesteeId_fk_idx')
   @ManyToOne(() => Users, users => users.ReceivedFriendships, {
     onDelete: 'CASCADE',
   })

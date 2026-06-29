@@ -4,7 +4,6 @@ import { Sharedspaces } from "./Sharedspaces";
 import { INVITE_STATUS } from "src/common/constant/constants";
 import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
 
-@Index('invites_createdAt_idx', ['createdAt'])
 @Entity({ name: 'invites' })
 export class Invites {
   @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
@@ -34,6 +33,7 @@ export class Invites {
   @Column({ type: 'datetime', precision: 6 })
   expiredAt: Date;
 
+  @Index('invites_InviterId_fk_idx')
   @ManyToOne(() => Users, users => users.SentInvites)
   @JoinColumn({
     name: 'InviterId',
@@ -42,6 +42,7 @@ export class Invites {
   })
   Inviter: Users;
 
+  @Index('invites_InviteeId_fk_idx')
   @ManyToOne(() => Users, users => users.ReceivedInvites)
   @JoinColumn({
     name: 'InviteeId',
@@ -50,6 +51,7 @@ export class Invites {
   })
   Invitee: Users;
 
+  @Index('invites_SpaceId_fk_idx')
   @ManyToOne(() => Sharedspaces, sharedspaces => sharedspaces.Invites)
   @JoinColumn({
     name: 'SpaceId',

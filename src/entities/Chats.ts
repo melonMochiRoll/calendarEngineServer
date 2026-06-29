@@ -4,7 +4,6 @@ import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
 import { Spaces } from "./Spaces";
 import { ChatImages } from "./ChatImages";
 
-@Index('chats_createdAt_idx', ['createdAt'])
 @Entity({ name: 'chats' })
 export class Chats {
   @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
@@ -31,6 +30,7 @@ export class Chats {
   @OneToMany(() => ChatImages, chatImages => chatImages.Chat)
   ChatImages: ChatImages[];
 
+  @Index('chats_SenderId_fk_idx')
   @ManyToOne(() => Users, users => users.Todos)
   @JoinColumn({
     name: 'SenderId',
@@ -39,6 +39,7 @@ export class Chats {
   })
   Sender: Users;
 
+  @Index('chats_SpaceId_fk_idx')
   @ManyToOne(() => Spaces, spaces => spaces.Chats)
   @JoinColumn({
     name: 'SpaceId',

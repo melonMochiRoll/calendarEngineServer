@@ -4,7 +4,6 @@ import { Sharedspaces } from "./Sharedspaces";
 import { JOINREQUEST_STATUS } from "src/common/constant/constants";
 import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
 
-@Index('joinrequests_createdAt_idx', ['createdAt'])
 @Entity({ name: 'joinrequests' })
 export class JoinRequests {
   @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
@@ -28,6 +27,7 @@ export class JoinRequests {
   @Column({ type: 'text' })
   message: string;
 
+  @Index('joinrequests_SpaceId_fk_idx')
   @ManyToOne(() => Sharedspaces, sharedspaces => sharedspaces.JoinRequests)
   @JoinColumn({
     name: 'SpaceId',
@@ -36,6 +36,7 @@ export class JoinRequests {
   })
   Sharedspace: Sharedspaces;
 
+  @Index('joinrequests_RequestorId_fk_idx')
   @ManyToOne(() => Users, users => users.JoinRequests)
   @JoinColumn({
     name: 'RequestorId',
