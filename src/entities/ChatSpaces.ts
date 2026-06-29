@@ -13,6 +13,7 @@ export class ChatSpaces {
   @JoinColumn({
     name: 'id',
     referencedColumnName: 'id',
+    foreignKeyConstraintName: 'chatspaces_id_fk'
   })
   Space: Spaces;
 }
