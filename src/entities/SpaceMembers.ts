@@ -4,7 +4,7 @@ import { Roles } from "./Roles";
 import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
 import { Spaces } from "./Spaces";
 
-@Index('userid_spaceid_unique_idx', ['UserId', 'SpaceId'], { unique: true })
+@Index('spacemembers_userid_spaceid_uq', ['UserId', 'SpaceId'], { unique: true })
 @Index('spacemembers_createdAt_idx', ['createdAt'])
 @Entity({ name: 'spacemembers' })
 export class SpaceMembers {
