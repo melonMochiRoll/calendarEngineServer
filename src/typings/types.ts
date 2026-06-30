@@ -1,4 +1,5 @@
 import { SHAREDSPACE_ROLE } from "src/common/constant/constants";
+import { ChatImages } from "src/entities/ChatImages";
 import { Chats } from "src/entities/Chats";
 import { Images } from "src/entities/Images";
 import { ProfileImages } from "src/entities/ProfileImages";
@@ -88,7 +89,7 @@ export type TChatPayload = Pick<Chats,
   'createdAt' |
   'updatedAt'> & {
     Sender: Pick<Users, 'email' | 'nickname'>,
-    ChatImages: Array<Pick<Images, 'id' | 'path'>>,
+    ChatImages: Array<Pick<ChatImages, 'id' | 'path'>>,
     permission: {
       isSender: boolean,
     },
