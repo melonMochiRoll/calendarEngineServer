@@ -31,6 +31,7 @@ import { AcceptFriendshipDTO } from "./dto/accept.friendship.dto";
 import { RejectFriendshipDTO } from "./dto/reject.friendship.dto";
 import { UsersFetcher } from "./users.fetcher";
 import { SharedspaceFetcher } from "src/sharedspaces/sharedspaces.fetcher";
+import { getFullImageUrl } from "src/common/function/utilFunctions";
 
 @Injectable()
 export class UsersService {
@@ -70,33 +71,50 @@ export class UsersService {
   ) {
     const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
 
-    const userRecords = await this.usersRepository.find({
-      select: {
-        id: true,
-        email: true,
-        nickname: true,
-        ProfileImage: {
-          path: true,
-        },
-      },
-      where: [
-        {
-          email: Like(`${query}%`),
-          status: USER_STATUS.ACTIVE,
-        },
-        {
-          nickname: Like(`${query}%`),
-          status: USER_STATUS.ACTIVE,
-        },
-      ],
-      relations: {
-        ProfileImage: {
-          Image: true,
-        },
-      },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+    const qb1 = this.usersRepository
+      .createQueryBuilder('users')
+      .select([
+        'users.id AS id',
+        'users.email AS email',
+        'users.nickname AS nickname',
+      ])
+      .leftJoin('users.ProfileImage', 'ProfileImage')
+      .addSelect(['ProfileImage.path AS ProfileImage'])
+      .where('users.email LIKE :email', { email: `${query}%` })
+      .andWhere('users.status = :status1', { status1: USER_STATUS.ACTIVE });
+
+    const qb2 = this.usersRepository
+      .createQueryBuilder('users2')
+      .select([
+        'users2.id AS id',
+        'users2.email AS email',
+        'users2.nickname AS nickname',
+      ])
+      .leftJoin('users2.ProfileImage', 'ProfileImage2')
+      .addSelect(['ProfileImage2.path AS ProfileImage'])
+      .where('users2.nickname LIKE :nickname', { nickname: `${query}%` })
+      .andWhere('users2.status = :status2', { status2: USER_STATUS.ACTIVE });
+
+    const userRecords = await this.dataSource
+      .createQueryBuilder()
+      .select([
+        'combined.id AS id',
+        'combined.email AS email',
+        'combined.nickname AS nickname',
+        'combined.ProfileImage AS ProfileImage',
+      ])
+      .from(`( (${qb1.getQuery()}) UNION (${qb2.getQuery()}) )`, 'combined')
+      .setParameters({ ...qb1.getParameters(), ...qb2.getParameters() })
+      .orderBy('combined.id', 'DESC')
+      .offset((page - 1) * limit)
+      .limit(limit + 1)
+      .getRawMany();
+
+    const hasMoreData = userRecords.length > limit;
+
+    if (hasMoreData) {
+      userRecords.pop();
+    }
 
     const memberRecords = await this.spaceMembersRepository.find({
       select: {
@@ -113,31 +131,23 @@ export class UsersService {
     }, new Set());
 
     const users = userRecords.map((user) => {
+      const { id, ProfileImage, ...rest } = user;
+      const transformedId = uuidToString(id);
+      const url = getFullImageUrl(ProfileImage);
+
       return {
-        ...user,
-        ProfileImage: user.ProfileImage?.path,
+        ...rest,
+        id: transformedId,
+        ProfileImage: url,
         permission: {
-          isParticipant: memberSet.has(user.id),
+          isParticipant: memberSet.has(transformedId),
         },
       };
     });
 
-    const totalCount = await this.usersRepository.count({
-      where: [
-        {
-          email: Like(`${query}%`),
-          status: USER_STATUS.ACTIVE,
-        },
-        {
-          nickname: Like(`${query}%`),
-          status: USER_STATUS.ACTIVE,
-        },
-      ],
-    });
-
     return {
       items: users,
-      hasMoreData: !Boolean(page * limit >= totalCount),
+      hasMoreData,
     };
   }
 
