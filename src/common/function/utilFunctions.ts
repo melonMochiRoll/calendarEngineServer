@@ -1,4 +1,7 @@
-import { getR2PublicURL } from "./getStorageURL";
+
+export function getR2PublicURL() {
+  return process.env.R2_PUBLIC_URL;
+}
 
 export const chunking = <T>(array: Array<T>, size: number) => {
   const chunks: T[][] = [];
