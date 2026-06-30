@@ -1,3 +1,4 @@
+import { getR2PublicURL } from "./getStorageURL";
 
 export const chunking = <T>(array: Array<T>, size: number) => {
   const chunks: T[][] = [];
@@ -8,3 +9,11 @@ export const chunking = <T>(array: Array<T>, size: number) => {
 
   return chunks;
 }
+
+export const getFullImageUrl = (value: string) => {
+  if (!value) {
+    return;
+  }
+
+  return `${getR2PublicURL()}/${value}`;
+};
