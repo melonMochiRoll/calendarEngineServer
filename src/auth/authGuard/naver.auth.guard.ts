@@ -2,7 +2,7 @@ import { ExecutionContext, Injectable } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { INTERNAL_SERVER_MESSAGE } from "src/common/constant/error.message";
 import { RedirectingException } from "src/common/exception/redirecting.exception";
-import { getOrigin } from "src/common/function/getOrigin";
+import { getOrigin } from "src/common/function/utilFunctions";
 import { Users } from "src/entities/Users";
 
 @Injectable()

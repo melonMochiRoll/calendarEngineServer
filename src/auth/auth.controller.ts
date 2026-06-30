@@ -8,7 +8,7 @@ import { AuthService } from "./auth.service";
 import { OAuth2CSRFGuard } from "./authGuard/oauth2.csrf.guard";
 import { JwtLoginAuthGuard } from "./authGuard/jwt.local.auth.guard";
 import { IsNotJwtAuthenicatedGuard, JwtAuthGuard, PublicAuthGuard } from "./authGuard/jwt.auth.guard";
-import { getOrigin } from "src/common/function/getOrigin";
+import { getOrigin } from "src/common/function/utilFunctions";
 import { REFRESH_TOKEN_COOKIE_NAME } from "src/common/constant/auth.constants";
 
 @Controller('api/auth')

@@ -2,7 +2,7 @@ import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { OAUTH2_CSRF_STATE_COOKIE_NAME } from "src/common/constant/auth.constants";
 import { INTERNAL_SERVER_MESSAGE } from "src/common/constant/error.message";
 import { RedirectingException } from "src/common/exception/redirecting.exception";
-import { getOrigin } from "src/common/function/getOrigin";
+import { getOrigin } from "src/common/function/utilFunctions";
 
 @Injectable()
 export class OAuth2CSRFGuard implements CanActivate {
