@@ -48,22 +48,14 @@ export class TodosService {
 
     const cacheKey = `todos:${space.url}:${year}-${month}`;
 
-    const cachedItem = await this.cacheManager.get<Todos[] | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
+    const cachedItem = await this.cacheManager.get<Map<string, Todos> | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
     if (cachedItem) {
       if (cachedItem === CACHE_EMPTY_SYMBOL) {
         return null;
       }
 
-      const cachedTodosMap = cachedItem.reduce((map, todo) => {
-        if (!map[String(todo.date)]) {
-          map[String(todo.date)] = [];
-        }
-        map[String(todo.date)].push(todo);
-        return map;
-      }, {});
-
-      return cachedTodosMap;
+      return cachedItem;
     }
 
     const todos = await this.todosRepository.find({
@@ -104,8 +96,6 @@ export class TodosService {
       return null;
     }
 
-    await this.cacheManager.set(cacheKey, todos, 1 * minute);
-
     const todosMap = todos.reduce((map, todo) => {
       if (!map[String(todo.date)]) {
         map[String(todo.date)] = [];
@@ -113,6 +103,8 @@ export class TodosService {
       map[String(todo.date)].push(todo);
       return map;
     }, {});
+
+    await this.cacheManager.set(cacheKey, todosMap, 1 * minute);
 
     return todosMap;
   }
