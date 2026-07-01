@@ -1,4 +1,5 @@
 import { ValueTransformer } from "typeorm";
+import { getR2PublicURL } from "../function/utilFunctions";
 
 export class ImagePathTransformer implements ValueTransformer {
 
@@ -11,6 +12,6 @@ export class ImagePathTransformer implements ValueTransformer {
       return;
     }
 
-    return `${process.env.R2_PUBLIC_URL}/${value}`;
+    return `${getR2PublicURL()}/${value}`;
   }
 }
