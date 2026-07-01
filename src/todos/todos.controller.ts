@@ -8,6 +8,7 @@ import { CSRFAuthGuard } from 'src/auth/authGuard/csrf.auth.guard';
 import { Users } from 'src/entities/Users';
 import { User } from 'src/common/decorator/user.decorator';
 import { UUIDv7ValidationPipe } from 'src/common/pipe/uuidv7.validation.pipe';
+import { UUIDv7OrEmptyPipe } from 'src/common/pipe/uuidv7OrEmpty.pipe';
 
 @Controller('api/sharedspaces')
 export class TodosController {
@@ -65,13 +66,13 @@ export class TodosController {
   searchTodos(
     @Param('url') url: string,
     @Query('query') query: string,
-    @Query('page', ParseIntPipe) page: number,
+    @Query('before', UUIDv7OrEmptyPipe) beforeTodoId: string,
     @User() user: Users,
   ) {
     return this.todosService.searchTodos(
       url,
       query,
-      page,
+      beforeTodoId,
       user?.id,
     );
   }

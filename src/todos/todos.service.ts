@@ -1,7 +1,7 @@
 import { BadRequestException, ForbiddenException, Inject, Injectable } from "@nestjs/common";
 import dayjs from "dayjs";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Between, IsNull, Like, Repository } from "typeorm";
+import { Between, IsNull, LessThan, Like, Repository } from "typeorm";
 import { Todos } from "src/entities/Todos";
 import { CreateTodoDTO } from "./dto/create.todo.dto";
 import { UpdateTodoDto } from "./dto/update.todo.dto";
@@ -197,7 +197,7 @@ export class TodosService {
   async searchTodos(
     url: string,
     query: string,
-    page: number,
+    beforeTodoId: string,
     UserId?: string,
     limit = 10,
   ) {
@@ -222,29 +222,31 @@ export class TodosService {
         startTime: true,
         endTime: true,
       },
-      where: {
+      where: beforeTodoId ? {
+        SpaceId: space.id,
+        id: LessThan(beforeTodoId),
+        description: Like(`%${query}%`),
+        removedAt: IsNull(),
+      } : {
         SpaceId: space.id,
         description: Like(`%${query}%`),
         removedAt: IsNull(),
       },
       order: {
-        date: 'DESC',
+        id: 'DESC',
       },
-      skip: (page - 1) * limit,
-      take: limit,
+      take: limit + 1,
     });
 
-    const totalCount = await this.todosRepository.count({
-      where: {
-        SpaceId: space.id,
-        description: Like(`%${query}%`),
-        removedAt: IsNull(),
-      },
-    });
+    const hasMoreData = todoRecords.length > limit;
+
+    if (hasMoreData) {
+      todoRecords.pop();
+    }
 
     return {
-      items: todoRecords,
-      hasMoreData: !Boolean(page * limit >= totalCount),
+      todos: todoRecords,
+      hasMoreData,
     };
   }
 
