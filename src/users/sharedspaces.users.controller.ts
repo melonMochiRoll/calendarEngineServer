@@ -1,6 +1,7 @@
-import { Controller, Get, Param, ParseIntPipe, Query, UseGuards } from "@nestjs/common";
+import { Controller, Get, Param, Query, UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { UsersService } from "./users.service";
+import { UUIDv7OrEmptyPipe } from "src/common/pipe/uuidv7OrEmpty.pipe";
 
 @Controller('api/sharedspaces')
 export class SharedspacesUsersContoller {
@@ -13,8 +14,8 @@ export class SharedspacesUsersContoller {
   searchUsers(
     @Param('url') url: string,
     @Query('query') query: string,
-    @Query('page', ParseIntPipe) page: number,
+    @Query('before', UUIDv7OrEmptyPipe) beforeUserId: string,
   ) {
-    return this.usersService.searchUsers(url, query, page);
+    return this.usersService.searchUsers(url, query, beforeUserId);
   }
 }

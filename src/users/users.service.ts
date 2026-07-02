@@ -14,8 +14,6 @@ import { RefreshTokens } from "src/entities/RefreshTokens";
 import { JoinRequests } from "src/entities/JoinRequests";
 import { Invites } from "src/entities/Invites";
 import { Sharedspaces } from "src/entities/Sharedspaces";
-import { Todos } from "src/entities/Todos";
-import { Chats } from "src/entities/Chats";
 import { BatchScheduler } from "src/entities/BatchScheduler";
 import dayjs from "dayjs";
 import { uuidv7 } from "uuidv7";
@@ -66,7 +64,7 @@ export class UsersService {
   async searchUsers(
     url: string,
     query: string,
-    page = 1,
+    beforeUserId: string,
     limit = 10,
   ) {
     const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
@@ -84,16 +82,21 @@ export class UsersService {
       .andWhere('users.status = :status1', { status1: USER_STATUS.ACTIVE });
 
     const qb2 = this.usersRepository
-      .createQueryBuilder('users2')
+      .createQueryBuilder('users')
       .select([
-        'users2.id AS id',
-        'users2.email AS email',
-        'users2.nickname AS nickname',
+        'users.id AS id',
+        'users.email AS email',
+        'users.nickname AS nickname',
       ])
-      .leftJoin('users2.ProfileImage', 'ProfileImage2')
-      .addSelect(['ProfileImage2.path AS ProfileImage'])
-      .where('users2.nickname LIKE :nickname', { nickname: `${query}%` })
-      .andWhere('users2.status = :status2', { status2: USER_STATUS.ACTIVE });
+      .leftJoin('users.ProfileImage', 'ProfileImage')
+      .addSelect(['ProfileImage.path AS ProfileImage'])
+      .where('users.nickname LIKE :nickname', { nickname: `${query}%` })
+      .andWhere('users.status = :status2', { status2: USER_STATUS.ACTIVE });
+
+    if (beforeUserId) {
+      qb1.andWhere('users.id < :beforeUserId', { beforeUserId });
+      qb2.andWhere('users.id < :beforeUserId', { beforeUserId });
+    }
 
     const userRecords = await this.dataSource
       .createQueryBuilder()
@@ -106,7 +109,6 @@ export class UsersService {
       .from(`( (${qb1.getQuery()}) UNION (${qb2.getQuery()}) )`, 'combined')
       .setParameters({ ...qb1.getParameters(), ...qb2.getParameters() })
       .orderBy('combined.id', 'DESC')
-      .offset((page - 1) * limit)
       .limit(limit + 1)
       .getRawMany();
 
