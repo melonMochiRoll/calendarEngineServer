@@ -24,3 +24,12 @@ export const getFullImageUrl = (value: string) => {
 
   return `${getR2PublicURL()}/${value}`;
 };
+
+export const uuidToString = (value: Buffer) => {
+  if (!value) {
+    return;
+  }
+
+  const hex = value.toString('hex');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+};

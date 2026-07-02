@@ -1,7 +1,7 @@
 import { BadRequestException, ConflictException, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Users } from "src/entities/Users";
-import { DataSource, In, Like, Repository } from "typeorm";
+import { DataSource, In, Repository } from "typeorm";
 import bcrypt from 'bcrypt';
 import { CreateUserDTO } from "./dto/create.user.dto";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
@@ -17,7 +17,7 @@ import { Sharedspaces } from "src/entities/Sharedspaces";
 import { BatchScheduler } from "src/entities/BatchScheduler";
 import dayjs from "dayjs";
 import { uuidv7 } from "uuidv7";
-import { uuidToString } from "src/common/transformer/uuidv7Transformer";
+import { uuidToString } from "src/common/function/utilFunctions";
 import { ProfileImages } from "src/entities/ProfileImages";
 import { Images } from "src/entities/Images";
 import { GenerateProfileImagePresignedPutUrlDTO } from "./dto/generate.profileImage.presigned.put.url.dto";
