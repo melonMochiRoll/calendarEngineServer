@@ -1,4 +1,4 @@
-import { SHAREDSPACE_ROLE } from "src/common/constant/constants";
+import { SHAREDSPACE_ROLE, SUBSCRIBEDSPACES_SORT } from "src/common/constant/constants";
 import { ChatImages } from "src/entities/ChatImages";
 import { Chats } from "src/entities/Chats";
 import { Images } from "src/entities/Images";
@@ -93,4 +93,6 @@ export type TChatPayload = Pick<Chats,
     permission: {
       isSender: boolean,
     },
-  }
+  };
+
+export type TSubscribedspacesSort = typeof SUBSCRIBEDSPACES_SORT[keyof typeof SUBSCRIBEDSPACES_SORT];
