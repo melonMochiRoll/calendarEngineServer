@@ -490,7 +490,7 @@ export class SharedspacesService {
     });
 
     return {
-      items: members,
+      members,
       hasMoreData,
     };
   }
