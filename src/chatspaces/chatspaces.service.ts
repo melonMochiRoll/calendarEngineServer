@@ -96,7 +96,7 @@ export class ChatspacesService {
     });
 
     return {
-      items: members,
+      members,
       memberCount: totalCount,
       hasMoreData: !Boolean(page * limit >= totalCount),
     };
