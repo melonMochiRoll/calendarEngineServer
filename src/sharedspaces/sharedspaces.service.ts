@@ -24,6 +24,7 @@ import { BatchScheduler } from "src/entities/BatchScheduler";
 import { uuidv7 } from "uuidv7";
 import { Spaces } from "src/entities/Spaces";
 import { SharedspaceFetcher } from "./sharedspaces.fetcher";
+import { stringToUUID } from "src/common/function/utilFunctions";
 
 @Injectable()
 export class SharedspacesService {
@@ -162,11 +163,22 @@ export class SharedspacesService {
       };
     });
 
-    const totalCount = await this.spaceMembersRepository.count({
+    const PAGE_GROUP_SPACES_CNT = limit * 10;
+
+    const currentPageGroupCount = await this.spaceMembersRepository.find({
+      select: { id: true },
       where: whereCondition,
+      skip: Math.floor((page-1) / 10) * PAGE_GROUP_SPACES_CNT,
+      take: PAGE_GROUP_SPACES_CNT + 1,
     });
 
-    return { spaces, totalCount };
+    const hasNextPageGroup = currentPageGroupCount.length > PAGE_GROUP_SPACES_CNT;
+
+    return {
+      spaces,
+      currentPageGroupCount: hasNextPageGroup ? PAGE_GROUP_SPACES_CNT : currentPageGroupCount.length,
+      hasNextPageGroup,
+    };
   }
 
   async createSharedspace(UserId: string) {
