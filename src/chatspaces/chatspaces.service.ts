@@ -7,7 +7,7 @@ import { ChatSpaces } from "src/entities/ChatSpaces";
 import { SpaceMembers } from "src/entities/SpaceMembers";
 import { Spaces } from "src/entities/Spaces";
 import { RolesService } from "src/roles/roles.service";
-import { DataSource, IsNull, Repository } from "typeorm";
+import { DataSource, IsNull, LessThan, Repository } from "typeorm";
 import { uuidv7 } from "uuidv7";
 import { CreatChatspaceDTO } from "./dto/create.chatspace.dto";
 import { SharedspaceFetcher } from "src/sharedspaces/sharedspaces.fetcher";
@@ -24,7 +24,7 @@ export class ChatspacesService {
 
   async getChatspaceMembers(
     url: string,
-    page = 1,
+    beforeUserId?: string,
     UserId?: string,
     limit = 10,
   ) {
@@ -54,7 +54,14 @@ export class ChatspacesService {
           name: true,
         },
       },
-      where: {
+      where: beforeUserId ? {
+        SpaceId: space.id,
+        id: LessThan(beforeUserId),
+        removedAt: IsNull(),
+        User: {
+          status: USER_STATUS.ACTIVE,
+        },
+      } : {
         SpaceId: space.id,
         removedAt: IsNull(),
         User: {
@@ -70,9 +77,14 @@ export class ChatspacesService {
       order: {
         createdAt: 'DESC',
       },
-      skip: (page - 1) * limit,
-      take: limit,
+      take: limit + 1,
     });
+
+    const hasMoreData = memberRecords.length > limit;
+
+    if (hasMoreData) {
+      memberRecords.pop();
+    }
 
     const members = memberRecords.map((member) => {
       const { User, Role, ...rest } = member;
@@ -85,7 +97,15 @@ export class ChatspacesService {
       };
     });
 
-    const totalCount = await this.spaceMembersRepository.count({
+    if (beforeUserId) {
+      return {
+        members,
+        memberCount: null,
+        hasMoreData,
+      };
+    }
+
+    const memberCount = await this.spaceMembersRepository.count({
       where: {
         SpaceId: space.id,
         removedAt: IsNull(),
@@ -97,8 +117,8 @@ export class ChatspacesService {
 
     return {
       members,
-      memberCount: totalCount,
-      hasMoreData: !Boolean(page * limit >= totalCount),
+      memberCount,
+      hasMoreData,
     };
   }
 
