@@ -25,6 +25,7 @@ import { uuidv7 } from "uuidv7";
 import { Spaces } from "src/entities/Spaces";
 import { SharedspaceFetcher } from "./sharedspaces.fetcher";
 import { stringToUUID } from "src/common/function/utilFunctions";
+import { TSubscribedspacesSort } from "src/typings/types";
 
 @Injectable()
 export class SharedspacesService {
@@ -78,11 +79,19 @@ export class SharedspacesService {
   }
 
   async getSubscribedspaces(
-    sort: string,
+    sort: TSubscribedspacesSort,
     UserId: string,
     page = 1,
     limit = 7,
   ) {
+    if (!sort || !Object.values(SUBSCRIBEDSPACES_SORT).includes(sort)) {
+      sort = SUBSCRIBEDSPACES_SORT.ALL;
+    }
+
+    if (typeof page !== 'number') {
+      page = 1;
+    }
+
     const whereCondition: FindOptionsWhere<SpaceMembers> = {
       UserId,
       Space: {

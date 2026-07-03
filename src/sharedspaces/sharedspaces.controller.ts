@@ -10,6 +10,7 @@ import { UpdateSharedspacePrivateDTO } from "./dto/update.sharedspace.private.dt
 import { JwtAuthGuard, PublicAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
 import { UUIDv7ValidationPipe } from "src/common/pipe/uuidv7.validation.pipe";
+import { TSubscribedspacesSort } from "src/typings/types";
 
 @Controller('api/sharedspaces')
 export class SharedspacesController {
@@ -29,7 +30,7 @@ export class SharedspacesController {
   @UseGuards(JwtAuthGuard)
   @Get('subscribed')
   getSubscribedspaces(
-    @Query('sort') sort: string,
+    @Query('sort') sort: TSubscribedspacesSort,
     @Query('page', ParseIntPipe) page: number,
     @User() user: Users,
   ) {
