@@ -1,6 +1,6 @@
 import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { DataSource, FindOptionsWhere, In, IsNull, Repository } from "typeorm";
+import { DataSource, FindOptionsWhere, In, IsNull, LessThan, Repository } from "typeorm";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import { nanoid } from "nanoid";
 import { UpdateSharedspaceNameDTO } from "./dto/update.sharedspace.name.dto";
@@ -410,7 +410,7 @@ export class SharedspacesService {
 
   async getSharedspaceMembers(
     url: string,
-    page = 1,
+    beforeUserId?: string,
     UserId?: string,
     limit = 10,
   ) {
@@ -431,7 +431,6 @@ export class SharedspacesService {
       select: {
         id: true,
         UserId: true,
-        SpaceId: true,
         createdAt: true,
         User: {
           email: true,
@@ -445,7 +444,14 @@ export class SharedspacesService {
           name: true,
         },
       },
-      where: {
+      where: beforeUserId ? {
+        SpaceId: space.id,
+        id: LessThan(beforeUserId),
+        removedAt: IsNull(),
+        User: {
+          status: USER_STATUS.ACTIVE,
+        },
+      } : {
         SpaceId: space.id,
         removedAt: IsNull(),
         User: {
@@ -461,11 +467,16 @@ export class SharedspacesService {
         Role: true,
       },
       order: {
-        createdAt: 'DESC',
+        id: 'DESC',
       },
-      skip: (page - 1) * limit,
-      take: limit,
+      take: limit + 1,
     });
+
+    const hasMoreData = memberRecords.length > limit;
+
+    if (hasMoreData) {
+      memberRecords.pop();
+    }   
 
     const members = memberRecords.map((member) => {
       const { User, Role, ...rest } = member;
@@ -478,19 +489,9 @@ export class SharedspacesService {
       };
     });
 
-    const totalCount = await this.spaceMembersRepository.count({
-      where: {
-        SpaceId: space.id,
-        removedAt: IsNull(),
-        User: {
-          status: USER_STATUS.ACTIVE,
-        },
-      },
-    });
-
     return {
       items: members,
-      hasMoreData: !Boolean(page * limit >= totalCount),
+      hasMoreData,
     };
   }
 

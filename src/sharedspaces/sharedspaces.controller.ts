@@ -11,6 +11,7 @@ import { JwtAuthGuard, PublicAuthGuard } from "src/auth/authGuard/jwt.auth.guard
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
 import { UUIDv7ValidationPipe } from "src/common/pipe/uuidv7.validation.pipe";
 import { TSubscribedspacesSort } from "src/typings/types";
+import { UUIDv7OrEmptyPipe } from "src/common/pipe/uuidv7OrEmpty.pipe";
 
 @Controller('api/sharedspaces')
 export class SharedspacesController {
@@ -86,10 +87,10 @@ export class SharedspacesController {
   @Get(':url/members')
   getSharedspaceMembers(
     @Param('url') url: string,
-    @Query('page', ParseIntPipe) page: number,
+    @Query('before', UUIDv7OrEmptyPipe) beforeUserId: string,
     @User() user: Users,
   ) {
-    return this.sharedspacesService.getSharedspaceMembers(url, page, user?.id)
+    return this.sharedspacesService.getSharedspaceMembers(url, beforeUserId, user?.id)
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
