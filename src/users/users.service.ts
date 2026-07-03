@@ -148,7 +148,7 @@ export class UsersService {
     });
 
     return {
-      items: users,
+      users,
       hasMoreData,
     };
   }
