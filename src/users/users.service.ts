@@ -254,7 +254,7 @@ export class UsersService {
       });
 
       if (mySpaces.length) {
-        const result = await qr.manager.query<{ UserId: Buffer, SpaceId: number, ROW_NUM: string}[]>(`
+        const result = await qr.manager.query<{ UserId: Buffer, SpaceId: Buffer, ROW_NUM: string}[]>(`
           SELECT *
           FROM (
             SELECT UserId, SpaceId, ROW_NUMBER() OVER(PARTITION BY SpaceId ORDER BY RoleId ASC, createdAt ASC) AS ROW_NUM
@@ -267,6 +267,7 @@ export class UsersService {
         const ownersToUpdateMembers = result.map(member => {
           return {
             ...member,
+            SpaceId: uuidToString(member.SpaceId),
             UserId: uuidToString(member.UserId),
           };
         });
