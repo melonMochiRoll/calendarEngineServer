@@ -251,8 +251,9 @@ export class TodosService {
   }
 
   async invalidateTodosCache(url: string, date: Date | string) {
-    const targetDate = dayjs(date);
-    const [ year, month ] = [ targetDate.year(), `${targetDate.month() + 1}`.padStart(2, '0') ];
+    if (!url || !date) return;
+    
+    const [ year, month ] = dayjs(date).format('YYYY-MM').split('-');
 
     await this.cacheManager.del(`todos:${url}:${year}-${month}`);
   }
