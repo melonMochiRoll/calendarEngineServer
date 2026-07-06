@@ -172,21 +172,14 @@ export class SharedspacesService {
       };
     });
 
-    const PAGE_GROUP_SPACES_CNT = limit * 10;
-
-    const currentPageGroupCount = await this.spaceMembersRepository.find({
+    const totalCount = await this.spaceMembersRepository.count({
       select: { id: true },
       where: whereCondition,
-      skip: Math.floor((page-1) / 10) * PAGE_GROUP_SPACES_CNT,
-      take: PAGE_GROUP_SPACES_CNT + 1,
     });
-
-    const hasNextPageGroup = currentPageGroupCount.length > PAGE_GROUP_SPACES_CNT;
 
     return {
       spaces,
-      currentPageGroupCount: hasNextPageGroup ? PAGE_GROUP_SPACES_CNT : currentPageGroupCount.length,
-      hasNextPageGroup,
+      totalCount,
     };
   }
 
