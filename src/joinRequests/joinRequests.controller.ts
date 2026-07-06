@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
 import { JoinRequestsService } from "./joinRequests.service";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
@@ -7,6 +7,7 @@ import { ResolveJoinRequestDTO } from "./dto/resolve.joinRequest.dto";
 import { JwtAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
 import { UUIDv7ValidationPipe } from "src/common/pipe/uuidv7.validation.pipe";
+import { UUIDv7OrEmptyPipe } from "src/common/pipe/uuidv7OrEmpty.pipe";
 
 @Controller('api/sharedspaces')
 export class JoinRequestsController {
@@ -18,9 +19,10 @@ export class JoinRequestsController {
   @Get(':url/joinrequest')
   getJoinRequests(
     @Param('url') url: string,
+    @Query('before', UUIDv7OrEmptyPipe) beforeJoinRequestId: string,
     @User() user: Users,
   ) {
-    return this.joinRequestsService.getJoinRequests(url, user.id);
+    return this.joinRequestsService.getJoinRequests(url, beforeJoinRequestId, user.id);
   }
   
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)

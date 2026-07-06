@@ -1,6 +1,6 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable } from "@nestjs/common";
 import { CreateJoinRequestDTO } from "./dto/create.joinRequest.dto";
-import { DataSource, Repository } from "typeorm";
+import { DataSource, IsNull, LessThan, Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 import { JoinRequests } from "src/entities/JoinRequests";
 import { SpaceMembers } from "src/entities/SpaceMembers";
@@ -23,7 +23,9 @@ export class JoinRequestsService {
 
   async getJoinRequests(
     url: string,
+    beforeJoinRequestId: string,
     UserId: string,
+    limit = 10,
   ) {
     const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
 
@@ -33,7 +35,7 @@ export class JoinRequestsService {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
-    const result = await this.joinRequestsRepository.find({
+    const joinRequestRecords = await this.joinRequestsRepository.find({
       select: {
         id: true,
         RequestorId: true,
@@ -52,15 +54,27 @@ export class JoinRequestsService {
           ProfileImage: true,
         },
       },
-      where: {
+      where: beforeJoinRequestId ? {
         SpaceId: space.id,
+        id: LessThan(beforeJoinRequestId),
+        removedAt: IsNull(),
+      } : {
+        SpaceId: space.id,
+        removedAt: IsNull(),
       },
       order: {
-        createdAt: 'DESC',
+        id: 'DESC',
       },
+      take: limit + 1,
     });
 
-    const requests = result.map(request => {
+    const hasMoreData = joinRequestRecords.length > limit;
+
+    if (hasMoreData) {
+      joinRequestRecords.pop();
+    }   
+
+    const joinRequests = joinRequestRecords.map(request => {
       return {
         ...request,
         Requestor: {
@@ -70,7 +84,10 @@ export class JoinRequestsService {
       };
     });
 
-    return requests;
+    return {
+      joinRequests,
+      hasMoreData,
+    };
   }
 
   async resolveJoinRequest(
