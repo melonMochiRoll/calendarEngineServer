@@ -1,7 +1,7 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Invites } from "src/entities/Invites";
-import { DataSource, MoreThan, Repository } from "typeorm";
+import { DataSource, LessThan, MoreThan, Repository } from "typeorm";
 import dayjs from "dayjs";
 import { INVITE_STATUS, SHAREDSPACE_ROLE } from "src/common/constant/constants";
 import { SendInviteDTO } from "./dto/send.invite.dto";
@@ -26,8 +26,8 @@ export class InvitesService {
   ) {}
 
   async getInvites(
+    beforeInviteId: string,
     UserId: string,
-    page = 1,
     limit = 7,
   ) {
     const inviteRecords = await this.invitesRepository.find({
@@ -57,25 +57,27 @@ export class InvitesService {
           },
         },
       },
-      where: {
+      where: beforeInviteId ? {
+        InviteeId: UserId,
+        id: LessThan(beforeInviteId),
+        status: INVITE_STATUS.PENDING,
+        expiredAt: MoreThan(dayjs().toDate()),
+      } : {
         InviteeId: UserId,
         status: INVITE_STATUS.PENDING,
         expiredAt: MoreThan(dayjs().toDate()),
       },
       order: {
-        createdAt: 'DESC',
+        id: 'DESC',
       },
-      skip: (page - 1) * limit,
-      take: limit,
+      take: limit + 1,
     });
 
-    const totalCount = await this.invitesRepository.count({
-      where: {
-        InviteeId: UserId,
-        status: INVITE_STATUS.PENDING,
-        expiredAt: MoreThan(dayjs().toDate()),
-      },
-    });
+    const hasMoreData = inviteRecords.length > limit;
+
+    if (hasMoreData) {
+      inviteRecords.pop();
+    }   
 
     const invites = inviteRecords.map((invite) => {
       const { Sharedspace, ...rest } = invite;
@@ -90,9 +92,26 @@ export class InvitesService {
       };
     });
 
+    if (beforeInviteId) {
+      return {
+        invites,
+        hasMoreData,
+        totalCount: null,
+      };
+    }
+
+    const totalCount = await this.invitesRepository.count({
+      where: {
+        InviteeId: UserId,
+        status: INVITE_STATUS.PENDING,
+        expiredAt: MoreThan(dayjs().toDate()),
+      },
+    });
+
     return {
       invites,
-      hasMoredata: !Boolean(page * limit >= totalCount),
+      hasMoreData,
+      totalCount,
     };
   }
 

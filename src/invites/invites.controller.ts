@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
 import { InvitesService } from "./invites.service";
 import { JwtAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { Users } from "src/entities/Users";
@@ -7,6 +7,7 @@ import { SendInviteDTO } from "./dto/send.invite.dto";
 import { AcceptInviteDTO } from "./dto/accept.invite.dto";
 import { DeclineInviteDTO } from "./dto/decline.invite.dto";
 import { UUIDv7ValidationPipe } from "src/common/pipe/uuidv7.validation.pipe";
+import { UUIDv7OrEmptyPipe } from "src/common/pipe/uuidv7OrEmpty.pipe";
 
 @Controller('api/invites')
 export class InvitesController {
@@ -17,10 +18,10 @@ export class InvitesController {
   @UseGuards(JwtAuthGuard)
   @Get()
   getInvites(
-    @Query('page', ParseIntPipe) page: number,
+    @Query('before', UUIDv7OrEmptyPipe) beforeInviteId: string,
     @User() user: Users,
   ) {
-    return this.invitesService.getInvites(user.id, page);
+    return this.invitesService.getInvites(beforeInviteId, user.id);
   }
 
   @UseGuards(JwtAuthGuard)
