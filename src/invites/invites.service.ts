@@ -92,26 +92,9 @@ export class InvitesService {
       };
     });
 
-    if (beforeInviteId) {
-      return {
-        invites,
-        hasMoreData,
-        totalCount: null,
-      };
-    }
-
-    const totalCount = await this.invitesRepository.count({
-      where: {
-        InviteeId: UserId,
-        status: INVITE_STATUS.PENDING,
-        expiredAt: MoreThan(dayjs().toDate()),
-      },
-    });
-
     return {
       invites,
       hasMoreData,
-      totalCount,
     };
   }
 
