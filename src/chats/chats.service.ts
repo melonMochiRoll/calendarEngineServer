@@ -88,9 +88,9 @@ export class ChatsService {
         removedAt: IsNull(),
       },
       order: {
-        createdAt: 'DESC',
+        id: 'DESC',
       },
-      take: limit,
+      take: limit + 1,
     });
 
     if (!chatRecords.length) {
@@ -98,6 +98,12 @@ export class ChatsService {
         chats: [],
         hasMoreData: false,
       };
+    }
+
+    const hasMoreData = chatRecords.length > limit;
+
+    if (hasMoreData) {
+      chatRecords.pop();
     }
 
     const images = await this.chatImagesRepository.find({
@@ -139,17 +145,9 @@ export class ChatsService {
       };
     });
 
-    const totalCount = await this.chatsRepository.count({
-      where: {
-        SpaceId: space.id,
-        id: LessThan(chats[chats.length-1].id),
-        removedAt: IsNull(),
-      },
-    });
-
     return {
       chats,
-      hasMoreData: Boolean(totalCount),
+      hasMoreData,
     };
   }
 
