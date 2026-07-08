@@ -416,28 +416,28 @@ export class UsersService {
     dto: AcceptFriendshipDTO,
     UserId: string,
   ) {
-    const { id, RequesterId } = dto;
+    const { RequesterId } = dto;
 
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
 
     try {
-      await qr.manager.update(Friendships,
+      const [ id1, id2 ] = [UserId, RequesterId].sort((a, b) => a.localeCompare(b));
+
+      await qr.manager.upsert(Friendships,
         {
-          id,
-          RequesterId,
-          RequesteeId: UserId,
-        },
-        {
+          RequesterId: id1,
+          RequesteeId: id2,
           status: FRIENDSHIPS_STATUS.ACCEPTED,
-        }
+        },
+        ['RequesterId', 'RequesteeId'],
       );
 
       await qr.manager.upsert(Friendships,
         {
-          RequesterId: UserId,
-          RequesteeId: RequesterId,
+          RequesterId: id2,
+          RequesteeId: id1,
           status: FRIENDSHIPS_STATUS.ACCEPTED,
         },
         ['RequesterId', 'RequesteeId'],
