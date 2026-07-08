@@ -6,10 +6,10 @@ import bcrypt from 'bcrypt';
 import { CreateUserDTO } from "./dto/create.user.dto";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
-import { CONFLICT_ACCOUNT_MESSAGE, CONFLICT_FRIENDSHIP_MESSAGE, CONFLICT_MESSAGE, NOT_FOUND_USER, PROFILE_IMAGE_TOO_LARGE_MESSAGE } from "src/common/constant/error.message";
+import { CONFLICT_ACCOUNT_MESSAGE, CONFLICT_MESSAGE, PROFILE_IMAGE_TOO_LARGE_MESSAGE } from "src/common/constant/error.message";
 import { SpaceMembers } from "src/entities/SpaceMembers";
 import { RolesService } from "src/roles/roles.service";
-import { FRIENDSHIPS_STATUS, IMAGE_STATUS, IMAGE_TYPE, JOB_NAMES, JOB_STATUS, SHAREDSPACE_ROLE, USER_PROVIDER, USER_STATUS } from "src/common/constant/constants";
+import { IMAGE_STATUS, IMAGE_TYPE, JOB_NAMES, JOB_STATUS, SHAREDSPACE_ROLE, USER_PROVIDER, USER_STATUS } from "src/common/constant/constants";
 import { RefreshTokens } from "src/entities/RefreshTokens";
 import { JoinRequests } from "src/entities/JoinRequests";
 import { Invites } from "src/entities/Invites";
@@ -23,10 +23,6 @@ import { Images } from "src/entities/Images";
 import { GenerateProfileImagePresignedPutUrlDTO } from "./dto/generate.profileImage.presigned.put.url.dto";
 import { StorageR2Service } from "src/storage/storage.r2.service";
 import { UpdateProfileImageDTO } from "./dto/update.profile.image.dto";
-import { SendFriendshipDTO } from "./dto/send.friendship.dto";
-import { Friendships } from "src/entities/Friendships";
-import { AcceptFriendshipDTO } from "./dto/accept.friendship.dto";
-import { RejectFriendshipDTO } from "./dto/reject.friendship.dto";
 import { UsersFetcher } from "./users.fetcher";
 import { SharedspaceFetcher } from "src/sharedspaces/sharedspaces.fetcher";
 import { getFullImageUrl } from "src/common/function/utilFunctions";
@@ -44,8 +40,6 @@ export class UsersService {
     private spaceMembersRepository: Repository<SpaceMembers>,
     @InjectRepository(Images)
     private imagesRepository: Repository<Images>,
-    @InjectRepository(Friendships)
-    private friendshipsRepository: Repository<Friendships>,
     private rolesService: RolesService,
     private storageR2Service: StorageR2Service,
     private sharedspaceFetcher: SharedspaceFetcher,
@@ -370,119 +364,6 @@ export class UsersService {
       await qr.commitTransaction();
 
       await this.cacheManager.del(`user:${UserId}`);
-    } catch (err) {
-      await qr.rollbackTransaction();
-
-      throw err;
-    } finally {
-      await qr.release();
-    }
-  }
-
-  async sendFriendship(
-    dto: SendFriendshipDTO,
-    UserId: string,
-  ) {
-    const { RequesteeId } = dto;
-
-    const Requestee = await this.usersFetcher.getUserById(RequesteeId);
-
-    if (!Requestee) {
-      throw new BadRequestException(NOT_FOUND_USER);
-    }
-
-    const isRequestOrFriendship = await this.friendshipsRepository.findOne({
-      select: {
-        id: true,
-      },
-      where: {
-        RequesterId: UserId,
-        RequesteeId: Requestee.id,
-      },
-    });
-
-    if (isRequestOrFriendship) {
-      throw new ConflictException(CONFLICT_FRIENDSHIP_MESSAGE);
-    }
-
-    await this.friendshipsRepository.insert({
-      RequesterId: UserId,
-      RequesteeId,
-      status: FRIENDSHIPS_STATUS.PENDING,
-    });
-  }
-
-  async acceptFriendship(
-    dto: AcceptFriendshipDTO,
-    UserId: string,
-  ) {
-    const { RequesterId } = dto;
-
-    const qr = this.dataSource.createQueryRunner();
-    await qr.connect();
-    await qr.startTransaction();
-
-    try {
-      const [ id1, id2 ] = [UserId, RequesterId].sort((a, b) => a.localeCompare(b));
-
-      await qr.manager.upsert(Friendships,
-        {
-          RequesterId: id1,
-          RequesteeId: id2,
-          status: FRIENDSHIPS_STATUS.ACCEPTED,
-        },
-        ['RequesterId', 'RequesteeId'],
-      );
-
-      await qr.manager.upsert(Friendships,
-        {
-          RequesterId: id2,
-          RequesteeId: id1,
-          status: FRIENDSHIPS_STATUS.ACCEPTED,
-        },
-        ['RequesterId', 'RequesteeId'],
-      );
-
-      await qr.commitTransaction();
-    } catch (err) {
-      await qr.rollbackTransaction();
-
-      throw err;
-    } finally {
-      await qr.release();
-    }
-  }
-
-  async rejectFriendship(
-    dto: RejectFriendshipDTO,
-    UserId: string,
-  ) {
-    const { RequesterId } = dto;
-
-    const qr = this.dataSource.createQueryRunner();
-    await qr.connect();
-    await qr.startTransaction();
-
-    try {
-      const [ id1, id2 ] = [UserId, RequesterId].sort((a, b) => a.localeCompare(b));
-
-      await qr.manager.delete(Friendships,
-        {
-          RequesterId: id1,
-          RequesteeId: id2,
-          status: FRIENDSHIPS_STATUS.PENDING,
-        },
-      );
-
-      await qr.manager.delete(Friendships,
-        {
-          RequesterId: id2,
-          RequesteeId: id1,
-          status: FRIENDSHIPS_STATUS.PENDING,
-        },
-      );
-
-      await qr.commitTransaction();
     } catch (err) {
       await qr.rollbackTransaction();
 

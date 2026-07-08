@@ -7,9 +7,6 @@ import { IsNotJwtAuthenicatedGuard, JwtAuthGuard, PublicAuthGuard } from "src/au
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
 import { GenerateProfileImagePresignedPutUrlDTO } from "./dto/generate.profileImage.presigned.put.url.dto";
 import { UpdateProfileImageDTO } from "./dto/update.profile.image.dto";
-import { SendFriendshipDTO } from "./dto/send.friendship.dto";
-import { AcceptFriendshipDTO } from "./dto/accept.friendship.dto";
-import { RejectFriendshipDTO } from "./dto/reject.friendship.dto";
 
 @Controller('api/users')
 export class UsersController {
@@ -61,32 +58,5 @@ export class UsersController {
     @User() user: Users,
   ) {
     return this.usersService.updateProfileImage(dto, user.id);
-  }
-
-  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Post('friendships')
-  sendFriendship(
-    @Body() dto: SendFriendshipDTO,
-    @User() user: Users,
-  ) {
-    return this.usersService.sendFriendship(dto, user.id);
-  }
-
-  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Post('friendships/accept')
-  acceptFriendship(
-    @Body() dto: AcceptFriendshipDTO,
-    @User() user: Users,
-  ) {
-    return this.usersService.acceptFriendship(dto, user.id);
-  }
-
-  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Post('friendships/reject')
-  rejectFriendship(
-    @Body() dto: RejectFriendshipDTO,
-    @User() user: Users,
-  ) {
-    return this.usersService.rejectFriendship(dto, user.id);
   }
 }

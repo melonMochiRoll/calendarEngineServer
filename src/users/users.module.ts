@@ -9,7 +9,6 @@ import { SharedspacesUsersContoller } from './sharedspaces.users.controller';
 import { RolesModule } from 'src/roles/roles.module';
 import { Images } from 'src/entities/Images';
 import { StorageModule } from 'src/storage/storage.module';
-import { Friendships } from 'src/entities/Friendships';
 import { UsersFetcher } from './users.fetcher';
 
 @Module({
@@ -18,7 +17,6 @@ import { UsersFetcher } from './users.fetcher';
       Users,
       SpaceMembers,
       Images,
-      Friendships,
     ]),
     SharedspacesModule,
     RolesModule,
