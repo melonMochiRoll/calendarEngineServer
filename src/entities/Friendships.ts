@@ -3,6 +3,7 @@ import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
 import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { Users } from "./Users";
 
+@Index('friendships_RequesterId_RequesteeId_uq_idx', ['RequesterId', 'RequesteeId'], { unique: true })
 @Entity({ name: 'friendships' })
 export class Friendships {
   @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
