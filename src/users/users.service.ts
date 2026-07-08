@@ -457,27 +457,27 @@ export class UsersService {
     dto: RejectFriendshipDTO,
     UserId: string,
   ) {
-    const { id, RequesterId } = dto;
+    const { RequesterId } = dto;
 
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
 
     try {
+      const [ id1, id2 ] = [UserId, RequesterId].sort((a, b) => a.localeCompare(b));
+
       await qr.manager.delete(Friendships,
         {
-          id,
-          RequesterId,
-          RequesteeId: UserId,
+          RequesterId: id1,
+          RequesteeId: id2,
           status: FRIENDSHIPS_STATUS.PENDING,
         },
       );
 
       await qr.manager.delete(Friendships,
         {
-          id,
-          RequesterId: UserId,
-          RequesteeId: RequesterId,
+          RequesterId: id2,
+          RequesteeId: id1,
           status: FRIENDSHIPS_STATUS.PENDING,
         },
       );
