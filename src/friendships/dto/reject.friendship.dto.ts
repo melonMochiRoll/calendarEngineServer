@@ -4,9 +4,5 @@ export class RejectFriendshipDTO {
 
   @IsNotEmpty()
   @IsUUID(7)
-  id: string;
-
-  @IsNotEmpty()
-  @IsUUID(7)
   RequesterId: string;
 }
