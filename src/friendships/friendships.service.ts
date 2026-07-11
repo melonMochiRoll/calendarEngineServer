@@ -1,11 +1,11 @@
 import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
 import { Friendships } from "src/entities/Friendships";
-import { DataSource, Repository } from "typeorm";
+import { DataSource, LessThan, Repository } from "typeorm";
 import { SendFriendshipDTO } from "./dto/send.friendship.dto";
 import { CONFLICT_FRIENDSHIP_MESSAGE, NOT_FOUND_USER } from "src/common/constant/error.message";
 import { UsersFetcher } from "src/users/users.fetcher";
 import { InjectRepository } from "@nestjs/typeorm";
-import { FRIENDSHIPS_STATUS } from "src/common/constant/constants";
+import { FRIENDSHIPS_STATUS, USER_STATUS } from "src/common/constant/constants";
 import { AcceptFriendshipDTO } from "./dto/accept.friendship.dto";
 import { RejectFriendshipDTO } from "./dto/reject.friendship.dto";
 
@@ -17,6 +17,72 @@ export class FriendshipsService {
     @InjectRepository(Friendships)
     private friendshipsRepository: Repository<Friendships>,
   ) {}
+
+  async getFriendships(
+    beforeFriendshipId: string,
+    UserId: string,
+    limit = 10,
+  ) {
+    const friendshipRecords = await this.friendshipsRepository.find({
+      select: {
+        id: true,
+        status: true,
+        RequesterId: true,
+        Requester: {
+          email: true,
+          nickname: true,
+          ProfileImage: {
+            path: true,
+          },
+        },
+      },
+      where: beforeFriendshipId ? {
+        id: LessThan(beforeFriendshipId),
+        RequesteeId: UserId,
+        status: FRIENDSHIPS_STATUS.ACCEPTED,
+        Requester: {
+          status: USER_STATUS.ACTIVE,
+        },
+      } : {
+        RequesteeId: UserId,
+        status: FRIENDSHIPS_STATUS.ACCEPTED,
+        Requester: {
+          status: USER_STATUS.ACTIVE,
+        },
+      },
+      relations: {
+        Requester: {
+          ProfileImage: true,
+        },
+      },
+      order: {
+        id: 'DESC',
+      },
+      take: limit + 1,
+    });
+
+    const hasMoreData = friendshipRecords.length > limit;
+
+    if (hasMoreData) {
+      friendshipRecords.pop();
+    }
+
+    const friendships = friendshipRecords.map(friendship => {
+      const { Requester, ...rest } = friendship;
+      const { ProfileImage, ...requesterRest } = Requester;
+
+      return {
+        ...rest,
+        ...requesterRest,
+        ProfileImage: ProfileImage?.path,
+      };
+    });
+
+    return {
+      friendships,
+      hasMoreData,
+    };
+  }
 
   async sendFriendship(
     dto: SendFriendshipDTO,

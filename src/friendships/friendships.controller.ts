@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Post, Query, UseGuards } from "@nestjs/common";
 import { FriendshipsService } from "./friendships.service";
 import { JwtAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
@@ -7,12 +7,22 @@ import { SendFriendshipDTO } from "./dto/send.friendship.dto";
 import { Users } from "src/entities/Users";
 import { RejectFriendshipDTO } from "./dto/reject.friendship.dto";
 import { AcceptFriendshipDTO } from "./dto/accept.friendship.dto";
+import { UUIDv7OrEmptyPipe } from "src/common/pipe/uuidv7OrEmpty.pipe";
 
 @Controller('api/friendships')
 export class FriendshipsController {
   constructor(
     private friendshipsService: FriendshipsService,
   ) {}
+
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
+  @Get()
+  getFriendships(
+    @Query('before', UUIDv7OrEmptyPipe) beforeFriendshipId: string,
+    @User() user: Users,
+  ) {
+    return this.friendshipsService.getFriendships(beforeFriendshipId, user.id);
+  }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post()
