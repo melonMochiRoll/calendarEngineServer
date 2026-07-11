@@ -25,6 +25,15 @@ export class FriendshipsController {
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
+  @Get('requests')
+  getFriendshipRequests(
+    @Query('before', UUIDv7OrEmptyPipe) beforeFriendshipRequestId: string,
+    @User() user: Users,
+  ) {
+    return this.friendshipsService.getFriendshipRequests(beforeFriendshipRequestId, user.id);
+  }
+
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post()
   sendFriendship(
     @Body() dto: SendFriendshipDTO,

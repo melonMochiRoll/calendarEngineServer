@@ -84,6 +84,72 @@ export class FriendshipsService {
     };
   }
 
+  async getFriendshipRequests(
+    beforeFriendshipRequestId: string,
+    UserId: string,
+    limit = 10,
+  ) {
+    const friendshipRequestRecords = await this.friendshipsRepository.find({
+      select: {
+        id: true,
+        status: true,
+        RequesterId: true,
+        Requester: {
+          email: true,
+          nickname: true,
+          ProfileImage: {
+            path: true,
+          },
+        },
+      },
+      where: beforeFriendshipRequestId ? {
+        id: LessThan(beforeFriendshipRequestId),
+        RequesteeId: UserId,
+        status: FRIENDSHIPS_STATUS.PENDING,
+        Requester: {
+          status: USER_STATUS.ACTIVE,
+        },
+      } : {
+        RequesteeId: UserId,
+        status: FRIENDSHIPS_STATUS.PENDING,
+        Requester: {
+          status: USER_STATUS.ACTIVE,
+        },
+      },
+      relations: {
+        Requester: {
+          ProfileImage: true,
+        },
+      },
+      order: {
+        id: 'DESC',
+      },
+      take: limit + 1,
+    });
+
+    const hasMoreData = friendshipRequestRecords.length > limit;
+
+    if (hasMoreData) {
+      friendshipRequestRecords.pop();
+    }
+
+    const friendshipRequests = friendshipRequestRecords.map(friendship => {
+      const { Requester, ...rest } = friendship;
+      const { ProfileImage, ...requesterRest } = Requester;
+
+      return {
+        ...rest,
+        ...requesterRest,
+        ProfileImage: ProfileImage?.path,
+      };
+    });
+
+    return {
+      friendshipRequests,
+      hasMoreData,
+    };
+  }
+
   async sendFriendship(
     dto: SendFriendshipDTO,
     UserId: string,
