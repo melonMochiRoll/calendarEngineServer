@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Post, Query, UseGuards } from "@nestjs/common";
 import { FriendshipsService } from "./friendships.service";
 import { JwtAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
@@ -58,5 +58,14 @@ export class FriendshipsController {
     @User() user: Users,
   ) {
     return this.friendshipsService.rejectFriendship(dto, user.id);
+  }
+
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
+  @Delete()
+  deleteFriendship(
+    @Query('target', UUIDv7OrEmptyPipe) RequesterId: string,
+    @User() user: Users,
+  ) {
+    return this.friendshipsService.deleteFriendship(RequesterId, user.id);
   }
 }

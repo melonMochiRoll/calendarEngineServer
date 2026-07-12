@@ -243,4 +243,22 @@ export class FriendshipsService {
       }
     ]);
   }
+
+  async deleteFriendship(
+    RequesterId: string,
+    UserId: string,
+  ) {
+    await this.friendshipsRepository.delete([
+      {
+        RequesterId: UserId,
+        RequesteeId: RequesterId,
+        status: FRIENDSHIPS_STATUS.ACCEPTED,
+      },
+      {
+        RequesterId: RequesterId,
+        RequesteeId: UserId,
+        status: FRIENDSHIPS_STATUS.ACCEPTED,
+      }
+    ]);
+  }
 }
