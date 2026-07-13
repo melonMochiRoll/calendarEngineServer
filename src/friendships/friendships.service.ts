@@ -182,6 +182,7 @@ export class FriendshipsService {
     }
 
     await this.friendshipsRepository.insert({
+      id: uuidv7(),
       RequesterId: UserId,
       RequesteeId,
       status: FRIENDSHIPS_STATUS.PENDING,
