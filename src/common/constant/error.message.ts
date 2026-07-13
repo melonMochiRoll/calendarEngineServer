@@ -31,7 +31,7 @@ export const CONFLICT_REQUEST_MESSAGE = '이미 요청을 보냈습니다.';
 
 export const CONFLICT_OWNER_MESSAGE = '동일한 유저로 바꿀수 없습니다.';
 
-export const CONFLICT_FRIENDSHIP_MESSAGE = '이미 친구상태입니다.';
+export const CONFLICT_FRIENDSHIP_MESSAGE = '요청을 보넀거나 이미 친구상태입니다.';
 
 export const INTERNAL_SERVER_MESSAGE = '서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
 
