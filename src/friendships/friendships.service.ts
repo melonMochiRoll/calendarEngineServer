@@ -8,12 +8,17 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { FRIENDSHIPS_STATUS, USER_STATUS } from "src/common/constant/constants";
 import { AcceptFriendshipDTO } from "./dto/accept.friendship.dto";
 import { RejectFriendshipDTO } from "./dto/reject.friendship.dto";
+import { Users } from "src/entities/Users";
+import { getFullImageUrl, uuidToString } from "src/common/function/utilFunctions";
+import { uuidv7 } from "uuidv7";
 
 @Injectable()
 export class FriendshipsService {
   constructor(
     private dataSource: DataSource,
     private usersFetcher: UsersFetcher,
+    @InjectRepository(Users)
+    private usersRepository: Repository<Users>,
     @InjectRepository(Friendships)
     private friendshipsRepository: Repository<Friendships>,
   ) {}
@@ -260,5 +265,92 @@ export class FriendshipsService {
         status: FRIENDSHIPS_STATUS.ACCEPTED,
       }
     ]);
+  }
+
+  async searchUser(
+    query: string,
+    beforeUserId: string,
+    UserId: string,
+    limit = 10,
+  ) {
+    const qb1 = this.usersRepository
+      .createQueryBuilder('users')
+      .select([
+        'users.id AS id',
+        'users.email AS email',
+        'users.nickname AS nickname',
+      ])
+      .leftJoin('users.ProfileImage', 'ProfileImage')
+      .addSelect(['ProfileImage.path AS ProfileImage'])
+      .leftJoin('users.SentFriendships', 'Friendship', 'Friendship.RequesteeId = :RequesteeId', { RequesteeId: UserId })
+      .addSelect([
+        'Friendship.RequesteeId AS RequesteeId',
+        'Friendship.status AS Friendship_status',
+      ])
+      .where('users.email LIKE :email', { email: `${query}%` })
+      .andWhere('users.status = :status1', { status1: USER_STATUS.ACTIVE });
+
+    const qb2 = this.usersRepository
+      .createQueryBuilder('users')
+      .select([
+        'users.id AS id',
+        'users.email AS email',
+        'users.nickname AS nickname',
+      ])
+      .leftJoin('users.ProfileImage', 'ProfileImage')
+      .addSelect(['ProfileImage.path AS ProfileImage'])
+      .leftJoin('users.SentFriendships', 'Friendship', 'Friendship.RequesteeId = :RequesteeId', { RequesteeId: UserId })
+      .addSelect([
+        'Friendship.RequesteeId AS RequesteeId',
+        'Friendship.status AS Friendship_status',
+      ])
+      .where('users.nickname LIKE :nickname', { nickname: `${query}%` })
+      .andWhere('users.status = :status2', { status2: USER_STATUS.ACTIVE });
+
+    if (beforeUserId) {
+      qb1.andWhere('users.id < :beforeUserId', { beforeUserId });
+      qb2.andWhere('users.id < :beforeUserId', { beforeUserId });
+    }
+
+    const userRecords = await this.dataSource
+      .createQueryBuilder()
+      .select([
+        'combined.id AS id',
+        'combined.email AS email',
+        'combined.nickname AS nickname',
+        'combined.ProfileImage AS ProfileImage',
+        'combined.Friendship_status AS Friendship_status',
+      ])
+      .from(`( (${qb1.getQuery()}) UNION (${qb2.getQuery()}) )`, 'combined')
+      .setParameters({ ...qb1.getParameters(), ...qb2.getParameters() })
+      .orderBy('combined.id', 'DESC')
+      .limit(limit + 1)
+      .getRawMany();
+
+    const hasMoreData = userRecords.length > limit;
+
+    if (hasMoreData) {
+      userRecords.pop();
+    }
+
+    const users = userRecords.map((user) => {
+      const { id, ProfileImage, Friendship_status, ...rest } = user;
+      const transformedId = uuidToString(id);
+      const url = getFullImageUrl(ProfileImage);
+
+      return {
+        ...rest,
+        id: transformedId,
+        ProfileImage: url,
+        permission: {
+          isFriendship: Friendship_status === FRIENDSHIPS_STATUS.ACCEPTED || transformedId === UserId,
+        },
+      };
+    });
+
+    return {
+      users,
+      hasMoreData,
+    };
   }
 }

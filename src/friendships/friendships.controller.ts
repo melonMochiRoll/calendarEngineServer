@@ -68,4 +68,14 @@ export class FriendshipsController {
   ) {
     return this.friendshipsService.deleteFriendship(RequesterId, user.id);
   }
+
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
+  @Get('search')
+  searchUser(
+    @Query('query') query: string,
+    @Query('before', UUIDv7OrEmptyPipe) beforeUserId: string,
+    @User() user: Users,
+  ) {
+    return this.friendshipsService.searchUser(query, beforeUserId, user.id);
+  }
 }
