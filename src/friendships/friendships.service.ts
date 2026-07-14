@@ -9,7 +9,7 @@ import { FRIENDSHIPS_STATUS, USER_STATUS } from "src/common/constant/constants";
 import { AcceptFriendshipDTO } from "./dto/accept.friendship.dto";
 import { RejectFriendshipDTO } from "./dto/reject.friendship.dto";
 import { Users } from "src/entities/Users";
-import { getFullImageUrl, uuidToString } from "src/common/function/utilFunctions";
+import { getFullImageUrl, stringToUUID, uuidToString } from "src/common/function/utilFunctions";
 import { uuidv7 } from "uuidv7";
 
 @Injectable()
@@ -285,7 +285,7 @@ export class FriendshipsService {
       ])
       .leftJoin('users.ProfileImage', 'ProfileImage')
       .addSelect(['ProfileImage.path AS ProfileImage'])
-      .leftJoin('users.SentFriendships', 'Friendship', 'Friendship.RequesteeId = :RequesteeId', { RequesteeId: UserId })
+      .leftJoin('users.SentFriendships', 'Friendship', 'Friendship.RequesteeId = :RequesteeId', { RequesteeId: stringToUUID(UserId) })
       .addSelect([
         'Friendship.RequesteeId AS RequesteeId',
         'Friendship.status AS Friendship_status',
@@ -302,7 +302,7 @@ export class FriendshipsService {
       ])
       .leftJoin('users.ProfileImage', 'ProfileImage')
       .addSelect(['ProfileImage.path AS ProfileImage'])
-      .leftJoin('users.SentFriendships', 'Friendship', 'Friendship.RequesteeId = :RequesteeId', { RequesteeId: UserId })
+      .leftJoin('users.SentFriendships', 'Friendship', 'Friendship.RequesteeId = :RequesteeId', { RequesteeId: stringToUUID(UserId) })
       .addSelect([
         'Friendship.RequesteeId AS RequesteeId',
         'Friendship.status AS Friendship_status',
