@@ -204,6 +204,7 @@ export class FriendshipsService {
 
       await qr.manager.upsert(Friendships,
         {
+          id: uuidv7(),
           RequesterId: id1,
           RequesteeId: id2,
           status: FRIENDSHIPS_STATUS.ACCEPTED,
@@ -213,6 +214,7 @@ export class FriendshipsService {
 
       await qr.manager.upsert(Friendships,
         {
+          id: uuidv7(),
           RequesterId: id2,
           RequesteeId: id1,
           status: FRIENDSHIPS_STATUS.ACCEPTED,
