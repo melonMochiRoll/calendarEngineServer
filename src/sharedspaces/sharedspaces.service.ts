@@ -561,6 +561,7 @@ export class SharedspacesService {
       SpaceId: space.id,
       RoleId: roleInfo.id,
     });
+    await this.invalidateSharedspaceMembersCache(url);
   }
 
   async updateSharedspaceMembers(
@@ -606,6 +607,7 @@ export class SharedspacesService {
     });
 
     await this.rolesService.invalidateUserRoleCache(targetUserId, space.id);
+    await this.invalidateSharedspaceMembersCache(url);
   }
 
   async deleteSharedspaceMembers(
@@ -645,5 +647,6 @@ export class SharedspacesService {
     );
 
     await this.rolesService.invalidateUserRoleCache(targetUserId, space.id);
+    await this.invalidateSharedspaceMembersCache(url);
   }
 }
