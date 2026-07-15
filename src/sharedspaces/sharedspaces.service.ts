@@ -503,6 +503,10 @@ export class SharedspacesService {
     };
   }
 
+  async invalidateSharedspaceMembersCache(url: string) {
+    await this.cacheManager.del(`sharedspaceMembers:${url}`);
+  }
+
   async createSharedspaceMembers(
     url: string,
     dto: CreateSharedspaceMembersDTO,
