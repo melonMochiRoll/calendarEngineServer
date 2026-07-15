@@ -248,15 +248,27 @@ export class UsersService {
       });
 
       if (mySpaces.length) {
-        const result = await qr.manager.query<{ UserId: Buffer, SpaceId: Buffer, ROW_NUM: string}[]>(`
-          SELECT *
-          FROM (
-            SELECT UserId, SpaceId, ROW_NUMBER() OVER(PARTITION BY SpaceId ORDER BY RoleId ASC, createdAt ASC) AS ROW_NUM
-            FROM spacemembers
-            WHERE removedAt IS NULL AND SpaceId IN (${mySpaces.map((space) => space.id).join(',')})
-          ) AS oldest_members
-          WHERE ROW_NUM = '1'
-        `);
+        const subquery = this.spaceMembersRepository
+          .createQueryBuilder('spaceMembers')
+          .select([
+            'spaceMembers.UserId AS UserId',
+            'spaceMembers.SpaceId AS SpaceId',
+          ])
+          .addSelect('ROW_NUMBER() OVER(PARTITION BY SpaceId ORDER BY RoleId ASC, createdAt ASC)', 'ROW_NUM')
+          .where('SpaceId IN (:...spaces)', { spaces: mySpaces.map((space) => space.id) })
+          .andWhere('removedAt IS NULL');
+
+        const result = await this.dataSource
+          .createQueryBuilder()
+          .select([
+            'subquery.UserId AS UserId',
+            'subquery.SpaceId AS SpaceId',
+            'subquery.ROW_NUM AS ROW_NUM',
+          ])
+          .from(subquery.getQuery(), 'subquery')
+          .setParameters(subquery.getParameters())
+          .where('ROW_NUM = :target', { target: '1' })
+          .getRawMany<{ UserId: Buffer, SpaceId: Buffer, ROW_NUM: string}>();
 
         const ownersToUpdateMembers = result.map(member => {
           return {
