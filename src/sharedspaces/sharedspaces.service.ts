@@ -407,6 +407,16 @@ export class SharedspacesService {
     UserId?: string,
     limit = 10,
   ) {
+    const cacheKey = `sharedspaceMembers:${url}`;
+
+    if (!beforeUserId) {
+      const cachedItem = await this.cacheManager.get(cacheKey);
+
+      if (cachedItem) {
+        return cachedItem;
+      }
+    }
+
     const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
 
     if (space.private) {
@@ -481,6 +491,11 @@ export class SharedspacesService {
         ProfileImage: User.ProfileImage?.path,
       };
     });
+
+    if (!beforeUserId) {
+      const minute = 60000;
+      await this.cacheManager.set(cacheKey, { members, hasMoreData }, 10 * minute);
+    }
 
     return {
       members,
