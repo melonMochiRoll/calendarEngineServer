@@ -14,6 +14,11 @@ export const SPACE_TYPE = {
   CHAT: 'chat',
 };
 
+export const CHATROOM_TYPE = {
+  DM: 'dm',
+  SPACE: 'space',
+};
+
 export const SHAREDSPACE_ROLE = {
   OWNER: 'owner',
   MEMBER: 'member',
