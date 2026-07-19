@@ -1,8 +1,8 @@
 import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, OneToMany, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { Users } from "./Users";
 import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
-import { Spaces } from "./Spaces";
 import { ChatImages } from "./ChatImages";
+import { ChatRooms } from "./ChatRooms";
 
 @Entity({ name: 'chats' })
 export class Chats {
@@ -15,8 +15,8 @@ export class Chats {
   @Column({ type: 'binary', name: 'SenderId', length: 16, transformer: new UUIDV7Transformer() })
   SenderId: string;
 
-  @Column({ type: 'binary', name: 'SpaceId', length: 16, transformer: new UUIDV7Transformer() })
-  SpaceId: string;
+  @Column({ type: 'binary', name: 'RoomId', length: 16, transformer: new UUIDV7Transformer() })
+  RoomId: string;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -39,12 +39,12 @@ export class Chats {
   })
   Sender: Users;
 
-  @Index('chats_SpaceId_fk_idx')
-  @ManyToOne(() => Spaces, spaces => spaces.Chats)
+  @Index('chats_RoomId_fk_idx')
+  @ManyToOne(() => ChatRooms, chatRooms => chatRooms.Chats)
   @JoinColumn({
-    name: 'SpaceId',
+    name: 'RoomId',
     referencedColumnName: 'id',
-    foreignKeyConstraintName: 'chats_SpaceId_fk',
+    foreignKeyConstraintName: 'chats_RoomId_fk',
   })
-  Space: Spaces;
+  ChatRoom: ChatRooms;
 }

@@ -3,7 +3,7 @@ import { Users } from "./Users";
 import { Sharedspaces } from "./Sharedspaces";
 import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
 
-@Index('todos_SpaceId_date_uq_idx', ['SpaceId', 'date'], { unique: true })
+@Index('todos_SharedspaceId_date_uq_idx', ['SharedspaceId', 'date'], { unique: true })
 @Entity({ name: 'todos' })
 export class Todos {
   @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
@@ -36,8 +36,8 @@ export class Todos {
   @Column({ type: 'binary', name: 'EditorId', length: 16, nullable: true, transformer: new UUIDV7Transformer() })
   EditorId: string | null;
 
-  @Column({ type: 'binary', name: 'SpaceId', length: 16, transformer: new UUIDV7Transformer() })
-  SpaceId: string;
+  @Column({ type: 'binary', name: 'SharedspaceId', length: 16, transformer: new UUIDV7Transformer() })
+  SharedspaceId: string;
   
   @Index('todos_AuthorId_fk_idx')
   @ManyToOne(() => Users, users => users.Todos)
@@ -57,12 +57,12 @@ export class Todos {
   })
   Editor: Users;
 
-  @Index('todos_Spaceid_fk_idx')
+  @Index('todos_SharedspaceId_fk_idx')
   @ManyToOne(() => Sharedspaces, sharedspaces => sharedspaces.Todos)
   @JoinColumn({
-    name: 'SpaceId',
+    name: 'SharedspaceId',
     referencedColumnName: 'id',
-    foreignKeyConstraintName: 'todos_SpaceId_fk',
+    foreignKeyConstraintName: 'todos_SharedspaceId_fk',
   })
   Sharedspace: Sharedspaces;
 }

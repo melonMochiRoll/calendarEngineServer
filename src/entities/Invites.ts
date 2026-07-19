@@ -9,8 +9,8 @@ export class Invites {
   @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
   id: string;
 
-  @Column({ type: 'binary', name: 'SpaceId', length: 16, transformer: new UUIDV7Transformer() })
-  SpaceId: string;
+  @Column({ type: 'binary', name: 'SharedspaceId', length: 16, transformer: new UUIDV7Transformer() })
+  SharedspaceId: string;
 
   @Column({ type: 'binary', name: 'InviterId', length: 16, transformer: new UUIDV7Transformer() })
   InviterId: string;
@@ -51,12 +51,12 @@ export class Invites {
   })
   Invitee: Users;
 
-  @Index('invites_SpaceId_fk_idx')
+  @Index('invites_SharedspaceId_fk_idx')
   @ManyToOne(() => Sharedspaces, sharedspaces => sharedspaces.Invites)
   @JoinColumn({
-    name: 'SpaceId',
+    name: 'SharedspaceId',
     referencedColumnName: 'id',
-    foreignKeyConstraintName: 'invites_SpaceId_fk'
+    foreignKeyConstraintName: 'invites_SharedspaceId_fk'
   })
   Sharedspace: Sharedspaces;
 }

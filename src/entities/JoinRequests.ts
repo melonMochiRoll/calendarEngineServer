@@ -9,8 +9,8 @@ export class JoinRequests {
   @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
   id: string;
 
-  @Column({ type: 'binary', name: 'SpaceId', length: 16, transformer: new UUIDV7Transformer() })
-  SpaceId: string;
+  @Column({ type: 'binary', name: 'SharedspaceId', length: 16, transformer: new UUIDV7Transformer() })
+  SharedspaceId: string;
 
   @Column({ type: 'binary', name: 'RequestorId', length: 16, nullable: true, transformer: new UUIDV7Transformer() })
   RequestorId: string | null;
@@ -27,12 +27,12 @@ export class JoinRequests {
   @Column({ type: 'text' })
   message: string;
 
-  @Index('joinrequests_SpaceId_fk_idx')
+  @Index('joinrequests_SharedspaceId_fk_idx')
   @ManyToOne(() => Sharedspaces, sharedspaces => sharedspaces.JoinRequests)
   @JoinColumn({
-    name: 'SpaceId',
+    name: 'SharedspaceId',
     referencedColumnName: 'id',
-    foreignKeyConstraintName: 'joinrequests_SpaceId_fk'
+    foreignKeyConstraintName: 'joinrequests_SharedspaceId_fk'
   })
   Sharedspace: Sharedspaces;
 

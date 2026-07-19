@@ -7,7 +7,6 @@ import { Chats } from "./Chats";
 import { RefreshTokens } from "./RefreshTokens";
 import { Invites } from "./Invites";
 import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
-import { Spaces } from "./Spaces";
 import { ProfileImages } from "./ProfileImages";
 import { Friendships } from "./Friendships";
 
@@ -54,9 +53,6 @@ export class Users {
   @OneToMany(() => Sharedspaces, sharedspaces => sharedspaces.Owner)
   OwnedSharedspaces: Sharedspaces[];
 
-  @OneToMany(() => SpaceMembers, spacemembers => spacemembers.User)
-  Spacemembers: SpaceMembers[];
-
   @OneToMany(() => JoinRequests, joinRequests => joinRequests.Requestor)
   JoinRequests: JoinRequests[];
 
@@ -78,7 +74,10 @@ export class Users {
   @OneToMany(() => Friendships, friendships => friendships.Requestee)
   ReceivedFriendships: Invites[];
 
-  @ManyToMany(() => Spaces, spaces => spaces.Members)
+  @OneToMany(() => SpaceMembers, spacemembers => spacemembers.User)
+  Spacemembers: SpaceMembers[];
+
+  @ManyToMany(() => Sharedspaces, sharedspaces => sharedspaces.Members)
   @JoinTable({
     name: 'spacemembers',
     joinColumn: {
@@ -86,9 +85,9 @@ export class Users {
       referencedColumnName: 'id'
     },
     inverseJoinColumn: {
-      name: 'SpaceId',
+      name: 'SharedspaceId',
       referencedColumnName: 'id'
     }
   })
-  Spaces: Spaces[];
+  Sharedspaces: Sharedspaces[];
 }

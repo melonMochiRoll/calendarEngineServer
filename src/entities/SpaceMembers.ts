@@ -2,9 +2,9 @@ import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, Primary
 import { Users } from "./Users";
 import { Roles } from "./Roles";
 import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
-import { Spaces } from "./Spaces";
+import { Sharedspaces } from "./Sharedspaces";
 
-@Index('spacemembers_UserId_SpaceId_uq_idx', ['UserId', 'SpaceId'], { unique: true })
+@Index('spacemembers_UserId_SharedspaceId_uq_idx', ['UserId', 'SharedspaceId'], { unique: true })
 @Entity({ name: 'spacemembers' })
 export class SpaceMembers {
   @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
@@ -13,8 +13,8 @@ export class SpaceMembers {
   @Column({ type: 'binary', name: 'UserId', length: 16, transformer: new UUIDV7Transformer() })
   UserId: string;
 
-  @Column({ type: 'binary', name: 'SpaceId', length: 16, transformer: new UUIDV7Transformer() })
-  SpaceId: string;
+  @Column({ type: 'binary', name: 'SharedspaceId', length: 16, transformer: new UUIDV7Transformer() })
+  SharedspaceId: string;
 
   @Column({ type: 'int', name: 'RoleId' })
   RoleId: number;
@@ -37,14 +37,14 @@ export class SpaceMembers {
   })
   User: Users;
 
-  @Index('spacemembers_SpaceId_fk_idx')
-  @ManyToOne(() => Spaces, space => space.Spacemembers)
+  @Index('spacemembers_SharedspaceId_fk_idx')
+  @ManyToOne(() => Sharedspaces, sharedspaces => sharedspaces.Spacemembers)
   @JoinColumn({
-    name: 'SpaceId',
+    name: 'SharedspaceId',
     referencedColumnName: 'id',
-    foreignKeyConstraintName: 'spacemembers_SpaceId_fk'
+    foreignKeyConstraintName: 'spacemembers_SharedspaceId_fk'
   })
-  Space: Spaces;
+  Sharedspace: Sharedspaces;
 
   @Index('spacemembers_RoleId_fk_idx')
   @ManyToOne(() => Roles, roles => roles.SpaceMembers)

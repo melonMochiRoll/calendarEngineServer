@@ -1,10 +1,12 @@
-import { Column, Entity,Index,JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity,Index,JoinColumn, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { Users } from "./Users";
 import { Todos } from "./Todos";
 import { JoinRequests } from "./JoinRequests";
 import { Invites } from "./Invites";
 import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
-import { Spaces } from "./Spaces";
+import { SPACE_URL_LENGTH } from "src/common/constant/constants";
+import { SpaceMembers } from "./SpaceMembers";
+import { ChatRooms } from "./ChatRooms";
 
 @Entity({ name: 'sharedspaces' })
 export class Sharedspaces {
@@ -14,21 +16,23 @@ export class Sharedspaces {
   @Column({ type: 'varchar', name: 'name', length: 30, default: '새 스페이스' })
   name: string;
 
+  @Column({ type: 'char', name: 'url', length: SPACE_URL_LENGTH, unique: true })
+  url: string;
+
   @Column({ type: 'boolean', default: 1 })
   private: boolean;
 
   @Column({ type: 'binary', name: 'OwnerId', length: 16, nullable: true, transformer: new UUIDV7Transformer() })
   OwnerId: string | null;
 
-  @OneToOne(() => Spaces, spaces => spaces.Sharedspace, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({
-    name: 'id',
-    referencedColumnName: 'id',
-    foreignKeyConstraintName: 'sharedspaces_id_fk'
-  })
-  Space: Spaces;
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+  
+  @Column({ type: 'datetime', precision: 6, nullable: true, default: null })
+  removedAt: Date | null;
 
   @Index('sharedspaces_OwnerId_fk_idx')
   @ManyToOne(() => Users, users => users.OwnedSharedspaces, {
@@ -50,4 +54,13 @@ export class Sharedspaces {
 
   @OneToMany(() => Invites, invites => invites.Sharedspace)
   Invites: Invites[];
+
+  @OneToMany(() => ChatRooms, chatRooms => chatRooms.Sharedspace)
+  ChatRooms: ChatRooms[];
+
+  @OneToMany(() => SpaceMembers, spacemembers => spacemembers.Sharedspace)
+  Spacemembers: SpaceMembers[];
+
+  @ManyToMany(() => Users, users => users.Sharedspaces)
+  Members: Users[];
 }
