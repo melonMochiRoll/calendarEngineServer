@@ -17,6 +17,7 @@ import { ChatRooms } from 'src/entities/ChatRooms';
 import { ChatImages } from 'src/entities/ChatImages';
 import { ProfileImages } from 'src/entities/ProfileImages';
 import { Friendships } from 'src/entities/Friendships';
+import { RoomParticipants } from 'src/entities/RoomParticipants';
 
 const dbconfig: DataSourceOptions = {
   type: "mysql",
@@ -55,6 +56,7 @@ export const ormconfig = {
     Invites,
     BatchScheduler,
     Friendships,
+    RoomParticipants,
   ],
 };
 
