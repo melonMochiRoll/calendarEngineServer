@@ -1,5 +1,6 @@
 import { SHAREDSPACE_ROLE, SUBSCRIBEDSPACES_SORT } from "src/common/constant/constants";
 import { ChatImages } from "src/entities/ChatImages";
+import { ChatRooms } from "src/entities/ChatRooms";
 import { Chats } from "src/entities/Chats";
 import { Images } from "src/entities/Images";
 import { ProfileImages } from "src/entities/ProfileImages";
@@ -75,6 +76,8 @@ export type TSharedspaceDefault = Pick<Sharedspaces, 'id' | 'name' | 'private' |
 export type TUserDefault = Pick<Users, 'id' | 'email' | 'nickname' | 'provider' | 'status'> & {
   ProfileImage: string,
 };
+
+export type TChatRoomDefault = Pick<ChatRooms, 'id' | 'name' | 'url' | 'type' | 'SharedspaceId'>;
 
 export type CacheItem<T> = {
   value: T,
