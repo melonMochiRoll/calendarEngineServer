@@ -13,7 +13,7 @@ import { Invites } from 'src/entities/Invites';
 import path from 'path';
 import { BatchScheduler } from 'src/entities/BatchScheduler';
 import { Spaces } from 'src/entities/Spaces';
-import { ChatSpaces } from 'src/entities/ChatSpaces';
+import { ChatRooms } from 'src/entities/ChatRooms';
 import { ChatImages } from 'src/entities/ChatImages';
 import { ProfileImages } from 'src/entities/ProfileImages';
 import { Friendships } from 'src/entities/Friendships';
@@ -43,7 +43,7 @@ export const ormconfig = {
     Todos,
     Spaces,
     Sharedspaces,
-    ChatSpaces,
+    ChatRooms,
     Roles,
     JoinRequests,
     SpaceMembers,
