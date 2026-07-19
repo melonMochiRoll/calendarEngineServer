@@ -1,8 +1,10 @@
 import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
-import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, OneToMany, PrimaryColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { SPACE_URL_LENGTH } from "src/common/constant/constants";
 import { Chats } from "./Chats";
 import { Sharedspaces } from "./Sharedspaces";
+import { RoomParticipants } from "./RoomParticipants";
+import { Users } from "./Users";
 
 @Entity({ name: 'chatrooms' })
 export class ChatRooms {
@@ -43,4 +45,10 @@ export class ChatRooms {
 
   @OneToMany(() => Chats, chats => chats.ChatRoom)
   Chats: Chats[];
+
+  @OneToMany(() => RoomParticipants, roomParticipants => roomParticipants.ChatRoom)
+  RoomParticipants: RoomParticipants[];
+
+  @ManyToMany(() => Users, users => users.ChatRooms)
+  Participants: Users[];
 }

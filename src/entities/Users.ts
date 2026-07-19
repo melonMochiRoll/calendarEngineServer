@@ -9,6 +9,8 @@ import { Invites } from "./Invites";
 import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
 import { ProfileImages } from "./ProfileImages";
 import { Friendships } from "./Friendships";
+import { ChatRooms } from "./ChatRooms";
+import { RoomParticipants } from "./RoomParticipants";
 
 @Index('users_email_uq_idx', ['email'], { unique: true })
 @Index('users_nickname_uq_idx', ['nickname'], { unique: true })
@@ -90,4 +92,21 @@ export class Users {
     }
   })
   Sharedspaces: Sharedspaces[];
+
+  @OneToMany(() => RoomParticipants, roomParticipants => roomParticipants.User)
+  RoomParticipants: RoomParticipants[];
+
+  @ManyToMany(() => ChatRooms, chatRooms => chatRooms.Participants)
+  @JoinTable({
+    name: 'room_participants',
+    joinColumn: {
+      name: 'UserId',
+      referencedColumnName: 'id'
+    },
+    inverseJoinColumn: {
+      name: 'RoomId',
+      referencedColumnName: 'id'
+    }
+  })
+  ChatRooms: ChatRooms[];
 }
