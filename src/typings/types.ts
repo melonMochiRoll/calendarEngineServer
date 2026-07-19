@@ -70,7 +70,7 @@ export type TRefreshTokenPayload = {
   exp: number,
 };
 
-export type TSharedspaceDefault = Pick<Spaces, 'url' | 'createdAt'> & Pick<Sharedspaces, 'id' | 'name' | 'private' | 'OwnerId'>;
+export type TSharedspaceDefault = Pick<Sharedspaces, 'id' | 'name' | 'private' | 'url' | 'OwnerId' | 'createdAt'>;
 
 export type TUserDefault = Pick<Users, 'id' | 'email' | 'nickname' | 'provider' | 'status'> & {
   ProfileImage: string,
