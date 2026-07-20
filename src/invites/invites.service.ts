@@ -36,9 +36,7 @@ export class InvitesService {
         createdAt: true,
         Sharedspace: {
           name: true,
-          Space: {
-            url: true,
-          },
+          url: true,
           Owner: {
             email: true,
             nickname: true,
@@ -51,7 +49,6 @@ export class InvitesService {
       },
       relations: {
         Sharedspace: {
-          Space: true,
           Owner: {
             ProfileImage: true,
           },
@@ -88,7 +85,7 @@ export class InvitesService {
           ...Sharedspace.Owner,
           ProfileImage: Sharedspace.Owner.ProfileImage?.path,
         },
-        url: Sharedspace.Space.url,
+        url: Sharedspace.url,
       };
     });
 
@@ -129,7 +126,7 @@ export class InvitesService {
         id: true,
       },
       where: {
-        SpaceId: space.id,
+        SharedspaceId: space.id,
         InviteeId: invitee.id,
         status: INVITE_STATUS.PENDING,
         expiredAt: MoreThan(dayjs().toDate()),
@@ -142,7 +139,7 @@ export class InvitesService {
 
     await this.invitesRepository.insert({
       id: uuidv7(),
-      SpaceId: space.id,
+      SharedspaceId: space.id,
       InviterId: UserId,
       InviteeId: invitee.id,
       expiredAt: dayjs().add(7, 'day').format('YYYY-MM-DD HH:mm:ss'),
@@ -190,7 +187,7 @@ export class InvitesService {
         {
           id: uuidv7(),
           UserId,
-          SpaceId: space.id,
+          SharedspaceId: space.id,
           RoleId: viewerInfo.id,
         }
       );
