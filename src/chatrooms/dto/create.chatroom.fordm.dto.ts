@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsUUID } from "class-validator";
 
-export class CreatChatspaceDTO {
+export class CreateChatRoomForDmDTO {
 
   @IsNotEmpty()
   @IsUUID(7)

@@ -1,34 +1,34 @@
 import { Body, Controller, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
-import { ChatspacesService } from "./chatspaces.service";
+import { ChatRoomsService } from "./chatrooms.service";
 import { JwtAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
-import { CreatChatspaceDTO } from "./dto/create.chatspace.dto";
+import { CreateChatRoomForDmDTO } from "./dto/create.chatroom.fordm.dto";
 import { UUIDv7OrEmptyPipe } from "src/common/pipe/uuidv7OrEmpty.pipe";
 
-@Controller('api/chatspaces')
-export class ChatspacesController {
+@Controller('api/chatrooms')
+export class ChatRoomsController {
   constructor(
-    private chatspacesService: ChatspacesService,
+    private chatRoomsService: ChatRoomsService,
   ) {}
 
   @UseGuards(JwtAuthGuard)
   @Get(':url/members')
-  getChatspaceMembers(
+  getChatspaceParticipants(
     @Param('url') url: string,
-    @Query('before', UUIDv7OrEmptyPipe) beforeUserId: string,
+    @Query('before', UUIDv7OrEmptyPipe) beforeParticipantId: string,
     @User() user: Users,
   ) {
-    return this.chatspacesService.getChatspaceMembers(url, beforeUserId, user.id);
+    return this.chatRoomsService.getChatRoomParticipants(url, user.id, beforeParticipantId);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post()
-  createChatSpace(
+  createChatSpaceForDM(
     @User() user: Users,
-    @Body() dto: CreatChatspaceDTO,
+    @Body() dto: CreateChatRoomForDmDTO,
   ) {
-    return this.chatspacesService.createChatSpace(user.id, dto);
+    return this.chatRoomsService.createChatRoomForDM(user.id, dto);
   }
 }
