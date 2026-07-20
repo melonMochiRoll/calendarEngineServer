@@ -80,8 +80,8 @@ export class TaskService {
 
     for (const chunk of taskChunks) {
       const batch = chunk.map(task => {
-        const params: { SpaceId: string } = JSON.parse(task.job_params);
-        return this.sharedspacesService.deleteSharedspace(task.id, params.SpaceId);
+        const params: { SharedspaceId: string } = JSON.parse(task.job_params);
+        return this.sharedspacesService.deleteSharedspace(task.id, params.SharedspaceId);
       });
       await Promise.all(batch);
     }
@@ -225,7 +225,7 @@ export class TaskService {
     const softDeletedMembers = await this.spaceMembersRepository.find({
       select: {
         UserId: true,
-        SpaceId: true,
+        SharedspaceId: true,
       },
       where: {
         removedAt: Not(IsNull()),
@@ -235,7 +235,7 @@ export class TaskService {
     const memberChunks = chunking(softDeletedMembers, 2);
 
     for (const chunk of memberChunks) {
-      const batch = chunk.map(member => this.spaceMembersRepository.delete({ UserId: member.UserId, SpaceId: member.SpaceId }));
+      const batch = chunk.map(member => this.spaceMembersRepository.delete({ UserId: member.UserId, SharedspaceId: member.SharedspaceId }));
       await Promise.all(batch);
     }
   }
