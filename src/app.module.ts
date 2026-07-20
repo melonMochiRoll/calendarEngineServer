@@ -19,7 +19,7 @@ import { ChatsModule } from './chats/chats.module';
 import { InvitesModule } from './invites/invites.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TaskModule } from './task/task.module';
-import { ChatspacesModule } from './chatspaces/chatspaces.module';
+import { ChatRoomsModule } from './chatrooms/chatrooms.module';
 import { FriendshipsModule } from './friendships/friendships.module';
 
 @Module({
@@ -51,7 +51,7 @@ import { FriendshipsModule } from './friendships/friendships.module';
     ChatsModule,
     InvitesModule,
     TaskModule,
-    ChatspacesModule,
+    ChatRoomsModule,
     FriendshipsModule,
   ],
   controllers: [],
