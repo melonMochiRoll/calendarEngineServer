@@ -6,13 +6,11 @@ import { SharedspacesService } from './sharedspaces.service';
 import { SpaceMembers } from 'src/entities/SpaceMembers';
 import { Users } from 'src/entities/Users';
 import { RolesModule } from 'src/roles/roles.module';
-import { Spaces } from 'src/entities/Spaces';
 import { SharedspaceFetcher } from './sharedspaces.fetcher';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      Spaces,
       Sharedspaces,
       SpaceMembers,
       Users,

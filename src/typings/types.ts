@@ -5,7 +5,6 @@ import { Chats } from "src/entities/Chats";
 import { Images } from "src/entities/Images";
 import { ProfileImages } from "src/entities/ProfileImages";
 import { Sharedspaces } from "src/entities/Sharedspaces";
-import { Spaces } from "src/entities/Spaces";
 import { Users } from "src/entities/Users";
 
 export type TSharedspaceRole = typeof SHAREDSPACE_ROLE[keyof typeof SHAREDSPACE_ROLE];

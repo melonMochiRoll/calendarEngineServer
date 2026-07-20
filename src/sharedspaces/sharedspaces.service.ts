@@ -22,7 +22,6 @@ import { JoinRequests } from "src/entities/JoinRequests";
 import { Invites } from "src/entities/Invites";
 import { BatchScheduler } from "src/entities/BatchScheduler";
 import { uuidv7 } from "uuidv7";
-import { Spaces } from "src/entities/Spaces";
 import { SharedspaceFetcher } from "./sharedspaces.fetcher";
 import { stringToUUID } from "src/common/function/utilFunctions";
 import { TSubscribedspacesSort } from "src/typings/types";

@@ -12,7 +12,6 @@ import { RefreshTokens } from 'src/entities/RefreshTokens';
 import { Invites } from 'src/entities/Invites';
 import path from 'path';
 import { BatchScheduler } from 'src/entities/BatchScheduler';
-import { Spaces } from 'src/entities/Spaces';
 import { ChatRooms } from 'src/entities/ChatRooms';
 import { ChatImages } from 'src/entities/ChatImages';
 import { ProfileImages } from 'src/entities/ProfileImages';
@@ -42,7 +41,6 @@ export const ormconfig = {
   entities: [
     Users,
     Todos,
-    Spaces,
     Sharedspaces,
     ChatRooms,
     Roles,
