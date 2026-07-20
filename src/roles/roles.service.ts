@@ -62,9 +62,9 @@ export class RolesService {
 
   async getUserRole(
     UserId: string,
-    SpaceId: string,
+    SharedspaceId: string,
   ) {
-    const cacheKey = `user:role:${UserId}:${SpaceId}`;
+    const cacheKey = `user:role:${UserId}:${SharedspaceId}`;
     const cachedUserRole = await this.cacheManager.get<Pick<SpaceMembers, 'RoleId'> | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
     if (cachedUserRole) {
@@ -77,7 +77,7 @@ export class RolesService {
       },
       where: {
         UserId,
-        SpaceId,
+        SharedspaceId,
       },
     });
 

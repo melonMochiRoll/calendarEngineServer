@@ -117,7 +117,7 @@ export class UsersService {
         UserId: true,
       },
       where: {
-        SpaceId: space.id,
+        SharedspaceId: space.id,
       },
     });
 
@@ -252,28 +252,28 @@ export class UsersService {
           .createQueryBuilder('spaceMembers')
           .select([
             'spaceMembers.UserId AS UserId',
-            'spaceMembers.SpaceId AS SpaceId',
+            'spaceMembers.SharedspaceId AS SharedspaceId',
           ])
-          .addSelect('ROW_NUMBER() OVER(PARTITION BY SpaceId ORDER BY RoleId ASC, createdAt ASC)', 'ROW_NUM')
-          .where('SpaceId IN (:...spaces)', { spaces: mySpaces.map((space) => space.id) })
+          .addSelect('ROW_NUMBER() OVER(PARTITION BY SharedspaceId ORDER BY RoleId ASC, createdAt ASC)', 'ROW_NUM')
+          .where('SharedspaceId IN (:...spaces)', { spaces: mySpaces.map((space) => space.id) })
           .andWhere('removedAt IS NULL');
 
         const result = await this.dataSource
           .createQueryBuilder()
           .select([
             'subquery.UserId AS UserId',
-            'subquery.SpaceId AS SpaceId',
+            'subquery.SharedspaceId AS SharedspaceId',
             'subquery.ROW_NUM AS ROW_NUM',
           ])
           .from(subquery.getQuery(), 'subquery')
           .setParameters(subquery.getParameters())
           .where('ROW_NUM = :target', { target: '1' })
-          .getRawMany<{ UserId: Buffer, SpaceId: Buffer, ROW_NUM: string}>();
+          .getRawMany<{ UserId: Buffer, SharedspaceId: Buffer, ROW_NUM: string}>();
 
         const ownersToUpdateMembers = result.map(member => {
           return {
             ...member,
-            SpaceId: uuidToString(member.SpaceId),
+            SharedspaceId: uuidToString(member.SharedspaceId),
             UserId: uuidToString(member.UserId),
           };
         });
@@ -282,14 +282,14 @@ export class UsersService {
           .createQueryBuilder()
           .update(Sharedspaces)
           .set({
-            OwnerId: () => `CASE id ${ownersToUpdateMembers.map(({UserId, SpaceId}) => `WHEN ${SpaceId} THEN ${UserId}`).join(' ')} ELSE OwnerId END`,
+            OwnerId: () => `CASE id ${ownersToUpdateMembers.map(({UserId, SharedspaceId}) => `WHEN ${SharedspaceId} THEN ${UserId}`).join(' ')} ELSE OwnerId END`,
           })
-          .where(`id IN (:...ids)`, { ids: ownersToUpdateMembers.map(({SpaceId}) => SpaceId) })
+          .where(`id IN (:...ids)`, { ids: ownersToUpdateMembers.map(({SharedspaceId}) => SharedspaceId) })
           .execute();
-        await qr.manager.update(SpaceMembers, ownersToUpdateMembers.map(({UserId, SpaceId}) => {return { UserId, SpaceId }}), { RoleId: ownerInfo.id });
+        await qr.manager.update(SpaceMembers, ownersToUpdateMembers.map(({UserId, SharedspaceId}) => {return { UserId, SharedspaceId }}), { RoleId: ownerInfo.id });
 
         const ownerUpdateSpacesMap = ownersToUpdateMembers.reduce((acc, member) => {
-          acc[member.SpaceId] = member.UserId;
+          acc[member.SharedspaceId] = member.UserId;
           return acc;
         }, {});
 

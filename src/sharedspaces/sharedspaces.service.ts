@@ -16,7 +16,7 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { RolesService } from "src/roles/roles.service";
 import dayjs from "dayjs";
-import { JOB_NAMES, JOB_STATUS, SPACE_URL_LENGTH, SHAREDSPACE_ROLE, SUBSCRIBEDSPACES_SORT, USER_STATUS, SPACE_TYPE } from "src/common/constant/constants";
+import { JOB_NAMES, JOB_STATUS, SPACE_URL_LENGTH, SHAREDSPACE_ROLE, SUBSCRIBEDSPACES_SORT, USER_STATUS } from "src/common/constant/constants";
 import { Todos } from "src/entities/Todos";
 import { JoinRequests } from "src/entities/JoinRequests";
 import { Invites } from "src/entities/Invites";
@@ -35,8 +35,6 @@ export class SharedspacesService {
     private dataSource: DataSource,
     @InjectRepository(Users)
     private usersRepository: Repository<Users>,
-    @InjectRepository(Spaces)
-    private spacesRepository: Repository<Spaces>,
     @InjectRepository(Sharedspaces)
     private sharedspacesRepository: Repository<Sharedspaces>,
     @InjectRepository(SpaceMembers)
@@ -94,10 +92,6 @@ export class SharedspacesService {
 
     const whereCondition: FindOptionsWhere<SpaceMembers> = {
       UserId,
-      Space: {
-        type: SPACE_TYPE.SHARED,
-        removedAt: IsNull(),
-      },
       removedAt: IsNull(),
     };
 
@@ -120,31 +114,27 @@ export class SharedspacesService {
       select: {
         id: true,
         createdAt: true,
-        Space: {
+        Sharedspace: {
+          id: true,
+          name: true,
           url: true,
-          Sharedspace: {
-            id: true,
-            name: true,
-            private: true,
-            OwnerId: true,
-            Owner: {
-              email: true,
-              nickname: true,
-              ProfileImage: {
-                id: true,
-                path: true,
-              },
+          private: true,
+          OwnerId: true,
+          Owner: {
+            email: true,
+            nickname: true,
+            ProfileImage: {
+              id: true,
+              path: true,
             },
           },
         },
       },
       relations: {
-        Space: {
-          Sharedspace: {
-            Owner: {
-              ProfileImage: {
-                Image: true,
-              },
+        Sharedspace: {
+          Owner: {
+            ProfileImage: {
+              Image: true,
             },
           },
         },
@@ -158,10 +148,9 @@ export class SharedspacesService {
     });
 
     const spaces = user_roles.map((spacemember) => {
-      const { OwnerId, ...rest } = spacemember.Space.Sharedspace;
+      const { OwnerId, ...rest } = spacemember.Sharedspace;
       return {
         ...rest,
-        url: spacemember.Space.url,
         Owner: {
           ...rest.Owner,
           ProfileImage: rest.Owner.ProfileImage?.path,
@@ -189,18 +178,13 @@ export class SharedspacesService {
     await qr.startTransaction();
 
     try {
-      const SpaceId = uuidv7();
+      const SharedspaceId = uuidv7();
       const url = nanoid(SPACE_URL_LENGTH);
 
-      await qr.manager.insert(Spaces, {
-        id: SpaceId,
-        url,
-        type: SPACE_TYPE.SHARED,
-      });
-
       await qr.manager.insert(Sharedspaces, {
-        id: SpaceId,
+        id: SharedspaceId,
         name: '새 스페이스',
+        url,
         OwnerId: UserId,
       });
 
@@ -209,7 +193,7 @@ export class SharedspacesService {
       await qr.manager.insert(SpaceMembers, {
         id: uuidv7(),
         UserId,
-        SpaceId,
+        SharedspaceId,
         RoleId: ownerInfo.id,
       });
 
@@ -276,8 +260,8 @@ export class SharedspacesService {
       const memberInfo = await this.rolesService.getRoleInfo(SHAREDSPACE_ROLE.MEMBER);
 
       await qr.manager.update(Sharedspaces, { id: space.id }, { OwnerId: newOwnerId });
-      await qr.manager.update(SpaceMembers, { UserId: newOwnerId, SpaceId: space.id }, { RoleId: ownerInfo.id });
-      await qr.manager.update(SpaceMembers, { UserId: space.OwnerId, SpaceId: space.id }, { RoleId: memberInfo.id });
+      await qr.manager.update(SpaceMembers, { UserId: newOwnerId, SharedspaceId: space.id }, { RoleId: ownerInfo.id });
+      await qr.manager.update(SpaceMembers, { UserId: space.OwnerId, SharedspaceId: space.id }, { RoleId: memberInfo.id });
 
       await qr.commitTransaction();
 
@@ -319,7 +303,7 @@ export class SharedspacesService {
     await qr.startTransaction();
 
     try {
-      const space = await this.spacesRepository.findOne({
+      const space = await this.sharedspacesRepository.findOne({
         select: {
           id: true,
         },
@@ -335,7 +319,7 @@ export class SharedspacesService {
       }
 
       const result = await qr.manager.update(
-        Spaces,
+        Sharedspaces,
         { id: space.id, removedAt: IsNull() },
         { removedAt: dayjs().toDate() }
       );
@@ -348,7 +332,7 @@ export class SharedspacesService {
         BatchScheduler,
         {
           job_name: JOB_NAMES.SHAREDSPACE_DELETE,
-          job_params: JSON.stringify({ SpaceId: space.id }),
+          job_params: JSON.stringify({ SharedspaceId: space.id }),
           status: JOB_STATUS.PENDING,
         },
       );
@@ -367,7 +351,7 @@ export class SharedspacesService {
 
   async deleteSharedspace(
     TaskId: number,
-    SpaceId: string,
+    SharedspaceId: string,
   ) {
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
@@ -384,12 +368,12 @@ export class SharedspacesService {
         return;
       }
 
-      await qr.manager.delete(Todos, { SpaceId });
-      await qr.manager.delete(Invites, { SpaceId });
-      await qr.manager.delete(JoinRequests, { SpaceId });
-      await qr.manager.delete(Chats, { SpaceId });
-      await qr.manager.delete(SpaceMembers, { SpaceId });
-      await qr.manager.delete(Sharedspaces, { id: SpaceId });
+      await qr.manager.delete(Todos, { SharedspaceId });
+      await qr.manager.delete(Invites, { SharedspaceId });
+      await qr.manager.delete(JoinRequests, { SharedspaceId });
+      await qr.manager.delete(Chats, { SharedspaceId });
+      await qr.manager.delete(SpaceMembers, { SharedspaceId });
+      await qr.manager.delete(Sharedspaces, { id: SharedspaceId });
       
       await qr.commitTransaction();
     } catch (err) {
@@ -448,14 +432,14 @@ export class SharedspacesService {
         },
       },
       where: beforeUserId ? {
-        SpaceId: space.id,
+        SharedspaceId: space.id,
         id: LessThan(beforeUserId),
         removedAt: IsNull(),
         User: {
           status: USER_STATUS.ACTIVE,
         },
       } : {
-        SpaceId: space.id,
+        SharedspaceId: space.id,
         removedAt: IsNull(),
         User: {
           status: USER_STATUS.ACTIVE,
@@ -547,7 +531,7 @@ export class SharedspacesService {
       },
       where: {
         UserId: targetUserId,
-        SpaceId: space.id,
+        SharedspaceId: space.id,
       },
     });
 
@@ -558,7 +542,7 @@ export class SharedspacesService {
     await this.spaceMembersRepository.insert({
       id: uuidv7(),
       UserId: targetUserId,
-      SpaceId: space.id,
+      SharedspaceId: space.id,
       RoleId: roleInfo.id,
     });
     await this.invalidateSharedspaceMembersCache(url);
@@ -591,7 +575,7 @@ export class SharedspacesService {
       },
       where: {
         UserId: targetUserId,
-        SpaceId: space.id,
+        SharedspaceId: space.id,
       }
     });
 
@@ -601,7 +585,7 @@ export class SharedspacesService {
 
     await this.spaceMembersRepository.update({
       UserId: targetUserId,
-      SpaceId: space.id,
+      SharedspaceId: space.id,
     },{
       RoleId: roleInfo.id,
     });
@@ -629,7 +613,7 @@ export class SharedspacesService {
       },
       where: {
         UserId: targetUserId,
-        SpaceId: space.id,
+        SharedspaceId: space.id,
       }
     });
 
@@ -642,7 +626,7 @@ export class SharedspacesService {
     const now = dayjs().toDate();
 
     await this.spaceMembersRepository.update(
-      { UserId: targetUserId, SpaceId: space.id },
+      { UserId: targetUserId, SharedspaceId: space.id },
       { removedAt: now }
     );
 

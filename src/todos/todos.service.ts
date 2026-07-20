@@ -79,7 +79,7 @@ export class TodosService {
         Editor: true,
       },
       where: {
-        SpaceId: space.id,
+        SharedspaceId: space.id,
         date: Between(startDate, endDate),
         removedAt: IsNull(),
       },
@@ -129,7 +129,7 @@ export class TodosService {
       ...dto,
       id: uuidv7(),
       AuthorId: UserId,
-      SpaceId: space.id,
+      SharedspaceId: space.id,
     });
 
     await this.invalidateTodosCache(space.url, dto.date);
@@ -183,7 +183,7 @@ export class TodosService {
 
     const targetTodo = await this.todosRepository.findOneBy({ id: todoId });
 
-    if (targetTodo?.SpaceId !== space.id) {
+    if (targetTodo?.SharedspaceId !== space.id) {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
@@ -223,12 +223,12 @@ export class TodosService {
         endTime: true,
       },
       where: beforeTodoId ? {
-        SpaceId: space.id,
+        SharedspaceId: space.id,
         id: LessThan(beforeTodoId),
         description: Like(`%${query}%`),
         removedAt: IsNull(),
       } : {
-        SpaceId: space.id,
+        SharedspaceId: space.id,
         description: Like(`%${query}%`),
         removedAt: IsNull(),
       },

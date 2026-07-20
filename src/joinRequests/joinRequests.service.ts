@@ -55,11 +55,11 @@ export class JoinRequestsService {
         },
       },
       where: beforeJoinRequestId ? {
-        SpaceId: space.id,
+        SharedspaceId: space.id,
         id: LessThan(beforeJoinRequestId),
         removedAt: IsNull(),
       } : {
-        SpaceId: space.id,
+        SharedspaceId: space.id,
         removedAt: IsNull(),
       },
       order: {
@@ -111,14 +111,14 @@ export class JoinRequestsService {
 
       const targetJoinRequest = await this.joinRequestsRepository.findOne({
         select: {
-          SpaceId: true,
+          SharedspaceId: true,
         },
         where: {
           id: joinRequestId,
         },
       });
 
-      if (space.id !== targetJoinRequest?.SpaceId) {
+      if (space.id !== targetJoinRequest?.SharedspaceId) {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
@@ -131,7 +131,7 @@ export class JoinRequestsService {
       await qr.manager.insert(SpaceMembers, {
         id: uuidv7(),
         UserId: targetJoinRequest.RequestorId,
-        SpaceId: targetJoinRequest.SpaceId,
+        SharedspaceId: targetJoinRequest.SharedspaceId,
         RoleId: roleInfo.id,
       });
       await qr.manager.update(JoinRequests, { id: targetJoinRequest.id }, { status: JOINREQUEST_STATUS.ACCEPTED });
@@ -159,7 +159,7 @@ export class JoinRequestsService {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
-    const isRequested = await this.joinRequestsRepository.findOneBy({ RequestorId: UserId, SpaceId: space.id });
+    const isRequested = await this.joinRequestsRepository.findOneBy({ RequestorId: UserId, SharedspaceId: space.id });
 
     if (isRequested) {
       throw new ConflictException(CONFLICT_REQUEST_MESSAGE);
@@ -167,7 +167,7 @@ export class JoinRequestsService {
 
     await this.joinRequestsRepository.insert({
       id: uuidv7(),
-      SpaceId: space.id,
+      SharedspaceId: space.id,
       RequestorId: UserId,
       message: dto.message,
       status: JOINREQUEST_STATUS.PENDING,
