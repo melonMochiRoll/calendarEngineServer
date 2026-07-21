@@ -14,7 +14,7 @@ export class ChatsController {
   ) {}
 
   @UseGuards(PublicAuthGuard)
-  @Get('sharedspaces/:url/chats')
+  @Get('chatrooms/:url/chats')
   getChatRoomChats(
     @Param('url') url: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeChatId: string,
