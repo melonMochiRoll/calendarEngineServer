@@ -11,6 +11,7 @@ import { RefreshTokens } from "src/entities/RefreshTokens";
 import { ChatImages } from "src/entities/ChatImages";
 import { SharedspaceChatsGateway } from "./sharedspace.chats.gateway";
 import { UsersModule } from "src/users/users.module";
+import { ChatRoomsModule } from "src/chatrooms/chatrooms.module";
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { UsersModule } from "src/users/users.module";
     SharedspacesModule,
     UsersModule,
     RolesModule,
+    ChatRoomsModule,
   ],
   controllers: [ ChatsController ],
   providers: [

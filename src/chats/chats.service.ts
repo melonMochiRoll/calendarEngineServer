@@ -14,11 +14,10 @@ import { UpdateSharedspaceChatDTO } from "src/chats/dto/update.sharedspace.chat.
 import { DeleteSharedspaceChatDTO } from "src/chats/dto/delete.sharedspace.chat.dto";
 import { DeleteSharedspaceChatImageDTO } from "src/chats/dto/delete.sharedspace.chat.image.dto";
 import { ChatImages } from "src/entities/ChatImages";
-import { Spaces } from "src/entities/Spaces";
 import { SpaceMembers } from "src/entities/SpaceMembers";
 import { WsException } from "@nestjs/websockets";
 import { ERROR_TYPE } from "src/common/constant/auth.constants";
-import { SharedspaceFetcher } from "src/sharedspaces/sharedspaces.fetcher";
+import { ChatRoomsFetcher } from "src/chatrooms/chatrooms.fetcher";
 
 @Injectable()
 export class ChatsService {
@@ -32,7 +31,7 @@ export class ChatsService {
     private chatImagesRepository: Repository<ChatImages>,
     private rolesService: RolesService,
     private storageR2Service: StorageR2Service,
-    private sharedspaceFetcher: SharedspaceFetcher,
+    private chatRoomsFetcher: ChatRoomsFetcher,
   ) {}
 
   async getSharedspaceChats(
@@ -41,19 +40,19 @@ export class ChatsService {
     UserId?: string,
     limit = 100,
   ) {
-    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
+    const room = await this.chatRoomsFetcher.getChatRoomForSpaceByUrl(url);
 
-    if (!space) {
+    if (!room) {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
-    if (space.private) {
-      const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
+    if (room.Sharedspace.private) {
+      const isParticipant = await this.rolesService.requireParticipant(UserId, room.SharedspaceId);
 
       if (!isParticipant) {
         throw new ForbiddenException({
           message: ACCESS_DENIED_MESSAGE,
-          metaData: { spaceUrl: space.url },
+          metaData: { spaceUrl: room.Sharedspace.url },
         });
       }
     }
@@ -80,11 +79,11 @@ export class ChatsService {
         },
       },
       where: beforeChatId ? {
-        SpaceId: space.id,
+        RoomId: room.id,
         id: LessThan(beforeChatId),
         removedAt: IsNull(),
       } : {
-        SpaceId: space.id,
+        RoomId: room.id,
         removedAt: IsNull(),
       },
       order: {
@@ -157,16 +156,16 @@ export class ChatsService {
   ) {
     const { url, ChatId, content, imageIds, imageKeys } = dto;
 
-    const space = await this.sharedspaceFetcher.getSpaceByUrl(url);
+    const room = await this.chatRoomsFetcher.getChatRoomForSpaceByUrl(url);
 
-    if (!space) {
+    if (!room) {
       throw new WsException({
         type: ERROR_TYPE.BAD_REQUEST_ERROR,
         message: BAD_REQUEST_MESSAGE,
       });
     }
 
-    const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
+    const isParticipant = await this.rolesService.requireParticipant(UserId, room.SharedspaceId);
 
     if (!isParticipant) {
       throw new WsException({
@@ -184,7 +183,7 @@ export class ChatsService {
         id: ChatId,
         content,
         SenderId: UserId,
-        SpaceId: space.id,
+        RoomId: room.id,
       });
 
       if (imageIds.length) {
@@ -264,7 +263,7 @@ export class ChatsService {
     const { url, ChatId, content } = dto;
 
     try {
-      const space = await this.sharedspaceFetcher.getSpaceByUrl(url);
+      const room = await this.chatRoomsFetcher.getChatRoomForSpaceByUrl(url);
 
       const updatedAt = dayjs().toDate();
 
@@ -272,7 +271,7 @@ export class ChatsService {
         {
           id: ChatId,
           SenderId: UserId,
-          SpaceId: space.id,
+          RoomId: room.id,
         },
         {
           content,
@@ -311,13 +310,13 @@ export class ChatsService {
     const { url, ChatId } = dto;
 
     try {
-      const space = await this.sharedspaceFetcher.getSpaceByUrl(url);
+      const room = await this.chatRoomsFetcher.getChatRoomForSpaceByUrl(url);
 
       const targetChat = await this.chatsRepository.findOne({
         select: {
           id: true,
           SenderId: true,
-          SpaceId: true,
+          RoomId: true,
           ChatImages: {
             id: true,
           },
@@ -332,7 +331,7 @@ export class ChatsService {
 
       if (
         targetChat?.SenderId !== UserId ||
-        targetChat?.SpaceId !== space.id
+        targetChat?.RoomId !== room.id
       ) {
         throw new WsException({
           type: ERROR_TYPE.BAD_REQUEST_ERROR,
@@ -373,13 +372,13 @@ export class ChatsService {
     UserId: string,
   ) {
     const { url, ChatId, ImageId } = dto;
-    const space = await this.sharedspaceFetcher.getSpaceByUrl(url);
+    const room = await this.chatRoomsFetcher.getChatRoomForSpaceByUrl(url);
 
     const targetChat = await this.chatsRepository.findOne({
       select: {
         id: true,
         SenderId: true,
-        SpaceId: true,
+        RoomId: true,
         content: true,
         ChatImages: {
           id: true,
@@ -396,7 +395,7 @@ export class ChatsService {
 
     if (
       targetChat?.SenderId !== UserId ||
-      targetChat?.SpaceId !== space.id ||
+      targetChat?.RoomId !== room.id ||
       !targetChat.ChatImages.find(chatImage => chatImage.id === ImageId)
     ) {
       throw new WsException({
@@ -487,18 +486,18 @@ export class ChatsService {
     UserId: string,
     limit = 100,
   ) {
-    const space = await this.sharedspaceFetcher.getSpaceByUrl(url);
+    const room = await this.chatRoomsFetcher.getChatRoomForSpaceByUrl(url);
 
-    if (!space) {
+    if (!room) {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
-    const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
+    const isParticipant = await this.rolesService.requireParticipant(UserId, room.SharedspaceId);
 
     if (!isParticipant) {
       throw new ForbiddenException({
         message: ACCESS_DENIED_MESSAGE,
-        metaData: { spaceUrl: space.url },
+        metaData: { spaceUrl: room.Sharedspace.url },
       });
     }
 
@@ -524,11 +523,11 @@ export class ChatsService {
         },
       },
       where: beforeChatId ? {
-        SpaceId: space.id,
+        RoomId: room.id,
         id: LessThan(beforeChatId),
         removedAt: IsNull(),
       } : {
-        SpaceId: space.id,
+        RoomId: room.id,
         removedAt: IsNull(),
       },
       order: {
