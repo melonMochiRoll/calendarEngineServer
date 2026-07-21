@@ -27,20 +27,6 @@ export class ChatsController {
     );
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Get('chatspaces/:url/chats')
-  getChatspaceChats(
-    @Param('url') url: string,
-    @Query('before', UUIDv7OrEmptyPipe) beforeChatId: string,
-    @User() user: Users,
-  ) {
-    return this.chatsService.getChatspaceChats(
-      url,
-      beforeChatId,
-      user.id,
-    );
-  }
-
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post('space/:url/chats/images/presigned-url')
   generatePresignedPutUrl(
