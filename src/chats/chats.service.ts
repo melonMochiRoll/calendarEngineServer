@@ -40,7 +40,7 @@ export class ChatsService {
     UserId?: string,
     limit = 100,
   ) {
-    const room = await this.chatRoomsFetcher.getChatRoomForSpaceByUrl(url);
+    const room = await this.chatRoomsFetcher.getSharedspaceChatRoomByUrl(url);
 
     if (!room) {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
@@ -156,7 +156,7 @@ export class ChatsService {
   ) {
     const { url, ChatId, content, imageIds, imageKeys } = dto;
 
-    const room = await this.chatRoomsFetcher.getChatRoomForSpaceByUrl(url);
+    const room = await this.chatRoomsFetcher.getSharedspaceChatRoomByUrl(url);
 
     if (!room) {
       throw new WsException({
@@ -263,7 +263,7 @@ export class ChatsService {
     const { url, ChatId, content } = dto;
 
     try {
-      const room = await this.chatRoomsFetcher.getChatRoomForSpaceByUrl(url);
+      const room = await this.chatRoomsFetcher.getSharedspaceChatRoomByUrl(url);
 
       const updatedAt = dayjs().toDate();
 
@@ -310,7 +310,7 @@ export class ChatsService {
     const { url, ChatId } = dto;
 
     try {
-      const room = await this.chatRoomsFetcher.getChatRoomForSpaceByUrl(url);
+      const room = await this.chatRoomsFetcher.getSharedspaceChatRoomByUrl(url);
 
       const targetChat = await this.chatsRepository.findOne({
         select: {
@@ -372,7 +372,7 @@ export class ChatsService {
     UserId: string,
   ) {
     const { url, ChatId, ImageId } = dto;
-    const room = await this.chatRoomsFetcher.getChatRoomForSpaceByUrl(url);
+    const room = await this.chatRoomsFetcher.getSharedspaceChatRoomByUrl(url);
 
     const targetChat = await this.chatsRepository.findOne({
       select: {
