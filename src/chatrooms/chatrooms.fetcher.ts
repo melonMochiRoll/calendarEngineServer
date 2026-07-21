@@ -33,9 +33,16 @@ export class ChatRoomsFetcher {
         url: true,
         type: true,
         SharedspaceId: true,
+        Sharedspace: {
+          url: true,
+          private: true,
+        },
       },
       where: {
         url,
+      },
+      relations: {
+        Sharedspace: true,
       },
     });
 
