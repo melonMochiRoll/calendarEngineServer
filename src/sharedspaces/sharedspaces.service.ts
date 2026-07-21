@@ -16,7 +16,7 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { RolesService } from "src/roles/roles.service";
 import dayjs from "dayjs";
-import { JOB_NAMES, JOB_STATUS, SPACE_URL_LENGTH, SHAREDSPACE_ROLE, SUBSCRIBEDSPACES_SORT, USER_STATUS } from "src/common/constant/constants";
+import { JOB_NAMES, JOB_STATUS, SPACE_URL_LENGTH, SHAREDSPACE_ROLE, SUBSCRIBEDSPACES_SORT, USER_STATUS, CHATROOM_TYPE } from "src/common/constant/constants";
 import { Todos } from "src/entities/Todos";
 import { JoinRequests } from "src/entities/JoinRequests";
 import { Invites } from "src/entities/Invites";
@@ -25,6 +25,7 @@ import { uuidv7 } from "uuidv7";
 import { SharedspaceFetcher } from "./sharedspaces.fetcher";
 import { stringToUUID } from "src/common/function/utilFunctions";
 import { TSubscribedspacesSort } from "src/typings/types";
+import { ChatRooms } from "src/entities/ChatRooms";
 
 @Injectable()
 export class SharedspacesService {
@@ -188,6 +189,14 @@ export class SharedspacesService {
         name: '새 스페이스',
         url,
         OwnerId: UserId,
+      });
+
+      await qr.manager.insert(ChatRooms, {
+        id: uuidv7(),
+        name: '일반',
+        url: nanoid(SPACE_URL_LENGTH),
+        type: CHATROOM_TYPE.SPACE,
+        SharedspaceId,
       });
 
       const ownerInfo = await this.rolesService.getRoleInfo(SHAREDSPACE_ROLE.OWNER);
