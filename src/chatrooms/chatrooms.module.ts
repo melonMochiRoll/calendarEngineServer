@@ -20,6 +20,9 @@ import { ChatRoomsFetcher } from "./chatrooms.fetcher";
     ChatRoomsService,
     ChatRoomsFetcher,
   ],
+  exports: [
+    ChatRoomsFetcher,
+  ],
 })
 
 export class ChatRoomsModule {}
