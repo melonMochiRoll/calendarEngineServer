@@ -27,7 +27,7 @@ export class ChatRoomsService {
     beforeParticipantId?: string,
     limit = 10,
   ) {
-    const chatRoom = await this.chatRoomsFetcher.getChatRoomByUrl(url);
+    const chatRoom = await this.chatRoomsFetcher.getChatRoomForSpaceByUrl(url);
 
     const isParticipant = await this.chatRoomsFetcher.isParticipant(UserId, chatRoom.id);
 

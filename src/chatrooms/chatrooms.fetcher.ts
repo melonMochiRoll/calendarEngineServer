@@ -17,7 +17,7 @@ export class ChatRoomsFetcher {
     private roomParticipantsRepository: Repository<RoomParticipants>,
   ) {}
 
-  async getChatRoomByUrl(url: string): Promise<TChatRoomDefault> {
+  async getChatRoomForSpaceByUrl(url: string): Promise<TChatRoomDefault> {
     const cacheKey = `chatRoom:${url}`;
 
     const cachedItem = await this.cacheManager.get<TChatRoomDefault>(cacheKey);
