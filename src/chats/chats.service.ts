@@ -34,7 +34,7 @@ export class ChatsService {
     private chatRoomsFetcher: ChatRoomsFetcher,
   ) {}
 
-  async getSharedspaceChats(
+  async getChatRoomChats(
     url: string,
     beforeChatId: string,
     UserId?: string,

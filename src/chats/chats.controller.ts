@@ -15,12 +15,12 @@ export class ChatsController {
 
   @UseGuards(PublicAuthGuard)
   @Get('sharedspaces/:url/chats')
-  getSharedspaceChats(
+  getChatRoomChats(
     @Param('url') url: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeChatId: string,
     @User() user: Users,
   ) {
-    return this.chatsService.getSharedspaceChats(
+    return this.chatsService.getChatRoomChats(
       url,
       beforeChatId,
       user?.id,
