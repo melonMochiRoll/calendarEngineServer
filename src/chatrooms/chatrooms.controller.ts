@@ -15,7 +15,7 @@ export class ChatRoomsController {
 
   @UseGuards(JwtAuthGuard)
   @Get(':url/members')
-  getChatspaceParticipants(
+  getChatRoomParticipants(
     @Param('url') url: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeParticipantId: string,
     @User() user: Users,
