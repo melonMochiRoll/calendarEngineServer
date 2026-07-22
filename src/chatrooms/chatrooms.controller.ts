@@ -4,7 +4,7 @@ import { JwtAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
-import { CreateChatRoomForDmDTO } from "./dto/create.chatroom.fordm.dto";
+import { CreateDmChatRoomDTO } from "./dto/create.dm.chatroom.dto";
 import { UUIDv7OrEmptyPipe } from "src/common/pipe/uuidv7OrEmpty.pipe";
 
 @Controller('api/chatrooms')
@@ -25,10 +25,10 @@ export class ChatRoomsController {
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post()
-  createChatSpaceForDM(
+  createDmChatRoom(
     @User() user: Users,
-    @Body() dto: CreateChatRoomForDmDTO,
+    @Body() dto: CreateDmChatRoomDTO,
   ) {
-    return this.chatRoomsService.createChatRoomForDM(user.id, dto);
+    return this.chatRoomsService.createDmChatRoom(user.id, dto);
   }
 }

@@ -6,7 +6,7 @@ import { ACCESS_DENIED_MESSAGE } from "src/common/constant/error.message";
 import { ChatRooms } from "src/entities/ChatRooms";
 import { DataSource, IsNull, LessThan, Repository } from "typeorm";
 import { uuidv7 } from "uuidv7";
-import { CreateChatRoomForDmDTO } from "./dto/create.chatroom.fordm.dto";
+import { CreateDmChatRoomDTO } from "./dto/create.dm.chatroom.dto";
 import { RoomParticipants } from "src/entities/RoomParticipants";
 import { ChatRoomsFetcher } from "./chatrooms.fetcher";
 
@@ -116,9 +116,9 @@ export class ChatRoomsService {
     };
   }
 
-  async createChatRoomForDM(
+  async createDmChatRoom(
     UserId: string,
-    dto: CreateChatRoomForDmDTO,
+    dto: CreateDmChatRoomDTO,
   ) {
     const { targetUserId } = dto;
 
