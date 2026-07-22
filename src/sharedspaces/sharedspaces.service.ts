@@ -194,7 +194,6 @@ export class SharedspacesService {
       await qr.manager.insert(ChatRooms, {
         id: uuidv7(),
         name: '일반',
-        url: nanoid(SPACE_URL_LENGTH),
         type: CHATROOM_TYPE.SPACE,
         SharedspaceId,
       });

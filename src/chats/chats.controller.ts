@@ -14,35 +14,35 @@ export class ChatsController {
   ) {}
 
   @UseGuards(PublicAuthGuard)
-  @Get('sharedspaces/chatrooms/:url/chats')
+  @Get('sharedspaces/chatrooms/:id/chats')
   getSharedspaceChatRoomChats(
-    @Param('url') url: string,
+    @Param('id') id: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeChatId: string,
     @User() user: Users,
   ) {
     return this.chatsService.getSharedspaceChatRoomChats(
-      url,
+      id,
       beforeChatId,
       user?.id,
     );
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Get('chatrooms/:url/chats')
+  @Get('chatrooms/:id/chats')
   getDmChatRoomChats(
-    @Param('url') url: string,
+    @Param('id') id: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeChatId: string,
     @User() user: Users,
   ) {
-    return this.chatsService.getDmChatRoomChats(url, beforeChatId, user.id);
+    return this.chatsService.getDmChatRoomChats(id, beforeChatId, user.id);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Post('space/:url/chats/images/presigned-url')
+  @Post('space/:id/chats/images/presigned-url')
   generatePresignedPutUrl(
-    @Param('url') url: string,
+    @Param('id') id: string,
     @Body() dto: GeneratePresignedPutUrlDTO,
   ) {
-    return this.chatsService.generatePresignedPutUrl(url, dto);
+    return this.chatsService.generatePresignedPutUrl(id, dto);
   }
 }

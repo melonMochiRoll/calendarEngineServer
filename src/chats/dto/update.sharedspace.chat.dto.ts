@@ -3,8 +3,8 @@ import { IsNotEmpty, IsString, IsUUID } from "class-validator";
 export class UpdateSharedspaceChatDTO {
 
   @IsNotEmpty()
-  @IsString()
-  url: string;
+  @IsUUID(7)
+  id: string;
 
   @IsNotEmpty()
   @IsUUID(7)

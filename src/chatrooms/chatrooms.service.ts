@@ -1,7 +1,7 @@
 import { ForbiddenException, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { nanoid } from "nanoid";
-import { CHATROOM_TYPE, SPACE_URL_LENGTH, USER_STATUS } from "src/common/constant/constants";
+import { CHATROOM_TYPE, USER_STATUS } from "src/common/constant/constants";
 import { ACCESS_DENIED_MESSAGE } from "src/common/constant/error.message";
 import { ChatRooms } from "src/entities/ChatRooms";
 import { DataSource, IsNull, LessThan, Repository } from "typeorm";
@@ -22,12 +22,12 @@ export class ChatRoomsService {
   ) {}
 
   async getChatRoomParticipants(
-    url: string,
+    id: string,
     UserId: string,
     beforeParticipantId?: string,
     limit = 10,
   ) {
-    const chatRoom = await this.chatRoomsFetcher.getSharedspaceChatRoomByUrl(url);
+    const chatRoom = await this.chatRoomsFetcher.getSharedspaceChatRoomById(id);
 
     const isParticipant = await this.chatRoomsFetcher.isParticipant(UserId, chatRoom.id);
 
@@ -128,11 +128,9 @@ export class ChatRoomsService {
 
     try {
       const RoomId = uuidv7();
-      const url = nanoid(SPACE_URL_LENGTH);
 
       await qr.manager.insert(ChatRooms, {
         id: RoomId,
-        url,
         type: CHATROOM_TYPE.DM,
       });
 
@@ -162,16 +160,15 @@ export class ChatRoomsService {
     SharedspaceId: string,
     name: string,
   ) {
-    const url = nanoid(SPACE_URL_LENGTH);
+    const id = uuidv7();
 
     await this.chatRoomsRepository.insert({
-      id: uuidv7(),
-      url,
+      id,
       name,
       type: CHATROOM_TYPE.SPACE,
       SharedspaceId,
     });
 
-    return url;
+    return id;
   }
 }

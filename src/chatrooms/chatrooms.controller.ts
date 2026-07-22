@@ -14,13 +14,13 @@ export class ChatRoomsController {
   ) {}
 
   @UseGuards(JwtAuthGuard)
-  @Get(':url/members')
+  @Get(':id/members')
   getChatRoomParticipants(
-    @Param('url') url: string,
+    @Param('id') id: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeParticipantId: string,
     @User() user: Users,
   ) {
-    return this.chatRoomsService.getChatRoomParticipants(url, user.id, beforeParticipantId);
+    return this.chatRoomsService.getChatRoomParticipants(id, user.id, beforeParticipantId);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)

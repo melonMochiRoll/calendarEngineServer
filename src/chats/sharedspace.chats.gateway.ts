@@ -34,18 +34,18 @@ export class SharedspaceChatsGateway {
   @SubscribeMessage(ChatToServer.JOIN_ROOM)
   joinRoom(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() url: string,
+    @MessageBody() id: string,
   ) {
-    socket.join(url);
+    socket.join(id);
     socket.emit(ChatToClient.READY, 'ok');
   }
 
   @SubscribeMessage(ChatToServer.LEAVE_ROOM)
   leaveRoom(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() url: string,
+    @MessageBody() id: string,
   ) {
-    socket.leave(url);
+    socket.leave(id);
   }
 
   @UseFilters(WsExceptionFilter)
@@ -62,7 +62,7 @@ export class SharedspaceChatsGateway {
       .emit(ChatToClient.CHAT_CREATED, chatWithUser.sender);
 
     socket
-      .to(dto.url)
+      .to(dto.id)
       .emit(ChatToClient.CHAT_CREATED, chatWithUser.receiver);
   }
 
@@ -77,7 +77,7 @@ export class SharedspaceChatsGateway {
     const updatedProperty = await this.chatsService.updateSharedspaceChat(dto, user.id);
 
     this.server
-      .to(dto.url)
+      .to(dto.id)
       .emit(ChatToClient.CHAT_UPDATED, updatedProperty);
   }
 
@@ -92,7 +92,7 @@ export class SharedspaceChatsGateway {
     const deletedChatId = await this.chatsService.deleteSharedspaceChat(dto, user.id);
 
     this.server
-      .to(dto.url)
+      .to(dto.id)
       .emit(ChatToClient.CHAT_DELETED, { id: deletedChatId });
   }
 
@@ -107,7 +107,7 @@ export class SharedspaceChatsGateway {
     const { event, data } = await this.chatsService.deleteSharedspaceChatImage(dto, user.id);
 
     this.server
-      .to(dto.url)
+      .to(dto.id)
       .emit(event, data);
   }
 }

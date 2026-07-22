@@ -35,12 +35,12 @@ export class ChatsService {
   ) {}
 
   async getSharedspaceChatRoomChats(
-    url: string,
+    id: string,
     beforeChatId: string,
     UserId?: string,
     limit = 100,
   ) {
-    const room = await this.chatRoomsFetcher.getSharedspaceChatRoomByUrl(url);
+    const room = await this.chatRoomsFetcher.getSharedspaceChatRoomById(id);
 
     if (!room || !room?.SharedspaceId) {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
@@ -151,12 +151,12 @@ export class ChatsService {
   }
   
   async getDmChatRoomChats(
-    url: string,
+    id: string,
     beforeChatId: string,
     UserId: string,
     limit = 100,
   ) {
-    const room = await this.chatRoomsFetcher.getSharedspaceChatRoomByUrl(url);
+    const room = await this.chatRoomsFetcher.getSharedspaceChatRoomById(id);
 
     if (!room) {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
@@ -265,9 +265,9 @@ export class ChatsService {
     dto: SendSharedspacechatDTO,
     UserId: string,
   ) {
-    const { url, ChatId, content, imageIds, imageKeys } = dto;
+    const { id, ChatId, content, imageIds, imageKeys } = dto;
 
-    const room = await this.chatRoomsFetcher.getSharedspaceChatRoomByUrl(url);
+    const room = await this.chatRoomsFetcher.getSharedspaceChatRoomById(id);
 
     if (!room) {
       throw new WsException({
@@ -371,10 +371,10 @@ export class ChatsService {
     dto: UpdateSharedspaceChatDTO,
     UserId: string,
   ) {
-    const { url, ChatId, content } = dto;
+    const { id, ChatId, content } = dto;
 
     try {
-      const room = await this.chatRoomsFetcher.getSharedspaceChatRoomByUrl(url);
+      const room = await this.chatRoomsFetcher.getSharedspaceChatRoomById(id);
 
       const updatedAt = dayjs().toDate();
 
@@ -418,10 +418,10 @@ export class ChatsService {
     await qr.connect();
     await qr.startTransaction();
 
-    const { url, ChatId } = dto;
+    const { id, ChatId } = dto;
 
     try {
-      const room = await this.chatRoomsFetcher.getSharedspaceChatRoomByUrl(url);
+      const room = await this.chatRoomsFetcher.getSharedspaceChatRoomById(id);
 
       const targetChat = await this.chatsRepository.findOne({
         select: {
@@ -482,8 +482,8 @@ export class ChatsService {
     dto: DeleteSharedspaceChatImageDTO,
     UserId: string,
   ) {
-    const { url, ChatId, ImageId } = dto;
-    const room = await this.chatRoomsFetcher.getSharedspaceChatRoomByUrl(url);
+    const { id, ChatId, ImageId } = dto;
+    const room = await this.chatRoomsFetcher.getSharedspaceChatRoomById(id);
 
     const targetChat = await this.chatsRepository.findOne({
       select: {
@@ -559,7 +559,7 @@ export class ChatsService {
   }
 
   async generatePresignedPutUrl(
-    url: string,
+    id: string,
     dto: GeneratePresignedPutUrlDTO,
   ) {
     const { metaDatas } = dto;
@@ -569,15 +569,15 @@ export class ChatsService {
     }
 
     const batch = metaDatas.map(async (metaData) => {
-      const { id, fileName, fileSize, contentType } = metaData;
+      const { id: ImageId, fileName, fileSize, contentType } = metaData;
 
       if (fileSize >= 5 * 1024 * 1024) {
         throw new BadRequestException(CHAT_IMAGE_TOO_LARGE_MESSAGE);
       }
       
-      const key = this.storageR2Service.generateStorageKey(url, fileName);
+      const key = this.storageR2Service.generateStorageKey(id, fileName);
       const presignedUrl = await this.storageR2Service.generatePresignedPutUrl(key, contentType);
-      await this.imagesRepository.insert({ id, status: IMAGE_STATUS.PENDING, type: IMAGE_TYPE.CHAT });
+      await this.imagesRepository.insert({ id: ImageId, status: IMAGE_STATUS.PENDING, type: IMAGE_TYPE.CHAT });
 
       return {
         key,

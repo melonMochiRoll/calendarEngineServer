@@ -1,6 +1,5 @@
 import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
 import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryColumn, UpdateDateColumn } from "typeorm";
-import { SPACE_URL_LENGTH } from "src/common/constant/constants";
 import { Chats } from "./Chats";
 import { Sharedspaces } from "./Sharedspaces";
 import { RoomParticipants } from "./RoomParticipants";
@@ -13,9 +12,6 @@ export class ChatRooms {
 
   @Column({ type: 'varchar', name: 'name', length: 30, nullable: true })
   name: string | null;
-
-  @Column({ type: 'char', name: 'url', length: SPACE_URL_LENGTH, unique: true })
-  url: string;
 
   @Column({ type: 'varchar', length: 30 })
   type: string;

@@ -17,8 +17,8 @@ export class ChatRoomsFetcher {
     private roomParticipantsRepository: Repository<RoomParticipants>,
   ) {}
 
-  async getSharedspaceChatRoomByUrl(url: string): Promise<TChatRoomDefault> {
-    const cacheKey = `chatRoom:${url}`;
+  async getSharedspaceChatRoomById(id: string): Promise<TChatRoomDefault> {
+    const cacheKey = `chatRoom:${id}`;
 
     const cachedItem = await this.cacheManager.get<TChatRoomDefault>(cacheKey);
 
@@ -30,7 +30,6 @@ export class ChatRoomsFetcher {
       select: {
         id: true,
         name: true,
-        url: true,
         type: true,
         SharedspaceId: true,
         Sharedspace: {
@@ -39,7 +38,7 @@ export class ChatRoomsFetcher {
         },
       },
       where: {
-        url,
+        id,
       },
       relations: {
         Sharedspace: true,
