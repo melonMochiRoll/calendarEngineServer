@@ -42,7 +42,7 @@ export class ChatsService {
   ) {
     const room = await this.chatRoomsFetcher.getSharedspaceChatRoomByUrl(url);
 
-    if (!room) {
+    if (!room || !room?.SharedspaceId) {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
