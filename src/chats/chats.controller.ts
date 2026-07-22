@@ -28,6 +28,16 @@ export class ChatsController {
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
+  @Get('chatrooms/:url/chats')
+  getDmChatRoomChats(
+    @Param('url') url: string,
+    @Query('before', UUIDv7OrEmptyPipe) beforeChatId: string,
+    @User() user: Users,
+  ) {
+    return this.chatsService.getDmChatRoomChats(url, beforeChatId, user.id);
+  }
+
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post('space/:url/chats/images/presigned-url')
   generatePresignedPutUrl(
     @Param('url') url: string,

@@ -149,6 +149,117 @@ export class ChatsService {
       hasMoreData,
     };
   }
+  
+  async getDmChatRoomChats(
+    url: string,
+    beforeChatId: string,
+    UserId: string,
+    limit = 100,
+  ) {
+    const room = await this.chatRoomsFetcher.getSharedspaceChatRoomByUrl(url);
+
+    if (!room) {
+      throw new BadRequestException(BAD_REQUEST_MESSAGE);
+    }
+
+    const isParticipant = await this.chatRoomsFetcher.isParticipant(UserId, room.id);
+
+    if (!isParticipant) {
+      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+    }
+
+    const chatRecords = await this.chatsRepository.find({
+      select: {
+        id: true,
+        content: true,
+        SenderId: true,
+        createdAt: true,
+        updatedAt: true,
+        Sender: {
+          email: true,
+          nickname: true,
+          ProfileImage: {
+            id: true,
+            path: true,
+          },
+        },
+      },
+      relations: {
+        Sender: {
+          ProfileImage: true,
+        },
+      },
+      where: beforeChatId ? {
+        RoomId: room.id,
+        id: LessThan(beforeChatId),
+        removedAt: IsNull(),
+      } : {
+        RoomId: room.id,
+        removedAt: IsNull(),
+      },
+      order: {
+        id: 'DESC',
+      },
+      take: limit + 1,
+    });
+
+    if (!chatRecords.length) {
+      return {
+        chats: [],
+        hasMoreData: false,
+      };
+    }
+
+    const hasMoreData = chatRecords.length > limit;
+
+    if (hasMoreData) {
+      chatRecords.pop();
+    }
+
+    const images = await this.chatImagesRepository.find({
+      select: {
+        id: true,
+        ChatId: true,
+        path: true,
+      },
+      where: {
+        ChatId: In(chatRecords.map((chat) => chat.id)),
+        Image: {
+          status: IMAGE_STATUS.ACTIVE,
+          removedAt: IsNull(),
+        },
+      },
+    });
+
+    const imagesMap = images.reduce((acc, image) => {
+      const { ChatId } = image;
+
+      if (!acc[ChatId]) {
+        acc[ChatId] = [];
+      }
+      acc[ChatId].push(image);
+      return acc;
+    }, {});
+
+    const chats = chatRecords.map((chat) => {
+      return {
+        ...chat,
+        ChatImages: imagesMap[`${chat.id}`] || [],
+        Sender: {
+          ...chat.Sender,
+          ProfileImage: chat.Sender.ProfileImage?.path,
+        },
+        permission: {
+          isSender: chat.SenderId === UserId,
+        },
+      };
+    });
+
+    return {
+      chats,
+      hasMoreData,
+    };
+  }
 
   async createSharedspaceChat(
     dto: SendSharedspacechatDTO,
