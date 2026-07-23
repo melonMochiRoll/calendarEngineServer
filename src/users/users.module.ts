@@ -5,7 +5,6 @@ import { Users } from 'src/entities/Users';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SpaceMembers } from 'src/entities/SpaceMembers';
 import { SharedspacesModule } from 'src/sharedspaces/sharedspaces.module';
-import { SharedspacesUsersContoller } from './sharedspaces.users.controller';
 import { RolesModule } from 'src/roles/roles.module';
 import { Images } from 'src/entities/Images';
 import { StorageModule } from 'src/storage/storage.module';
@@ -24,7 +23,6 @@ import { UsersFetcher } from './users.fetcher';
   ],
   controllers: [
     UsersController,
-    SharedspacesUsersContoller,
   ],
   providers: [
     UsersService,
