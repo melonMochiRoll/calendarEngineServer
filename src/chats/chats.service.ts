@@ -559,7 +559,7 @@ export class ChatsService {
   }
 
   async generatePresignedPutUrl(
-    id: string,
+    ChatRoomId: string,
     dto: GeneratePresignedPutUrlDTO,
   ) {
     const { metaDatas } = dto;
@@ -575,7 +575,7 @@ export class ChatsService {
         throw new BadRequestException(CHAT_IMAGE_TOO_LARGE_MESSAGE);
       }
       
-      const key = this.storageR2Service.generateStorageKey(id, fileName);
+      const key = this.storageR2Service.generateStorageKey(ChatRoomId, fileName);
       const presignedUrl = await this.storageR2Service.generatePresignedPutUrl(key, contentType);
       await this.imagesRepository.insert({ id: ImageId, status: IMAGE_STATUS.PENDING, type: IMAGE_TYPE.CHAT });
 

@@ -38,11 +38,11 @@ export class ChatsController {
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Post('space/:id/chats/images/presigned-url')
+  @Post('chatrooms/:ChatRoomId/presigned-url')
   generatePresignedPutUrl(
-    @Param('id') id: string,
+    @Param('ChatRoomId') ChatRoomId: string,
     @Body() dto: GeneratePresignedPutUrlDTO,
   ) {
-    return this.chatsService.generatePresignedPutUrl(id, dto);
+    return this.chatsService.generatePresignedPutUrl(ChatRoomId, dto);
   }
 }
