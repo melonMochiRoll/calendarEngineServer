@@ -101,9 +101,7 @@ export class InvitesService {
   ) {
     const { SharedspaceId, inviteeEmail } = dto;
 
-    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
-
-    const isMember = await this.rolesService.requireMember(UserId, space.id);
+    const isMember = await this.rolesService.requireMember(UserId, SharedspaceId);
     
     if (!isMember) {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
@@ -115,7 +113,7 @@ export class InvitesService {
       throw new BadRequestException(NOT_FOUND_USER);
     }
 
-    const isParticipant = await this.rolesService.requireParticipant(invitee.id, space.id);
+    const isParticipant = await this.rolesService.requireParticipant(invitee.id, SharedspaceId);
 
     if (isParticipant) {
       throw new ConflictException(CONFLICT_USER_MESSAGE);
@@ -126,7 +124,7 @@ export class InvitesService {
         id: true,
       },
       where: {
-        SharedspaceId: space.id,
+        SharedspaceId,
         InviteeId: invitee.id,
         status: INVITE_STATUS.PENDING,
         expiredAt: MoreThan(dayjs().toDate()),
@@ -139,7 +137,7 @@ export class InvitesService {
 
     await this.invitesRepository.insert({
       id: uuidv7(),
-      SharedspaceId: space.id,
+      SharedspaceId,
       InviterId: UserId,
       InviteeId: invitee.id,
       expiredAt: dayjs().add(7, 'day').format('YYYY-MM-DD HH:mm:ss'),
@@ -157,9 +155,7 @@ export class InvitesService {
     await qr.startTransaction();
 
     try {
-      const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
-
-      const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
+      const isParticipant = await this.rolesService.requireParticipant(UserId, SharedspaceId);
 
       if (isParticipant) {
         throw new ConflictException(CONFLICT_USER_MESSAGE);
@@ -187,13 +183,13 @@ export class InvitesService {
         {
           id: uuidv7(),
           UserId,
-          SharedspaceId: space.id,
+          SharedspaceId,
           RoleId: viewerInfo.id,
         }
       );
 
       await qr.commitTransaction();
-      await this.rolesService.invalidateUserRoleCache(UserId, space.id);
+      await this.rolesService.invalidateUserRoleCache(UserId, SharedspaceId);
     } catch (err) {
       await qr.rollbackTransaction();
 
@@ -231,9 +227,7 @@ export class InvitesService {
     SharedspaceId: string,
     UserId: string,
   ) {
-    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
-
-    const isMember = await this.rolesService.requireMember(UserId, space.id);
+    const isMember = await this.rolesService.requireMember(UserId, SharedspaceId);
     
     if (!isMember) {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);

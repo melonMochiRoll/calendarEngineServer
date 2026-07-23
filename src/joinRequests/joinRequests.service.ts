@@ -27,9 +27,7 @@ export class JoinRequestsService {
     UserId: string,
     limit = 10,
   ) {
-    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
-
-    const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+    const isOwner = await this.rolesService.requireOwner(UserId, SharedspaceId);
 
     if (!isOwner) {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
@@ -55,11 +53,11 @@ export class JoinRequestsService {
         },
       },
       where: beforeJoinRequestId ? {
-        SharedspaceId: space.id,
+        SharedspaceId,
         id: LessThan(beforeJoinRequestId),
         removedAt: IsNull(),
       } : {
-        SharedspaceId: space.id,
+        SharedspaceId,
         removedAt: IsNull(),
       },
       order: {
@@ -101,9 +99,7 @@ export class JoinRequestsService {
     await qr.startTransaction();
 
     try {
-      const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
-
-      const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+      const isOwner = await this.rolesService.requireOwner(UserId, SharedspaceId);
 
       if (!isOwner) {
         throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
@@ -118,7 +114,7 @@ export class JoinRequestsService {
         },
       });
 
-      if (space.id !== targetJoinRequest?.SharedspaceId) {
+      if (SharedspaceId !== targetJoinRequest?.SharedspaceId) {
         throw new BadRequestException(BAD_REQUEST_MESSAGE);
       }
 
@@ -131,7 +127,7 @@ export class JoinRequestsService {
       await qr.manager.insert(SpaceMembers, {
         id: uuidv7(),
         UserId: targetJoinRequest.RequestorId,
-        SharedspaceId: targetJoinRequest.SharedspaceId,
+        SharedspaceId,
         RoleId: roleInfo.id,
       });
       await qr.manager.update(JoinRequests, { id: targetJoinRequest.id }, { status: JOINREQUEST_STATUS.ACCEPTED });
@@ -151,15 +147,13 @@ export class JoinRequestsService {
     dto: CreateJoinRequestDTO,
     UserId: string,
   ) {
-    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
-
-    const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
+    const isParticipant = await this.rolesService.requireParticipant(UserId, SharedspaceId);
 
     if (isParticipant) {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
-    const isRequested = await this.joinRequestsRepository.findOneBy({ RequestorId: UserId, SharedspaceId: space.id });
+    const isRequested = await this.joinRequestsRepository.findOneBy({ RequestorId: UserId, SharedspaceId, });
 
     if (isRequested) {
       throw new ConflictException(CONFLICT_REQUEST_MESSAGE);
@@ -167,7 +161,7 @@ export class JoinRequestsService {
 
     await this.joinRequestsRepository.insert({
       id: uuidv7(),
-      SharedspaceId: space.id,
+      SharedspaceId,
       RequestorId: UserId,
       message: dto.message,
       status: JOINREQUEST_STATUS.PENDING,
@@ -179,9 +173,7 @@ export class JoinRequestsService {
     joinRequestId: string,
     UserId: string,
   ) {
-    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
-
-    const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+    const isOwner = await this.rolesService.requireOwner(UserId, SharedspaceId);
 
     if (!isOwner) {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);

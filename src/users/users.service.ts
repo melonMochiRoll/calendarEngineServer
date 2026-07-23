@@ -61,8 +61,6 @@ export class UsersService {
     beforeUserId: string,
     limit = 10,
   ) {
-    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
-
     const qb1 = this.usersRepository
       .createQueryBuilder('users')
       .select([
@@ -117,7 +115,7 @@ export class UsersService {
         UserId: true,
       },
       where: {
-        SharedspaceId: space.id,
+        SharedspaceId,
       },
     });
 

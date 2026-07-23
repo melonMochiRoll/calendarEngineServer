@@ -288,15 +288,13 @@ export class SharedspacesService {
     dto: UpdateSharedspacePrivateDTO,
     UserId: string,
   ) {
-    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
-
-    const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+    const isOwner = await this.rolesService.requireOwner(UserId, SharedspaceId);
 
     if (!isOwner) {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
-    await this.sharedspacesRepository.update({ id: space.id }, { ...dto });
+    await this.sharedspacesRepository.update({ id: SharedspaceId }, { ...dto });
     await this.sharedspaceFetcher.invalidateSharedspaceCache(SharedspaceId);
   }
 
@@ -309,16 +307,7 @@ export class SharedspacesService {
     await qr.startTransaction();
 
     try {
-      const space = await this.sharedspacesRepository.findOne({
-        select: {
-          id: true,
-        },
-        where: {
-          id: SharedspaceId,
-        },
-      });
-
-      const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+      const isOwner = await this.rolesService.requireOwner(UserId, SharedspaceId);
 
       if (!isOwner) {
         throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
@@ -326,7 +315,7 @@ export class SharedspacesService {
 
       const result = await qr.manager.update(
         Sharedspaces,
-        { id: space.id, removedAt: IsNull() },
+        { id: SharedspaceId, removedAt: IsNull() },
         { removedAt: dayjs().toDate() }
       );
 
@@ -338,7 +327,7 @@ export class SharedspacesService {
         BatchScheduler,
         {
           job_name: JOB_NAMES.SHAREDSPACE_DELETE,
-          job_params: JSON.stringify({ SharedspaceId: space.id }),
+          job_params: JSON.stringify({ SharedspaceId }),
           status: JOB_STATUS.PENDING,
         },
       );
@@ -517,9 +506,7 @@ export class SharedspacesService {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
-    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
-
-    const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+    const isOwner = await this.rolesService.requireOwner(UserId, SharedspaceId);
 
     if (!isOwner) {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
@@ -537,7 +524,7 @@ export class SharedspacesService {
       },
       where: {
         UserId: targetUserId,
-        SharedspaceId: space.id,
+        SharedspaceId,
       },
     });
 
@@ -548,7 +535,7 @@ export class SharedspacesService {
     await this.spaceMembersRepository.insert({
       id: uuidv7(),
       UserId: targetUserId,
-      SharedspaceId: space.id,
+      SharedspaceId,
       RoleId: roleInfo.id,
     });
     await this.invalidateSharedspaceMembersCache(SharedspaceId);
@@ -561,9 +548,7 @@ export class SharedspacesService {
   ) {
     const { UserId: targetUserId, RoleName } = dto;
 
-    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
-
-    const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+    const isOwner = await this.rolesService.requireOwner(UserId, SharedspaceId);
 
     if (!isOwner) {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
@@ -581,7 +566,7 @@ export class SharedspacesService {
       },
       where: {
         UserId: targetUserId,
-        SharedspaceId: space.id,
+        SharedspaceId,
       }
     });
 
@@ -591,12 +576,12 @@ export class SharedspacesService {
 
     await this.spaceMembersRepository.update({
       UserId: targetUserId,
-      SharedspaceId: space.id,
+      SharedspaceId,
     },{
       RoleId: roleInfo.id,
     });
 
-    await this.rolesService.invalidateUserRoleCache(targetUserId, space.id);
+    await this.rolesService.invalidateUserRoleCache(targetUserId, SharedspaceId);
     await this.invalidateSharedspaceMembersCache(SharedspaceId);
   }
 
@@ -605,9 +590,7 @@ export class SharedspacesService {
     targetUserId: string,
     UserId: string,
   ) {
-    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
-
-    const isOwner = await this.rolesService.requireOwner(UserId, space.id);
+    const isOwner = await this.rolesService.requireOwner(UserId, SharedspaceId);
 
     if (!isOwner) {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
@@ -619,7 +602,7 @@ export class SharedspacesService {
       },
       where: {
         UserId: targetUserId,
-        SharedspaceId: space.id,
+        SharedspaceId,
       }
     });
 
@@ -632,11 +615,11 @@ export class SharedspacesService {
     const now = dayjs().toDate();
 
     await this.spaceMembersRepository.update(
-      { UserId: targetUserId, SharedspaceId: space.id },
+      { UserId: targetUserId, SharedspaceId },
       { removedAt: now }
     );
 
-    await this.rolesService.invalidateUserRoleCache(targetUserId, space.id);
+    await this.rolesService.invalidateUserRoleCache(targetUserId, SharedspaceId);
     await this.invalidateSharedspaceMembersCache(SharedspaceId);
   }
 }
