@@ -55,9 +55,9 @@ export class InvitesController {
   @Delete('cancel/:id')
   cancelInvite(
     @Param('id', UUIDv7ValidationPipe) targetInviteId: string,
-    @Query('url') url: string,
+    @Query('SharedspaceId') SharedspaceId: string,
     @User() user: Users,
   ) {
-    return this.invitesService.cancelInvite(targetInviteId, url, user.id);
+    return this.invitesService.cancelInvite(targetInviteId, SharedspaceId, user.id);
   }
 }

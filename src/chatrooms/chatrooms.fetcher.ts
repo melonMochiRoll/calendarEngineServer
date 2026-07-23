@@ -33,7 +33,6 @@ export class ChatRoomsFetcher {
         type: true,
         SharedspaceId: true,
         Sharedspace: {
-          url: true,
           private: true,
         },
       },

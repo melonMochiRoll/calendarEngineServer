@@ -10,12 +10,12 @@ export class SharedspacesUsersContoller {
   ) {}
   
   @UseGuards(JwtAuthGuard)
-  @Get(':url/users/search')
+  @Get(':SharedspaceId/users/search')
   searchUsers(
-    @Param('url') url: string,
+    @Param('SharedspaceId') SharedspaceId: string,
     @Query('query') query: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeUserId: string,
   ) {
-    return this.usersService.searchUsers(url, query, beforeUserId);
+    return this.usersService.searchUsers(SharedspaceId, query, beforeUserId);
   }
 }

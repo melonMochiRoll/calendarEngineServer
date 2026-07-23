@@ -22,12 +22,12 @@ export class JoinRequestsService {
   ) {}
 
   async getJoinRequests(
-    url: string,
+    SharedspaceId: string,
     beforeJoinRequestId: string,
     UserId: string,
     limit = 10,
   ) {
-    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
 
     const isOwner = await this.rolesService.requireOwner(UserId, space.id);
 
@@ -91,7 +91,7 @@ export class JoinRequestsService {
   }
 
   async resolveJoinRequest(
-    url: string,
+    SharedspaceId: string,
     joinRequestId: string,
     dto: ResolveJoinRequestDTO,
     UserId: string,
@@ -101,7 +101,7 @@ export class JoinRequestsService {
     await qr.startTransaction();
 
     try {
-      const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
+      const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
 
       const isOwner = await this.rolesService.requireOwner(UserId, space.id);
 
@@ -147,11 +147,11 @@ export class JoinRequestsService {
   }
   
   async createJoinRequest(
-    url: string,
+    SharedspaceId: string,
     dto: CreateJoinRequestDTO,
     UserId: string,
   ) {
-    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
 
     const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
 
@@ -175,11 +175,11 @@ export class JoinRequestsService {
   }
 
   async rejectJoinRequest(
-    url: string,
+    SharedspaceId: string,
     joinRequestId: string,
     UserId: string,
   ) {
-    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
 
     const isOwner = await this.rolesService.requireOwner(UserId, space.id);
 

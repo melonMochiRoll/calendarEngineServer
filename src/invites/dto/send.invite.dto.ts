@@ -1,10 +1,10 @@
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsNotEmpty, IsString, IsUUID } from "class-validator";
 
 export class SendInviteDTO {
 
   @IsNotEmpty()
-  @IsString()
-  url: string;
+  @IsUUID(7)
+  SharedspaceId: string;
 
   @IsNotEmpty()
   @IsString()

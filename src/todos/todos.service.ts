@@ -25,7 +25,7 @@ export class TodosService {
   ) {}
 
   async getTodosByMonth(
-    url: string,
+    SharedspaceId: string,
     date: string,
     UserId?: string,
   ) {
@@ -33,7 +33,7 @@ export class TodosService {
     const startDate = dayjs(`${year}-${month}-01`).toDate();
     const endDate = dayjs(`${year}-${month}-31`).toDate();
 
-    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
 
     if (space.private) {
       const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
@@ -41,12 +41,12 @@ export class TodosService {
       if (!isParticipant) {
         throw new ForbiddenException({
           message: ACCESS_DENIED_MESSAGE,
-          metaData: { spaceUrl: space.url },
+          metaData: { SharedspaceId: space.id },
         });
       }
     }
 
-    const cacheKey = `todos:${space.url}:${year}-${month}`;
+    const cacheKey = `todos:${space.id}:${year}-${month}`;
 
     const cachedItem = await this.cacheManager.get<Map<string, Todos> | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
@@ -110,18 +110,18 @@ export class TodosService {
   }
 
   async createTodo(
-    url: string,
+    SharedspaceId: string,
     dto: CreateTodoDTO,
     UserId: string,
   ) {
-    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
 
     const isMember = await this.rolesService.requireMember(UserId, space.id);
 
     if (!isMember) {
       throw new ForbiddenException({
         message: ACCESS_DENIED_MESSAGE,
-        metaData: { spaceUrl: space.url },
+        metaData: { SharedspaceId: space.id },
       });
     }
 
@@ -132,24 +132,24 @@ export class TodosService {
       SharedspaceId: space.id,
     });
 
-    await this.invalidateTodosCache(space.url, dto.date);
+    await this.invalidateTodosCache(space.id, dto.date);
   }
 
   async updateTodo(
-    url: string,
+    SharedspaceId: string,
     dto: UpdateTodoDto,
     UserId: string,
   ) {
     const { id: todoId, ...rest } = dto;
 
-    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
 
     const isMember = await this.rolesService.requireMember(UserId, space.id);
 
     if (!isMember) {
       throw new ForbiddenException({
         message: ACCESS_DENIED_MESSAGE,
-        metaData: { spaceUrl: space.url },
+        metaData: { SharedspaceId: space.id },
       });
     }
 
@@ -162,22 +162,22 @@ export class TodosService {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
-    await this.invalidateTodosCache(space.url, dto.date);
+    await this.invalidateTodosCache(space.id, dto.date);
   }
 
   async deleteTodo(
-    url: string,
+    SharedspaceId: string,
     todoId: string,
     UserId: string,
   ) {
-    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
 
     const isMember = await this.rolesService.requireMember(UserId, space.id);
 
     if (!isMember) {
       throw new ForbiddenException({
         message: ACCESS_DENIED_MESSAGE,
-        metaData: { spaceUrl: space.url },
+        metaData: { SharedspaceId: space.id },
       });
     }
 
@@ -191,17 +191,17 @@ export class TodosService {
 
     await this.todosRepository.update({ id: todoId }, { removedAt: now });
 
-    await this.invalidateTodosCache(space.url, targetTodo.date);
+    await this.invalidateTodosCache(space.id, targetTodo.date);
   }
 
   async searchTodos(
-    url: string,
+    SharedspaceId: string,
     query: string,
     beforeTodoId: string,
     UserId?: string,
     limit = 10,
   ) {
-    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
 
     if (space.private) {
       const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
@@ -209,7 +209,7 @@ export class TodosService {
       if (!isParticipant) {
         throw new ForbiddenException({
           message: ACCESS_DENIED_MESSAGE,
-          metaData: { spaceUrl: space.url },
+          metaData: { SharedspaceId: space.id },
         });
       }
     }
@@ -250,11 +250,11 @@ export class TodosService {
     };
   }
 
-  async invalidateTodosCache(url: string, date: Date | string) {
-    if (!url || !date) return;
+  async invalidateTodosCache(id: string, date: Date | string) {
+    if (!id || !date) return;
     
     const [ year, month ] = dayjs(date).format('YYYY-MM').split('-');
 
-    await this.cacheManager.del(`todos:${url}:${year}-${month}`);
+    await this.cacheManager.del(`todos:${id}:${year}-${month}`);
   }
 }

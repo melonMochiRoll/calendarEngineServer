@@ -52,7 +52,7 @@ export class ChatsService {
       if (!isParticipant) {
         throw new ForbiddenException({
           message: ACCESS_DENIED_MESSAGE,
-          metaData: { spaceUrl: room.Sharedspace.url },
+          metaData: { SharedspaceId: room.SharedspaceId },
         });
       }
     }

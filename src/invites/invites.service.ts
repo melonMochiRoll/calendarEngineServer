@@ -35,8 +35,8 @@ export class InvitesService {
         id: true,
         createdAt: true,
         Sharedspace: {
+          id: true,
           name: true,
-          url: true,
           Owner: {
             email: true,
             nickname: true,
@@ -80,12 +80,12 @@ export class InvitesService {
       const { Sharedspace, ...rest } = invite;
       return {
         ...rest,
+        SharedspaceId: Sharedspace.id,
         SharedspaceName: Sharedspace.name,
         Owner: {
           ...Sharedspace.Owner,
           ProfileImage: Sharedspace.Owner.ProfileImage?.path,
         },
-        url: Sharedspace.url,
       };
     });
 
@@ -99,9 +99,9 @@ export class InvitesService {
     dto: SendInviteDTO,
     UserId: string,
   ) {
-    const { url, inviteeEmail } = dto;
+    const { SharedspaceId, inviteeEmail } = dto;
 
-    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
 
     const isMember = await this.rolesService.requireMember(UserId, space.id);
     
@@ -150,14 +150,14 @@ export class InvitesService {
     dto: AcceptInviteDTO,
     UserId: string,
   ) {
-    const { id: targetInviteId, url } = dto;
+    const { id: targetInviteId, SharedspaceId } = dto;
 
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
 
     try {
-      const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
+      const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
 
       const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
 
@@ -228,10 +228,10 @@ export class InvitesService {
 
   async cancelInvite(
     targetInviteId: string,
-    url: string,
+    SharedspaceId: string,
     UserId: string,
   ) {
-    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
 
     const isMember = await this.rolesService.requireMember(UserId, space.id);
     

@@ -17,60 +17,60 @@ export class TodosController {
   ) {}
 
   @UseGuards(PublicAuthGuard)
-  @Get(':url/todos')
+  @Get(':SharedspaceId/todos')
   getTodosByMonth(
-    @Param('url') url: string,
+    @Param('SharedspaceId') SharedspaceId: string,
     @Query('date', DateValidationPipe) date: string,
     @User() user: Users,
   ) {
     return this.todosService.getTodosByMonth(
-      url,
+      SharedspaceId,
       date,
       user?.id,
     );
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Post(':url/todos')
+  @Post(':SharedspaceId/todos')
   createTodo(
-    @Param('url') url: string,
+    @Param('SharedspaceId') SharedspaceId: string,
     @Body() dto: CreateTodoDTO,
     @User() user: Users,
   ) {
-    return this.todosService.createTodo(url, dto, user.id);
+    return this.todosService.createTodo(SharedspaceId, dto, user.id);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Put(':url/todos')
+  @Put(':SharedspaceId/todos')
   updateTodo(
-    @Param('url') url: string,
+    @Param('SharedspaceId') SharedspaceId: string,
     @Body() dto: UpdateTodoDto,
     @User() user: Users,
   ) {
-    return this.todosService.updateTodo(url, dto, user.id);
+    return this.todosService.updateTodo(SharedspaceId, dto, user.id);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @HttpCode(204)
-  @Delete(':url/todos/:id')
+  @Delete(':SharedspaceId/todos/:id')
   deleteTodo(
-    @Param('url') url: string,
+    @Param('SharedspaceId') SharedspaceId: string,
     @Param('id', UUIDv7ValidationPipe) todoId: string,
     @User() user: Users,
   ) {
-    return this.todosService.deleteTodo(url, todoId, user.id);
+    return this.todosService.deleteTodo(SharedspaceId, todoId, user.id);
   }
 
   @UseGuards(PublicAuthGuard)
-  @Get(':url/todos/search')
+  @Get(':SharedspaceId/todos/search')
   searchTodos(
-    @Param('url') url: string,
+    @Param('SharedspaceId') SharedspaceId: string,
     @Query('query') query: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeTodoId: string,
     @User() user: Users,
   ) {
     return this.todosService.searchTodos(
-      url,
+      SharedspaceId,
       query,
       beforeTodoId,
       user?.id,

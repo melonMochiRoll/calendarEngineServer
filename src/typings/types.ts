@@ -12,7 +12,7 @@ export type TSharedspaceRole = typeof SHAREDSPACE_ROLE[keyof typeof SHAREDSPACE_
 export interface IErrorResponse {
   message: string,
   metaData?: {
-    spaceUrl?: string,
+    SharedspaceId?: string,
     type?: string,
   },
 };
@@ -70,14 +70,14 @@ export type TRefreshTokenPayload = {
   exp: number,
 };
 
-export type TSharedspaceDefault = Pick<Sharedspaces, 'id' | 'name' | 'private' | 'url' | 'OwnerId' | 'createdAt'>;
+export type TSharedspaceDefault = Pick<Sharedspaces, 'id' | 'name' | 'private' | 'OwnerId' | 'createdAt'>;
 
 export type TUserDefault = Pick<Users, 'id' | 'email' | 'nickname' | 'provider' | 'status'> & {
   ProfileImage: string,
 };
 
 export type TChatRoomDefault = Pick<ChatRooms, 'id' | 'name' | 'type' | 'SharedspaceId'> & {
-  Sharedspace: Pick<Sharedspaces, 'url' | 'private'>,
+  Sharedspace: Pick<Sharedspaces, 'private'>,
 };
 
 export type CacheItem<T> = {

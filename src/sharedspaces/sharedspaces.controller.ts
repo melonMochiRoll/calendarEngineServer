@@ -20,12 +20,12 @@ export class SharedspacesController {
   ) {}
 
   @UseGuards(PublicAuthGuard)
-  @Get(':url/view')
+  @Get(':SharedspaceId/view')
   getSharedspace(
-    @Param('url') url: string,
+    @Param('SharedspaceId') SharedspaceId: string,
     @User() user: Users,
   ) {
-    return this.sharedspacesService.getSharedspace(url, user?.id);
+    return this.sharedspacesService.getSharedspace(SharedspaceId, user?.id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -45,81 +45,81 @@ export class SharedspacesController {
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Patch(':url/name')
+  @Patch(':SharedspaceId/name')
   updateSharedspaceName(
-    @Param('url') url: string,
+    @Param('SharedspaceId') SharedspaceId: string,
     @Body() dto: UpdateSharedspaceNameDTO,
     @User() user: Users,
   ) {
-    return this.sharedspacesService.updateSharedspaceName(url, dto, user.id);
+    return this.sharedspacesService.updateSharedspaceName(SharedspaceId, dto, user.id);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Patch(':url/owner')
+  @Patch(':SharedspaceId/owner')
   updateSharedspaceOwner(
-    @Param('url') url: string,
+    @Param('SharedspaceId') SharedspaceId: string,
     @Body() dto: UpdateSharedspaceOwnerDTO,
     @User() user: Users,
   ) {
-    return this.sharedspacesService.updateSharedspaceOwner(url, dto, user.id);
+    return this.sharedspacesService.updateSharedspaceOwner(SharedspaceId, dto, user.id);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Patch(':url/private')
+  @Patch(':SharedspaceId/private')
   updateSharedspacePrivate(
-    @Param('url') url: string,
+    @Param('SharedspaceId') SharedspaceId: string,
     @Body() dto: UpdateSharedspacePrivateDTO,
     @User() user: Users,
   ) {
-    return this.sharedspacesService.updateSharedspacePrivate(url, dto, user.id);
+    return this.sharedspacesService.updateSharedspacePrivate(SharedspaceId, dto, user.id);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Delete(':url')
+  @Delete(':SharedspaceId')
   scheduleSharedspaceDeletion(
-    @Param('url') url: string,
+    @Param('SharedspaceId') SharedspaceId: string,
     @User() user: Users,
   ) {
-    return this.sharedspacesService.scheduleSharedspaceDeletion(url, user.id);
+    return this.sharedspacesService.scheduleSharedspaceDeletion(SharedspaceId, user.id);
   }
 
   @UseGuards(PublicAuthGuard)
-  @Get(':url/members')
+  @Get(':SharedspaceId/members')
   getSharedspaceMembers(
-    @Param('url') url: string,
+    @Param('SharedspaceId') SharedspaceId: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeUserId: string,
     @User() user: Users,
   ) {
-    return this.sharedspacesService.getSharedspaceMembers(url, beforeUserId, user?.id)
+    return this.sharedspacesService.getSharedspaceMembers(SharedspaceId, beforeUserId, user?.id)
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Post(':url/members')
+  @Post(':SharedspaceId/members')
   createSharedspaceMembers(
-    @Param('url') url: string,
+    @Param('SharedspaceId') SharedspaceId: string,
     @Body() dto: CreateSharedspaceMembersDTO,
     @User() user: Users,
   ) {
-    return this.sharedspacesService.createSharedspaceMembers(url, dto, user.id);
+    return this.sharedspacesService.createSharedspaceMembers(SharedspaceId, dto, user.id);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Patch(':url/members')
+  @Patch(':SharedspaceId/members')
   updateSharedspaceMembers(
-    @Param('url') url: string,
+    @Param('SharedspaceId') SharedspaceId: string,
     @Body() dto: UpdateSharedspaceMembersDTO,
     @User() user: Users,
   ) {
-    return this.sharedspacesService.updateSharedspaceMembers(url, dto, user.id);
+    return this.sharedspacesService.updateSharedspaceMembers(SharedspaceId, dto, user.id);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Delete(':url/members/:id')
+  @Delete(':SharedspaceId/members/:id')
   deleteSharedspaceMembers(
-    @Param('url') url: string,
+    @Param('SharedspaceId') SharedspaceId: string,
     @Param('id', UUIDv7ValidationPipe) targetUserId: string,
     @User() user: Users,
   ) {
-    return this.sharedspacesService.deleteSharedspaceMembers(url, targetUserId, user.id);
+    return this.sharedspacesService.deleteSharedspaceMembers(SharedspaceId, targetUserId, user.id);
   }
 }

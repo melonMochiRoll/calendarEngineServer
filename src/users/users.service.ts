@@ -56,12 +56,12 @@ export class UsersService {
   }
 
   async searchUsers(
-    url: string,
+    SharedspaceId: string,
     query: string,
     beforeUserId: string,
     limit = 10,
   ) {
-    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
 
     const qb1 = this.usersRepository
       .createQueryBuilder('users')

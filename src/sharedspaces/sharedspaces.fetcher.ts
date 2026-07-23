@@ -18,11 +18,11 @@ export class SharedspaceFetcher {
   ) {}
   private refreshLock = new Set<String>();
 
-  async getSharedspaceByUrl(
-    url: string,
+  async getSharedspaceById(
+    id: string,
     beta = 1,
   ) {
-    const cacheKey = `sharedspace:${url}`;
+    const cacheKey = `sharedspace:${id}`;
 
     const cachedItem = await this.cacheManager.get<CacheItem<TSharedspaceDefault>>(cacheKey);
 
@@ -35,7 +35,7 @@ export class SharedspaceFetcher {
         this.refreshLock.add(cacheKey);
 
         try {
-          await this.fetchSharedspaceAndWrite(cacheKey, url);
+          await this.fetchSharedspaceAndWrite(cacheKey, id);
         } finally {
           this.refreshLock.delete(cacheKey);
         }
@@ -44,23 +44,22 @@ export class SharedspaceFetcher {
       return cachedItem.value;
     }
 
-    const space = await this.fetchSharedspaceAndWrite(cacheKey, url);
+    const space = await this.fetchSharedspaceAndWrite(cacheKey, id);
     return space;
   }
 
-  async fetchSharedspaceAndWrite(cacheKey: string, url: string) {
+  async fetchSharedspaceAndWrite(cacheKey: string, id: string) {
     const start = dayjs();
     const space = await this.sharedspacesRepository.findOne({
       select: {
         id: true,
-        url: true,
         name: true,
         private: true,
         OwnerId: true,
         createdAt: true,
       },
       where: {
-        url,
+        id,
         removedAt: IsNull(),
       },
     });
@@ -82,7 +81,7 @@ export class SharedspaceFetcher {
     return space;
   }
 
-  async invalidateSharedspaceCache(url: string) {
-    await this.cacheManager.del(`sharedspace:${url}`);
+  async invalidateSharedspaceCache(id: string) {
+    await this.cacheManager.del(`sharedspace:${id}`);
   }
 }

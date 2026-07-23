@@ -2,7 +2,6 @@ import { BadRequestException, ConflictException, ForbiddenException, Inject, Inj
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, FindOptionsWhere, In, IsNull, LessThan, Repository } from "typeorm";
 import { Sharedspaces } from "src/entities/Sharedspaces";
-import { nanoid } from "nanoid";
 import { UpdateSharedspaceNameDTO } from "./dto/update.sharedspace.name.dto";
 import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { SpaceMembers } from "src/entities/SpaceMembers";
@@ -16,7 +15,7 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { RolesService } from "src/roles/roles.service";
 import dayjs from "dayjs";
-import { JOB_NAMES, JOB_STATUS, SPACE_URL_LENGTH, SHAREDSPACE_ROLE, SUBSCRIBEDSPACES_SORT, USER_STATUS, CHATROOM_TYPE } from "src/common/constant/constants";
+import { JOB_NAMES, JOB_STATUS, SHAREDSPACE_ROLE, SUBSCRIBEDSPACES_SORT, USER_STATUS, CHATROOM_TYPE } from "src/common/constant/constants";
 import { Todos } from "src/entities/Todos";
 import { JoinRequests } from "src/entities/JoinRequests";
 import { Invites } from "src/entities/Invites";
@@ -44,10 +43,10 @@ export class SharedspacesService {
   ) {}
 
   async getSharedspace(
-    url: string,
+    SharedspaceId: string,
     UserId?: string,
   ) {
-    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
 
     if (!UserId && space.private) {
       throw new UnauthorizedException(UNAUTHORIZED_MESSAGE);
@@ -58,7 +57,7 @@ export class SharedspacesService {
     if (!userRole && space.private) {
       throw new ForbiddenException({
         message: ACCESS_DENIED_MESSAGE,
-        metaData: { spaceUrl: space.url },
+        metaData: { SharedspaceId: space.id },
       });
     }
 
@@ -120,7 +119,6 @@ export class SharedspacesService {
         Sharedspace: {
           id: true,
           name: true,
-          url: true,
           private: true,
           OwnerId: true,
           Owner: {
@@ -182,12 +180,10 @@ export class SharedspacesService {
 
     try {
       const SharedspaceId = uuidv7();
-      const url = nanoid(SPACE_URL_LENGTH);
 
       await qr.manager.insert(Sharedspaces, {
         id: SharedspaceId,
         name: '새 스페이스',
-        url,
         OwnerId: UserId,
       });
 
@@ -209,7 +205,7 @@ export class SharedspacesService {
 
       await qr.commitTransaction();
 
-      return url;
+      return SharedspaceId;
     } catch (err) {
       await qr.rollbackTransaction();
 
@@ -220,13 +216,13 @@ export class SharedspacesService {
   }
 
   async updateSharedspaceName(
-    url: string,
+    SharedspaceId: string,
     dto: UpdateSharedspaceNameDTO,
     UserId: string,
   ) {
     const { name } = dto;
     
-    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
 
     if (space.name === name) {
       throw new ConflictException('동일한 이름으로 바꿀수 없습니다.');
@@ -239,11 +235,11 @@ export class SharedspacesService {
     }
 
     await this.sharedspacesRepository.update({ id: space.id }, { name });
-    await this.sharedspaceFetcher.invalidateSharedspaceCache(url);
+    await this.sharedspaceFetcher.invalidateSharedspaceCache(SharedspaceId);
   }
 
   async updateSharedspaceOwner(
-    url: string,
+    SharedspaceId: string,
     dto: UpdateSharedspaceOwnerDTO,
     UserId: string,
   ) {
@@ -254,7 +250,7 @@ export class SharedspacesService {
     await qr.startTransaction();
 
     try {
-      const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
+      const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
 
       const isOwner = await this.rolesService.requireOwner(UserId, space.id);
 
@@ -275,7 +271,7 @@ export class SharedspacesService {
 
       await qr.commitTransaction();
 
-      await this.sharedspaceFetcher.invalidateSharedspaceCache(url);
+      await this.sharedspaceFetcher.invalidateSharedspaceCache(SharedspaceId);
       await this.rolesService.invalidateUserRoleCache(space.OwnerId, space.id);
       await this.rolesService.invalidateUserRoleCache(newOwnerId, space.id);
     } catch (err) {
@@ -288,11 +284,11 @@ export class SharedspacesService {
   }
 
   async updateSharedspacePrivate(
-    url: string,
+    SharedspaceId: string,
     dto: UpdateSharedspacePrivateDTO,
     UserId: string,
   ) {
-    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
 
     const isOwner = await this.rolesService.requireOwner(UserId, space.id);
 
@@ -301,11 +297,11 @@ export class SharedspacesService {
     }
 
     await this.sharedspacesRepository.update({ id: space.id }, { ...dto });
-    await this.sharedspaceFetcher.invalidateSharedspaceCache(url);
+    await this.sharedspaceFetcher.invalidateSharedspaceCache(SharedspaceId);
   }
 
   async scheduleSharedspaceDeletion(
-    url: string,
+    SharedspaceId: string,
     UserId: string,
   ) {
     const qr = this.dataSource.createQueryRunner();
@@ -318,7 +314,7 @@ export class SharedspacesService {
           id: true,
         },
         where: {
-          url,
+          id: SharedspaceId,
         },
       });
 
@@ -349,7 +345,7 @@ export class SharedspacesService {
 
       await qr.commitTransaction();
 
-      await this.sharedspaceFetcher.invalidateSharedspaceCache(url);
+      await this.sharedspaceFetcher.invalidateSharedspaceCache(SharedspaceId);
     } catch (err) {
       await qr.rollbackTransaction();
 
@@ -396,12 +392,12 @@ export class SharedspacesService {
   }
 
   async getSharedspaceMembers(
-    url: string,
+    SharedspaceId: string,
     beforeUserId?: string,
     UserId?: string,
     limit = 10,
   ) {
-    const cacheKey = `sharedspaceMembers:${url}`;
+    const cacheKey = `sharedspaceMembers:${SharedspaceId}`;
 
     if (!beforeUserId) {
       const cachedItem = await this.cacheManager.get(cacheKey);
@@ -411,7 +407,7 @@ export class SharedspacesService {
       }
     }
 
-    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
 
     if (space.private) {
       const isParticipant = await this.rolesService.requireParticipant(UserId, space.id);
@@ -419,7 +415,7 @@ export class SharedspacesService {
       if (!isParticipant) {
         throw new ForbiddenException({
           message: ACCESS_DENIED_MESSAGE,
-          metaData: { spaceUrl: space.url },
+          metaData: { SharedspaceId: space.id },
         });
       }
     }
@@ -497,12 +493,12 @@ export class SharedspacesService {
     };
   }
 
-  async invalidateSharedspaceMembersCache(url: string) {
-    await this.cacheManager.del(`sharedspaceMembers:${url}`);
+  async invalidateSharedspaceMembersCache(SharedspaceId: string) {
+    await this.cacheManager.del(`sharedspaceMembers:${SharedspaceId}`);
   }
 
   async createSharedspaceMembers(
-    url: string,
+    SharedspaceId: string,
     dto: CreateSharedspaceMembersDTO,
     UserId: string,
   ) {
@@ -521,7 +517,7 @@ export class SharedspacesService {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
 
-    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
 
     const isOwner = await this.rolesService.requireOwner(UserId, space.id);
 
@@ -555,17 +551,17 @@ export class SharedspacesService {
       SharedspaceId: space.id,
       RoleId: roleInfo.id,
     });
-    await this.invalidateSharedspaceMembersCache(url);
+    await this.invalidateSharedspaceMembersCache(SharedspaceId);
   }
 
   async updateSharedspaceMembers(
-    url: string,
+    SharedspaceId: string,
     dto: UpdateSharedspaceMembersDTO,
     UserId: string,
   ) {
     const { UserId: targetUserId, RoleName } = dto;
 
-    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
 
     const isOwner = await this.rolesService.requireOwner(UserId, space.id);
 
@@ -601,15 +597,15 @@ export class SharedspacesService {
     });
 
     await this.rolesService.invalidateUserRoleCache(targetUserId, space.id);
-    await this.invalidateSharedspaceMembersCache(url);
+    await this.invalidateSharedspaceMembersCache(SharedspaceId);
   }
 
   async deleteSharedspaceMembers(
-    url: string,
+    SharedspaceId: string,
     targetUserId: string,
     UserId: string,
   ) {
-    const space = await this.sharedspaceFetcher.getSharedspaceByUrl(url);
+    const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
 
     const isOwner = await this.rolesService.requireOwner(UserId, space.id);
 
@@ -641,6 +637,6 @@ export class SharedspacesService {
     );
 
     await this.rolesService.invalidateUserRoleCache(targetUserId, space.id);
-    await this.invalidateSharedspaceMembersCache(url);
+    await this.invalidateSharedspaceMembersCache(SharedspaceId);
   }
 }

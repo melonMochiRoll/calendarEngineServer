@@ -16,25 +16,25 @@ export class JoinRequestsController {
   ) {}
 
   @UseGuards(JwtAuthGuard)
-  @Get(':url/joinrequest')
+  @Get(':SharedspaceId/joinrequest')
   getJoinRequests(
-    @Param('url') url: string,
+    @Param('SharedspaceId') SharedspaceId: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeJoinRequestId: string,
     @User() user: Users,
   ) {
-    return this.joinRequestsService.getJoinRequests(url, beforeJoinRequestId, user.id);
+    return this.joinRequestsService.getJoinRequests(SharedspaceId, beforeJoinRequestId, user.id);
   }
   
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Post(':url/joinrequest/:id/resolve')
+  @Post(':SharedspaceId/joinrequest/:id/resolve')
   resolveJoinRequest(
-    @Param('url') url: string,
+    @Param('SharedspaceId') SharedspaceId: string,
     @Param('id', UUIDv7ValidationPipe) joinRequestId: string,
     @Body() dto: ResolveJoinRequestDTO,
     @User() user: Users,
   ) {
     return this.joinRequestsService.resolveJoinRequest(
-      url,
+      SharedspaceId,
       joinRequestId,
       dto,
       user.id
@@ -42,22 +42,22 @@ export class JoinRequestsController {
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Post(':url/joinrequest')
+  @Post(':SharedspaceId/joinrequest')
   createJoinRequest(
-    @Param('url') url: string,
+    @Param('SharedspaceId') SharedspaceId: string,
     @Body() dto: CreateJoinRequestDTO,
     @User() user: Users,
   ) {
-    return this.joinRequestsService.createJoinRequest(url, dto, user.id);
+    return this.joinRequestsService.createJoinRequest(SharedspaceId, dto, user.id);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post(':url/joinrequest/:id')
   rejectJoinRequest(
-    @Param('url') url: string,
+    @Param('SharedspaceId') SharedspaceId: string,
     @Param('id', UUIDv7ValidationPipe) joinRequestId: string,
     @User() user: Users,
   ) {
-    return this.joinRequestsService.rejectJoinRequest(url, joinRequestId, user.id);
+    return this.joinRequestsService.rejectJoinRequest(SharedspaceId, joinRequestId, user.id);
   }
 }

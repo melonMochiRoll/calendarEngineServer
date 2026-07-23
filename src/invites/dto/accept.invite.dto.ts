@@ -7,6 +7,6 @@ export class AcceptInviteDTO {
   id: string;
 
   @IsNotEmpty()
-  @IsString()
-  url: string;
+  @IsUUID(7)
+  SharedspaceId: string;
 }
