@@ -125,11 +125,11 @@ export class SharedspacesController {
 
   @UseGuards(JwtAuthGuard)
   @Get(':SharedspaceId/users/search')
-  searchUsers(
+  searchUsersWithParticipantStatus(
     @Param('SharedspaceId') SharedspaceId: string,
     @Query('query') query: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeUserId: string,
   ) {
-    return this.sharedspacesService.searchUsers(SharedspaceId, query, beforeUserId);
+    return this.sharedspacesService.searchUsersWithParticipantStatus(SharedspaceId, query, beforeUserId);
   }
 }

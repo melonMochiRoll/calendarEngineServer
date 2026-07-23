@@ -623,7 +623,7 @@ export class SharedspacesService {
     await this.invalidateSharedspaceMembersCache(SharedspaceId);
   }
 
-  async searchUsers(
+  async searchUsersWithParticipantStatus(
     SharedspaceId: string,
     query: string,
     beforeUserId: string,
