@@ -8,14 +8,4 @@ export class SharedspacesUsersContoller {
   constructor(
     private usersService: UsersService,
   ) {}
-  
-  @UseGuards(JwtAuthGuard)
-  @Get(':SharedspaceId/users/search')
-  searchUsers(
-    @Param('SharedspaceId') SharedspaceId: string,
-    @Query('query') query: string,
-    @Query('before', UUIDv7OrEmptyPipe) beforeUserId: string,
-  ) {
-    return this.usersService.searchUsers(SharedspaceId, query, beforeUserId);
-  }
 }

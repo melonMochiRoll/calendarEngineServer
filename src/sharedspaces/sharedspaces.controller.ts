@@ -122,4 +122,14 @@ export class SharedspacesController {
   ) {
     return this.sharedspacesService.deleteSharedspaceMembers(SharedspaceId, targetUserId, user.id);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':SharedspaceId/users/search')
+  searchUsers(
+    @Param('SharedspaceId') SharedspaceId: string,
+    @Query('query') query: string,
+    @Query('before', UUIDv7OrEmptyPipe) beforeUserId: string,
+  ) {
+    return this.sharedspacesService.searchUsers(SharedspaceId, query, beforeUserId);
+  }
 }

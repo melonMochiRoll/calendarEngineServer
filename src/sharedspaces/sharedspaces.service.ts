@@ -22,7 +22,7 @@ import { Invites } from "src/entities/Invites";
 import { BatchScheduler } from "src/entities/BatchScheduler";
 import { uuidv7 } from "uuidv7";
 import { SharedspaceFetcher } from "./sharedspaces.fetcher";
-import { stringToUUID } from "src/common/function/utilFunctions";
+import { getFullImageUrl, stringToUUID, uuidToString } from "src/common/function/utilFunctions";
 import { TSubscribedspacesSort } from "src/typings/types";
 import { ChatRooms } from "src/entities/ChatRooms";
 
@@ -621,5 +621,95 @@ export class SharedspacesService {
 
     await this.rolesService.invalidateUserRoleCache(targetUserId, SharedspaceId);
     await this.invalidateSharedspaceMembersCache(SharedspaceId);
+  }
+
+  async searchUsers(
+    SharedspaceId: string,
+    query: string,
+    beforeUserId: string,
+    limit = 10,
+  ) {
+    const qb1 = this.usersRepository
+      .createQueryBuilder('users')
+      .select([
+        'users.id AS id',
+        'users.email AS email',
+        'users.nickname AS nickname',
+      ])
+      .leftJoin('users.ProfileImage', 'ProfileImage')
+      .addSelect(['ProfileImage.path AS ProfileImage'])
+      .where('users.email LIKE :email', { email: `${query}%` })
+      .andWhere('users.status = :status1', { status1: USER_STATUS.ACTIVE });
+
+    const qb2 = this.usersRepository
+      .createQueryBuilder('users')
+      .select([
+        'users.id AS id',
+        'users.email AS email',
+        'users.nickname AS nickname',
+      ])
+      .leftJoin('users.ProfileImage', 'ProfileImage')
+      .addSelect(['ProfileImage.path AS ProfileImage'])
+      .where('users.nickname LIKE :nickname', { nickname: `${query}%` })
+      .andWhere('users.status = :status2', { status2: USER_STATUS.ACTIVE });
+
+    if (beforeUserId) {
+      qb1.andWhere('users.id < :beforeUserId', { beforeUserId });
+      qb2.andWhere('users.id < :beforeUserId', { beforeUserId });
+    }
+
+    const userRecords = await this.dataSource
+      .createQueryBuilder()
+      .select([
+        'combined.id AS id',
+        'combined.email AS email',
+        'combined.nickname AS nickname',
+        'combined.ProfileImage AS ProfileImage',
+      ])
+      .from(`( (${qb1.getQuery()}) UNION (${qb2.getQuery()}) )`, 'combined')
+      .setParameters({ ...qb1.getParameters(), ...qb2.getParameters() })
+      .orderBy('combined.id', 'DESC')
+      .limit(limit + 1)
+      .getRawMany();
+
+    const hasMoreData = userRecords.length > limit;
+
+    if (hasMoreData) {
+      userRecords.pop();
+    }
+
+    const memberRecords = await this.spaceMembersRepository.find({
+      select: {
+        UserId: true,
+      },
+      where: {
+        SharedspaceId,
+      },
+    });
+
+    const memberSet = memberRecords.reduce((set, member) => {
+      set.add(member.UserId);
+      return set;
+    }, new Set());
+
+    const users = userRecords.map((user) => {
+      const { id, ProfileImage, ...rest } = user;
+      const transformedId = uuidToString(id);
+      const url = getFullImageUrl(ProfileImage);
+
+      return {
+        ...rest,
+        id: transformedId,
+        ProfileImage: url,
+        permission: {
+          isParticipant: memberSet.has(transformedId),
+        },
+      };
+    });
+
+    return {
+      users,
+      hasMoreData,
+    };
   }
 }
