@@ -25,6 +25,7 @@ import { SharedspaceFetcher } from "./sharedspaces.fetcher";
 import { getFullImageUrl, stringToUUID, uuidToString } from "src/common/function/utilFunctions";
 import { TSubscribedspacesSort } from "src/typings/types";
 import { ChatRooms } from "src/entities/ChatRooms";
+import { SharedspaceChatRooms } from "src/entities/SharedspaceChatRooms";
 
 @Injectable()
 export class SharedspacesService {
@@ -180,6 +181,7 @@ export class SharedspacesService {
 
     try {
       const SharedspaceId = uuidv7();
+      const RoomId = uuidv7();
 
       await qr.manager.insert(Sharedspaces, {
         id: SharedspaceId,
@@ -188,12 +190,15 @@ export class SharedspacesService {
       });
 
       await qr.manager.insert(ChatRooms, {
-        id: uuidv7(),
+        id: RoomId,
         name: '일반',
         type: CHATROOM_TYPE.SPACE,
-        SharedspaceId,
       });
 
+      await qr.manager.insert(SharedspaceChatRooms, {
+        id: RoomId,
+        SharedspaceId,
+      });
       const ownerInfo = await this.rolesService.getRoleInfo(SHAREDSPACE_ROLE.OWNER);
       
       await qr.manager.insert(SpaceMembers, {

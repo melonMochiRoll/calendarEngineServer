@@ -5,7 +5,7 @@ import { JoinRequests } from "./JoinRequests";
 import { Invites } from "./Invites";
 import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
 import { SpaceMembers } from "./SpaceMembers";
-import { ChatRooms } from "./ChatRooms";
+import { SharedspaceChatRooms } from "./SharedspaceChatRooms";
 
 @Entity({ name: 'sharedspaces' })
 export class Sharedspaces {
@@ -51,8 +51,8 @@ export class Sharedspaces {
   @OneToMany(() => Invites, invites => invites.Sharedspace)
   Invites: Invites[];
 
-  @OneToMany(() => ChatRooms, chatRooms => chatRooms.Sharedspace)
-  ChatRooms: ChatRooms[];
+  @OneToMany(() => SharedspaceChatRooms, sharedspaceChatRooms => sharedspaceChatRooms.Sharedspace)
+  ChatRooms: SharedspaceChatRooms[];
 
   @OneToMany(() => SpaceMembers, spacemembers => spacemembers.Sharedspace)
   Spacemembers: SpaceMembers[];

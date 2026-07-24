@@ -1,9 +1,10 @@
 import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
-import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToMany, OneToMany, OneToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { Chats } from "./Chats";
-import { Sharedspaces } from "./Sharedspaces";
 import { RoomParticipants } from "./RoomParticipants";
 import { Users } from "./Users";
+import { DmChatRooms } from "./DmChatRooms";
+import { SharedspaceChatRooms } from "./SharedspaceChatRooms";
 
 @Entity({ name: 'chatrooms' })
 export class ChatRooms {
@@ -16,9 +17,6 @@ export class ChatRooms {
   @Column({ type: 'varchar', length: 30 })
   type: string;
 
-  @Column({ type: 'binary', name: 'SharedspaceId', length: 16, transformer: new UUIDV7Transformer(), nullable: true })
-  SharedspaceId: string | null;
-
   @CreateDateColumn()
   createdAt: Date;
 
@@ -28,16 +26,11 @@ export class ChatRooms {
   @Column({ type: 'datetime', precision: 6, nullable: true, default: null })
   removedAt: Date | null;
 
-  @Index('chatrooms_SharedspaceId_fk_idx')
-  @ManyToOne(() => Sharedspaces, sharedspaces => sharedspaces.ChatRooms, {
-    onUpdate: 'CASCADE',
-  })
-  @JoinColumn({
-    name: 'SharedspaceId',
-    referencedColumnName: 'id',
-    foreignKeyConstraintName: 'chatrooms_SharedspaceId_fk'
-  })
-  Sharedspace: Sharedspaces;
+  @OneToOne(() => SharedspaceChatRooms, sharedspaceChatRooms => sharedspaceChatRooms.ChatRoom)
+  SharedspaceChatRoom: SharedspaceChatRooms;
+
+  @OneToOne(() => DmChatRooms, dmChatRooms => dmChatRooms.ChatRoom)
+  DmChatRoom: DmChatRooms;
 
   @OneToMany(() => Chats, chats => chats.ChatRoom)
   Chats: Chats[];

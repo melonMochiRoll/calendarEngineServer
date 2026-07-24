@@ -9,6 +9,7 @@ import { uuidv7 } from "uuidv7";
 import { CreateDmChatRoomDTO } from "./dto/create.dm.chatroom.dto";
 import { RoomParticipants } from "src/entities/RoomParticipants";
 import { ChatRoomsFetcher } from "./chatrooms.fetcher";
+import { SharedspaceChatRooms } from "src/entities/SharedspaceChatRooms";
 
 @Injectable()
 export class ChatRoomsService {
@@ -160,15 +161,31 @@ export class ChatRoomsService {
     SharedspaceId: string,
     name: string,
   ) {
-    const id = uuidv7();
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
 
-    await this.chatRoomsRepository.insert({
-      id,
-      name,
-      type: CHATROOM_TYPE.SPACE,
-      SharedspaceId,
-    });
+    try {
+      const RoomId = uuidv7();
 
-    return id;
+      await qr.manager.insert(ChatRooms, {
+        id: RoomId,
+        name,
+        type: CHATROOM_TYPE.SPACE,
+      });
+
+      await qr.manager.insert(SharedspaceChatRooms, {
+        id: RoomId,
+        SharedspaceId,
+      });
+
+      await qr.commitTransaction();
+    } catch (err) {
+      await qr.rollbackTransaction();
+
+      throw err;
+    } finally {
+      await qr.release();
+    }
   }
 }

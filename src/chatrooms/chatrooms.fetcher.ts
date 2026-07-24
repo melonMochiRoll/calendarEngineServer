@@ -6,6 +6,7 @@ import { Cache } from 'cache-manager';
 import { TChatRoomDefault } from "src/typings/types";
 import { RoomParticipants } from "src/entities/RoomParticipants";
 import { Inject } from "@nestjs/common";
+import { SharedspaceChatRooms } from "src/entities/SharedspaceChatRooms";
 
 export class ChatRoomsFetcher {
   constructor(
@@ -13,6 +14,8 @@ export class ChatRoomsFetcher {
     private cacheManager: Cache,
     @InjectRepository(ChatRooms)
     private chatRoomsRepository: Repository<ChatRooms>,
+    @InjectRepository(SharedspaceChatRooms)
+    private sharedspaceChatRoomsRepository: Repository<SharedspaceChatRooms>,
     @InjectRepository(RoomParticipants)
     private roomParticipantsRepository: Repository<RoomParticipants>,
   ) {}
@@ -26,12 +29,14 @@ export class ChatRoomsFetcher {
       return cachedItem;
     }
 
-    const chatRoom = await this.chatRoomsRepository.findOne({
+    const record = await this.sharedspaceChatRoomsRepository.findOne({
       select: {
         id: true,
-        name: true,
-        type: true,
         SharedspaceId: true,
+        ChatRoom: {
+          name: true,
+          type: true,
+        },
         Sharedspace: {
           private: true,
         },
@@ -40,9 +45,18 @@ export class ChatRoomsFetcher {
         id,
       },
       relations: {
+        ChatRoom: true,
         Sharedspace: true,
       },
     });
+
+    const { ChatRoom, ...rest } = record;
+
+    const chatRoom = {
+      ...rest,
+      name: ChatRoom.name,
+      type: ChatRoom.type,
+    };
 
     const minute = 60000;
 

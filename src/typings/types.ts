@@ -4,6 +4,7 @@ import { ChatRooms } from "src/entities/ChatRooms";
 import { Chats } from "src/entities/Chats";
 import { Images } from "src/entities/Images";
 import { ProfileImages } from "src/entities/ProfileImages";
+import { SharedspaceChatRooms } from "src/entities/SharedspaceChatRooms";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import { Users } from "src/entities/Users";
 
@@ -76,9 +77,11 @@ export type TUserDefault = Pick<Users, 'id' | 'email' | 'nickname' | 'provider' 
   ProfileImage: string,
 };
 
-export type TChatRoomDefault = Pick<ChatRooms, 'id' | 'name' | 'type' | 'SharedspaceId'> & {
-  Sharedspace: Pick<Sharedspaces, 'private'>,
-};
+export type TChatRoomDefault = Pick<SharedspaceChatRooms, 'id' | 'SharedspaceId'> &
+  Pick<ChatRooms, 'name' | 'type'> &
+  {
+    Sharedspace: Pick<Sharedspaces, 'private'>
+  };
 
 export type CacheItem<T> = {
   value: T,
