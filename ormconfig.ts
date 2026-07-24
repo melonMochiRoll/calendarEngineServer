@@ -17,6 +17,8 @@ import { ChatImages } from 'src/entities/ChatImages';
 import { ProfileImages } from 'src/entities/ProfileImages';
 import { Friendships } from 'src/entities/Friendships';
 import { RoomParticipants } from 'src/entities/RoomParticipants';
+import { SharedspaceChatRooms } from 'src/entities/SharedspaceChatRooms';
+import { DmChatRooms } from 'src/entities/DmChatRooms';
 
 const dbconfig: DataSourceOptions = {
   type: "mysql",
@@ -43,6 +45,8 @@ export const ormconfig = {
     Todos,
     Sharedspaces,
     ChatRooms,
+    SharedspaceChatRooms,
+    DmChatRooms,
     Roles,
     JoinRequests,
     SpaceMembers,
