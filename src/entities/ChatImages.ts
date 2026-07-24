@@ -20,7 +20,7 @@ export class ChatImages {
   @JoinColumn({
     name: 'ChatId',
     referencedColumnName: 'id',
-    foreignKeyConstraintName: 'images_ChatId_fk',
+    foreignKeyConstraintName: 'chatimages_ChatId_fk',
   })
   Chat: Chats;
 
