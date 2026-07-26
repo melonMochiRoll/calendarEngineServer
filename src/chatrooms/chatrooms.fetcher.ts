@@ -3,7 +3,7 @@ import { ChatRooms } from "src/entities/ChatRooms";
 import { Repository } from "typeorm";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
-import { TChatRoomDefault } from "src/typings/types";
+import { TSharedspaceChatRoomDefault } from "src/typings/types";
 import { RoomParticipants } from "src/entities/RoomParticipants";
 import { Inject } from "@nestjs/common";
 import { SharedspaceChatRooms } from "src/entities/SharedspaceChatRooms";
@@ -20,10 +20,10 @@ export class ChatRoomsFetcher {
     private roomParticipantsRepository: Repository<RoomParticipants>,
   ) {}
 
-  async getSharedspaceChatRoomById(id: string): Promise<TChatRoomDefault> {
+  async getSharedspaceChatRoomById(id: string): Promise<TSharedspaceChatRoomDefault> {
     const cacheKey = `chatRoom:${id}`;
 
-    const cachedItem = await this.cacheManager.get<TChatRoomDefault>(cacheKey);
+    const cachedItem = await this.cacheManager.get<TSharedspaceChatRoomDefault>(cacheKey);
 
     if (cachedItem) {
       return cachedItem;

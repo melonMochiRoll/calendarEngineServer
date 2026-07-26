@@ -79,7 +79,7 @@ export type TUserDefault = Pick<Users, 'id' | 'email' | 'nickname' | 'provider' 
   ProfileImage: string,
 };
 
-export type TChatRoomDefault = Pick<SharedspaceChatRooms, 'id' | 'name' | 'SharedspaceId'> &
+export type TSharedspaceChatRoomDefault = Pick<SharedspaceChatRooms, 'id' | 'name' | 'SharedspaceId'> &
   {
     Sharedspace: Pick<Sharedspaces, 'private'>
   };
