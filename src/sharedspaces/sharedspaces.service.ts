@@ -43,7 +43,7 @@ export class SharedspacesService {
     private sharedspaceFetcher: SharedspaceFetcher,
   ) {}
 
-  async getSharedspace(
+  async getSharedspace( // TODO: ChatRooms 정보 포함하도록 수정하기
     SharedspaceId: string,
     UserId?: string,
   ) {
@@ -191,12 +191,12 @@ export class SharedspacesService {
 
       await qr.manager.insert(ChatRooms, {
         id: RoomId,
-        name: '일반',
         type: CHATROOM_TYPE.SPACE,
       });
 
       await qr.manager.insert(SharedspaceChatRooms, {
         id: RoomId,
+        name: '일반',
         SharedspaceId,
       });
       const ownerInfo = await this.rolesService.getRoleInfo(SHAREDSPACE_ROLE.OWNER);

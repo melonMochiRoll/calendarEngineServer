@@ -32,9 +32,9 @@ export class ChatRoomsFetcher {
     const record = await this.sharedspaceChatRoomsRepository.findOne({
       select: {
         id: true,
+        name: true,
         SharedspaceId: true,
         ChatRoom: {
-          name: true,
           type: true,
         },
         Sharedspace: {
@@ -54,7 +54,6 @@ export class ChatRoomsFetcher {
 
     const chatRoom = {
       ...rest,
-      name: ChatRoom.name,
       type: ChatRoom.type,
     };
 

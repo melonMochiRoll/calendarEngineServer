@@ -170,12 +170,12 @@ export class ChatRoomsService {
 
       await qr.manager.insert(ChatRooms, {
         id: RoomId,
-        name,
         type: CHATROOM_TYPE.SPACE,
       });
 
       await qr.manager.insert(SharedspaceChatRooms, {
         id: RoomId,
+        name,
         SharedspaceId,
       });
 

@@ -8,6 +8,9 @@ export class SharedspaceChatRooms {
   @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
   id: string;
 
+  @Column({ type: 'varchar', name: 'name', length: 30 })
+  name: string;
+
   @Column({ type: 'binary', name: 'SharedspaceId', length: 16, transformer: new UUIDV7Transformer() })
   SharedspaceId: string;
 
