@@ -29,9 +29,7 @@ export class ChatRoomsService {
     beforeParticipantId?: string,
     limit = 10,
   ) {
-    const chatRoom = await this.chatRoomsFetcher.getSharedspaceChatRoomById(id);
-
-    const isParticipant = await this.chatRoomsFetcher.isParticipant(UserId, chatRoom.id);
+    const isParticipant = await this.chatRoomsFetcher.isParticipant(UserId, id);
 
     if (!isParticipant) {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
@@ -53,14 +51,14 @@ export class ChatRoomsService {
         },
       },
       where: beforeParticipantId ? {
-        RoomId: chatRoom.id,
+        RoomId: id,
         id: LessThan(beforeParticipantId),
         removedAt: IsNull(),
         User: {
           status: USER_STATUS.ACTIVE,
         },
       } : {
-        RoomId: chatRoom.id,
+        RoomId: id,
         removedAt: IsNull(),
         User: {
           status: USER_STATUS.ACTIVE,
@@ -103,7 +101,7 @@ export class ChatRoomsService {
 
     const memberCount = await this.roomParticipantsRepository.count({
       where: {
-        RoomId: chatRoom.id,
+        RoomId: id,
         removedAt: IsNull(),
         User: {
           status: USER_STATUS.ACTIVE,
