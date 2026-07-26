@@ -157,7 +157,7 @@ export class ChatRoomsService {
     }
   }
 
-  async createChatRoomForSpace(
+  async createSharedspaceChatRoom(
     SharedspaceId: string,
     name: string,
   ) {
