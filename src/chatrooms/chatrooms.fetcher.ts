@@ -34,9 +34,6 @@ export class ChatRoomsFetcher {
         id: true,
         name: true,
         SharedspaceId: true,
-        ChatRoom: {
-          type: true,
-        },
         Sharedspace: {
           private: true,
         },
@@ -45,7 +42,6 @@ export class ChatRoomsFetcher {
         id,
       },
       relations: {
-        ChatRoom: true,
         Sharedspace: true,
       },
     });

@@ -80,7 +80,6 @@ export type TUserDefault = Pick<Users, 'id' | 'email' | 'nickname' | 'provider' 
 };
 
 export type TChatRoomDefault = Pick<SharedspaceChatRooms, 'id' | 'name' | 'SharedspaceId'> &
-  Pick<ChatRooms, 'type'> &
   {
     Sharedspace: Pick<Sharedspaces, 'private'>
   };
