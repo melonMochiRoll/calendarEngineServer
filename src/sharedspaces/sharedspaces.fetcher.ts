@@ -57,10 +57,22 @@ export class SharedspaceFetcher {
         private: true,
         OwnerId: true,
         createdAt: true,
+        SharedspaceChatRooms: {
+          id: true,
+          name: true,
+        },
       },
       where: {
         id,
         removedAt: IsNull(),
+      },
+      relations: {
+        SharedspaceChatRooms: true,
+      },
+      order: {
+        SharedspaceChatRooms: {
+          id: 'ASC',
+        },
       },
     });
     const delta = dayjs().diff(start);

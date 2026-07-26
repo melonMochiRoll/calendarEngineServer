@@ -71,7 +71,9 @@ export type TRefreshTokenPayload = {
   exp: number,
 };
 
-export type TSharedspaceDefault = Pick<Sharedspaces, 'id' | 'name' | 'private' | 'OwnerId' | 'createdAt'>;
+export type TSharedspaceDefault = Pick<Sharedspaces, 'id' | 'name' | 'private' | 'OwnerId' | 'createdAt'> & {
+  SharedspaceChatRooms: Pick<SharedspaceChatRooms, 'id' | 'name'>[],
+};
 
 export type TUserDefault = Pick<Users, 'id' | 'email' | 'nickname' | 'provider' | 'status'> & {
   ProfileImage: string,
