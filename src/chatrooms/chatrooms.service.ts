@@ -10,6 +10,7 @@ import { CreateDmChatRoomDTO } from "./dto/create.dm.chatroom.dto";
 import { RoomParticipants } from "src/entities/RoomParticipants";
 import { ChatRoomsFetcher } from "./chatrooms.fetcher";
 import { SharedspaceChatRooms } from "src/entities/SharedspaceChatRooms";
+import { DmChatRooms } from "src/entities/DmChatRooms";
 
 @Injectable()
 export class ChatRoomsService {
@@ -133,6 +134,10 @@ export class ChatRoomsService {
       await qr.manager.insert(ChatRooms, {
         id: RoomId,
         type: CHATROOM_TYPE.DM,
+      });
+
+      await qr.manager.insert(DmChatRooms, {
+        id: RoomId,
       });
 
       await qr.manager.insert(RoomParticipants, {
