@@ -20,7 +20,7 @@ export class SharedspaceChatRooms {
   ChatRoom: ChatRooms;
 
   @Index('sharedspace_chatrooms_SharedspaceId_fk_idx')
-  @ManyToOne(() => Sharedspaces, sharedspaces => sharedspaces.ChatRooms, {
+  @ManyToOne(() => Sharedspaces, sharedspaces => sharedspaces.SharedspaceChatRooms, {
     onUpdate: 'CASCADE',
   })
   @JoinColumn({

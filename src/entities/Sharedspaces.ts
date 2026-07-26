@@ -52,7 +52,7 @@ export class Sharedspaces {
   Invites: Invites[];
 
   @OneToMany(() => SharedspaceChatRooms, sharedspaceChatRooms => sharedspaceChatRooms.Sharedspace)
-  ChatRooms: SharedspaceChatRooms[];
+  SharedspaceChatRooms: SharedspaceChatRooms[];
 
   @OneToMany(() => SpaceMembers, spacemembers => spacemembers.Sharedspace)
   Spacemembers: SpaceMembers[];
