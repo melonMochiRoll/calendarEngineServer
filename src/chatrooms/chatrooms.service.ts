@@ -24,12 +24,12 @@ export class ChatRoomsService {
   ) {}
 
   async getChatRoomParticipants(
-    id: string,
+    RoomId: string,
     UserId: string,
     beforeParticipantId?: string,
     limit = 10,
   ) {
-    const isParticipant = await this.chatRoomsFetcher.isParticipant(UserId, id);
+    const isParticipant = await this.chatRoomsFetcher.isParticipant(UserId, RoomId);
 
     if (!isParticipant) {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
@@ -51,14 +51,14 @@ export class ChatRoomsService {
         },
       },
       where: beforeParticipantId ? {
-        RoomId: id,
+        RoomId,
         id: LessThan(beforeParticipantId),
         removedAt: IsNull(),
         User: {
           status: USER_STATUS.ACTIVE,
         },
       } : {
-        RoomId: id,
+        RoomId,
         removedAt: IsNull(),
         User: {
           status: USER_STATUS.ACTIVE,
@@ -101,7 +101,7 @@ export class ChatRoomsService {
 
     const memberCount = await this.roomParticipantsRepository.count({
       where: {
-        RoomId: id,
+        RoomId,
         removedAt: IsNull(),
         User: {
           status: USER_STATUS.ACTIVE,
