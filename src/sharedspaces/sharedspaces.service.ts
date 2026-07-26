@@ -43,7 +43,7 @@ export class SharedspacesService {
     private sharedspaceFetcher: SharedspaceFetcher,
   ) {}
 
-  async getSharedspace( // TODO: ChatRooms 정보 포함하도록 수정하기
+  async getSharedspace(
     SharedspaceId: string,
     UserId?: string,
   ) {
