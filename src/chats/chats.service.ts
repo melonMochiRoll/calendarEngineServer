@@ -156,13 +156,7 @@ export class ChatsService {
     UserId: string,
     limit = 100,
   ) {
-    const room = await this.chatRoomsFetcher.getSharedspaceChatRoomById(id);
-
-    if (!room) {
-      throw new BadRequestException(BAD_REQUEST_MESSAGE);
-    }
-
-    const isParticipant = await this.chatRoomsFetcher.isParticipant(UserId, room.id);
+    const isParticipant = await this.chatRoomsFetcher.isParticipant(UserId, id);
 
     if (!isParticipant) {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
@@ -190,11 +184,11 @@ export class ChatsService {
         },
       },
       where: beforeChatId ? {
-        RoomId: room.id,
+        RoomId: id,
         id: LessThan(beforeChatId),
         removedAt: IsNull(),
       } : {
-        RoomId: room.id,
+        RoomId: id,
         removedAt: IsNull(),
       },
       order: {
@@ -374,15 +368,13 @@ export class ChatsService {
     const { id, ChatId, content } = dto;
 
     try {
-      const room = await this.chatRoomsFetcher.getSharedspaceChatRoomById(id);
-
       const updatedAt = dayjs().toDate();
 
       const result = await this.chatsRepository.update(
         {
           id: ChatId,
           SenderId: UserId,
-          RoomId: room.id,
+          RoomId: id,
         },
         {
           content,
@@ -421,8 +413,6 @@ export class ChatsService {
     const { id, ChatId } = dto;
 
     try {
-      const room = await this.chatRoomsFetcher.getSharedspaceChatRoomById(id);
-
       const targetChat = await this.chatsRepository.findOne({
         select: {
           id: true,
@@ -442,7 +432,7 @@ export class ChatsService {
 
       if (
         targetChat?.SenderId !== UserId ||
-        targetChat?.RoomId !== room.id
+        targetChat?.RoomId !== id
       ) {
         throw new WsException({
           type: ERROR_TYPE.BAD_REQUEST_ERROR,
@@ -483,7 +473,6 @@ export class ChatsService {
     UserId: string,
   ) {
     const { id, ChatId, ImageId } = dto;
-    const room = await this.chatRoomsFetcher.getSharedspaceChatRoomById(id);
 
     const targetChat = await this.chatsRepository.findOne({
       select: {
@@ -506,7 +495,7 @@ export class ChatsService {
 
     if (
       targetChat?.SenderId !== UserId ||
-      targetChat?.RoomId !== room.id ||
+      targetChat?.RoomId !== id ||
       !targetChat.ChatImages.find(chatImage => chatImage.id === ImageId)
     ) {
       throw new WsException({
