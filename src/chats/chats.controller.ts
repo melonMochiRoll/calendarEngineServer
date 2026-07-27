@@ -28,7 +28,7 @@ export class ChatsController {
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Get('chatrooms/:id/chats')
+  @Get('dm/chatrooms/:id/chats')
   getDmChatRoomChats(
     @Param('id') id: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeChatId: string,
