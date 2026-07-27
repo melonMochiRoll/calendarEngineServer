@@ -14,27 +14,27 @@ export class ChatsController {
   ) {}
 
   @UseGuards(PublicAuthGuard)
-  @Get('sharedspaces/chatrooms/:id/chats')
+  @Get('sharedspaces/chatrooms/:ChatRoomId/chats')
   getSharedspaceChatRoomChats(
-    @Param('id') id: string,
+    @Param('ChatRoomId') ChatRoomId: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeChatId: string,
     @User() user: Users,
   ) {
     return this.chatsService.getSharedspaceChatRoomChats(
-      id,
+      ChatRoomId,
       beforeChatId,
       user?.id,
     );
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Get('dm/chatrooms/:id/chats')
+  @Get('dm/chatrooms/:ChatRoomId/chats')
   getDmChatRoomChats(
-    @Param('id') id: string,
+    @Param('ChatRoomId') ChatRoomId: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeChatId: string,
     @User() user: Users,
   ) {
-    return this.chatsService.getDmChatRoomChats(id, beforeChatId, user.id);
+    return this.chatsService.getDmChatRoomChats(ChatRoomId, beforeChatId, user.id);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
