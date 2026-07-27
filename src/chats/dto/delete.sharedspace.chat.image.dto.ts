@@ -3,7 +3,7 @@ import { IsNotEmpty, IsString, IsUUID } from "class-validator";
 export class DeleteSharedspaceChatImageDTO {
   @IsNotEmpty()
   @IsUUID(7)
-  id: string;
+  ChatRoomId: string;
 
   @IsNotEmpty()
   @IsUUID(7)

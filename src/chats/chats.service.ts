@@ -35,12 +35,12 @@ export class ChatsService {
   ) {}
 
   async getSharedspaceChatRoomChats(
-    id: string,
+    ChatRoomId: string,
     beforeChatId: string,
     UserId?: string,
     limit = 100,
   ) {
-    const room = await this.chatRoomsFetcher.getSharedspaceChatRoomById(id);
+    const room = await this.chatRoomsFetcher.getSharedspaceChatRoomById(ChatRoomId);
 
     if (!room || !room?.SharedspaceId) {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
@@ -151,12 +151,12 @@ export class ChatsService {
   }
   
   async getDmChatRoomChats(
-    id: string,
+    ChatRoomId: string,
     beforeChatId: string,
     UserId: string,
     limit = 100,
   ) {
-    const isParticipant = await this.chatRoomsFetcher.isParticipant(UserId, id);
+    const isParticipant = await this.chatRoomsFetcher.isParticipant(UserId, ChatRoomId);
 
     if (!isParticipant) {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
@@ -184,11 +184,11 @@ export class ChatsService {
         },
       },
       where: beforeChatId ? {
-        RoomId: id,
+        RoomId: ChatRoomId,
         id: LessThan(beforeChatId),
         removedAt: IsNull(),
       } : {
-        RoomId: id,
+        RoomId: ChatRoomId,
         removedAt: IsNull(),
       },
       order: {
@@ -259,9 +259,9 @@ export class ChatsService {
     dto: SendSharedspacechatDTO,
     UserId: string,
   ) {
-    const { id, ChatId, content, imageIds, imageKeys } = dto;
+    const { ChatRoomId, ChatId, content, imageIds, imageKeys } = dto;
 
-    const room = await this.chatRoomsFetcher.getSharedspaceChatRoomById(id);
+    const room = await this.chatRoomsFetcher.getSharedspaceChatRoomById(ChatRoomId);
 
     if (!room) {
       throw new WsException({
@@ -365,7 +365,7 @@ export class ChatsService {
     dto: UpdateSharedspaceChatDTO,
     UserId: string,
   ) {
-    const { id, ChatId, content } = dto;
+    const { ChatRoomId, ChatId, content } = dto;
 
     try {
       const updatedAt = dayjs().toDate();
@@ -374,7 +374,7 @@ export class ChatsService {
         {
           id: ChatId,
           SenderId: UserId,
-          RoomId: id,
+          RoomId: ChatRoomId,
         },
         {
           content,
@@ -410,7 +410,7 @@ export class ChatsService {
     await qr.connect();
     await qr.startTransaction();
 
-    const { id, ChatId } = dto;
+    const { ChatRoomId, ChatId } = dto;
 
     try {
       const targetChat = await this.chatsRepository.findOne({
@@ -432,7 +432,7 @@ export class ChatsService {
 
       if (
         targetChat?.SenderId !== UserId ||
-        targetChat?.RoomId !== id
+        targetChat?.RoomId !== ChatRoomId
       ) {
         throw new WsException({
           type: ERROR_TYPE.BAD_REQUEST_ERROR,
@@ -472,7 +472,7 @@ export class ChatsService {
     dto: DeleteSharedspaceChatImageDTO,
     UserId: string,
   ) {
-    const { id, ChatId, ImageId } = dto;
+    const { ChatRoomId, ChatId, ImageId } = dto;
 
     const targetChat = await this.chatsRepository.findOne({
       select: {
@@ -495,7 +495,7 @@ export class ChatsService {
 
     if (
       targetChat?.SenderId !== UserId ||
-      targetChat?.RoomId !== id ||
+      targetChat?.RoomId !== ChatRoomId ||
       !targetChat.ChatImages.find(chatImage => chatImage.id === ImageId)
     ) {
       throw new WsException({

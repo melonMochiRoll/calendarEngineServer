@@ -62,7 +62,7 @@ export class SharedspaceChatsGateway {
       .emit(ChatToClient.CHAT_CREATED, chatWithUser.sender);
 
     socket
-      .to(dto.id)
+      .to(dto.ChatRoomId)
       .emit(ChatToClient.CHAT_CREATED, chatWithUser.receiver);
   }
 
@@ -77,7 +77,7 @@ export class SharedspaceChatsGateway {
     const updatedProperty = await this.chatsService.updateSharedspaceChat(dto, user.id);
 
     this.server
-      .to(dto.id)
+      .to(dto.ChatRoomId)
       .emit(ChatToClient.CHAT_UPDATED, updatedProperty);
   }
 
@@ -92,7 +92,7 @@ export class SharedspaceChatsGateway {
     const deletedChatId = await this.chatsService.deleteSharedspaceChat(dto, user.id);
 
     this.server
-      .to(dto.id)
+      .to(dto.ChatRoomId)
       .emit(ChatToClient.CHAT_DELETED, { id: deletedChatId });
   }
 
@@ -107,7 +107,7 @@ export class SharedspaceChatsGateway {
     const { event, data } = await this.chatsService.deleteSharedspaceChatImage(dto, user.id);
 
     this.server
-      .to(dto.id)
+      .to(dto.ChatRoomId)
       .emit(event, data);
   }
 }
