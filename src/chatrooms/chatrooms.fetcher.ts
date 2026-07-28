@@ -1,6 +1,6 @@
 import { InjectRepository } from "@nestjs/typeorm";
 import { ChatRooms } from "src/entities/ChatRooms";
-import { Repository } from "typeorm";
+import { IsNull, Repository } from "typeorm";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { TSharedspaceChatRoomDefault } from "src/typings/types";
@@ -41,6 +41,10 @@ export class ChatRoomsFetcher {
       },
       where: {
         id,
+        ChatRoom: {
+          type: CHATROOM_TYPE.SPACE,
+          removedAt: IsNull(),
+        },
       },
       relations: {
         Sharedspace: true,
