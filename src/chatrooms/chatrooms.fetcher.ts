@@ -7,6 +7,7 @@ import { TSharedspaceChatRoomDefault } from "src/typings/types";
 import { RoomParticipants } from "src/entities/RoomParticipants";
 import { Inject } from "@nestjs/common";
 import { SharedspaceChatRooms } from "src/entities/SharedspaceChatRooms";
+import { CHATROOM_TYPE } from "src/common/constant/constants";
 
 export class ChatRoomsFetcher {
   constructor(
@@ -29,7 +30,7 @@ export class ChatRoomsFetcher {
       return cachedItem;
     }
 
-    const record = await this.sharedspaceChatRoomsRepository.findOne({
+    const chatRoom = await this.sharedspaceChatRoomsRepository.findOne({
       select: {
         id: true,
         name: true,
@@ -45,13 +46,6 @@ export class ChatRoomsFetcher {
         Sharedspace: true,
       },
     });
-
-    const { ChatRoom, ...rest } = record;
-
-    const chatRoom = {
-      ...rest,
-      type: ChatRoom.type,
-    };
 
     const minute = 60000;
 
