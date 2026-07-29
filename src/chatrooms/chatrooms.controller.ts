@@ -7,14 +7,14 @@ import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
 import { CreateDmChatRoomDTO } from "./dto/create.dm.chatroom.dto";
 import { UUIDv7OrEmptyPipe } from "src/common/pipe/uuidv7OrEmpty.pipe";
 
-@Controller('api/chatrooms')
+@Controller('api')
 export class ChatRoomsController {
   constructor(
     private chatRoomsService: ChatRoomsService,
   ) {}
 
   @UseGuards(JwtAuthGuard)
-  @Get(':ChatRoomId/members')
+  @Get('chatrooms/:ChatRoomId/members')
   getChatRoomParticipants(
     @Param('ChatRoomId') ChatRoomId: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeParticipantId: string,
@@ -24,7 +24,7 @@ export class ChatRoomsController {
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Post()
+  @Post('chatrooms')
   createDmChatRoom(
     @User() user: Users,
     @Body() dto: CreateDmChatRoomDTO,
