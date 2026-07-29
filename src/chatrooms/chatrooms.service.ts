@@ -11,6 +11,8 @@ import { RoomParticipants } from "src/entities/RoomParticipants";
 import { ChatRoomsFetcher } from "./chatrooms.fetcher";
 import { SharedspaceChatRooms } from "src/entities/SharedspaceChatRooms";
 import { DmChatRooms } from "src/entities/DmChatRooms";
+import { CreateSharedspaceChatRoomDTO } from "./dto/create.sharedspace.chatroom.dto";
+import { RolesService } from "src/roles/roles.service";
 
 @Injectable()
 export class ChatRoomsService {
@@ -20,6 +22,7 @@ export class ChatRoomsService {
     private chatRoomsRepository: Repository<ChatRooms>,
     @InjectRepository(RoomParticipants)
     private roomParticipantsRepository: Repository<RoomParticipants>,
+    private rolesService: RolesService,
     private chatRoomsFetcher: ChatRoomsFetcher,
   ) {}
 
@@ -162,8 +165,17 @@ export class ChatRoomsService {
 
   async createSharedspaceChatRoom(
     SharedspaceId: string,
-    name: string,
+    dto: CreateSharedspaceChatRoomDTO,
+    UserId: string,
   ) {
+    const { name } = dto;
+
+    const isOwner = await this.rolesService.requireOwner(UserId, SharedspaceId);
+
+    if (!isOwner) {
+      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+    }
+
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();

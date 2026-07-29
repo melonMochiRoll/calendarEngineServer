@@ -6,6 +6,7 @@ import { Users } from "src/entities/Users";
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
 import { CreateDmChatRoomDTO } from "./dto/create.dm.chatroom.dto";
 import { UUIDv7OrEmptyPipe } from "src/common/pipe/uuidv7OrEmpty.pipe";
+import { CreateSharedspaceChatRoomDTO } from "./dto/create.sharedspace.chatroom.dto";
 
 @Controller('api')
 export class ChatRoomsController {
@@ -21,6 +22,16 @@ export class ChatRoomsController {
     @User() user: Users,
   ) {
     return this.chatRoomsService.getChatRoomParticipants(ChatRoomId, user.id, beforeParticipantId);
+  }
+
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
+  @Post('sharedspaces/:SharedspaceId/chatrooms')
+  createSharedspaceChatRoom(
+    @Param('SharedspaceId') SharedspaceId: string,
+    @Body() dto: CreateSharedspaceChatRoomDTO,
+    @User() user: Users,
+  ) {
+    return this.chatRoomsService.createSharedspaceChatRoom(SharedspaceId, dto, user.id);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
