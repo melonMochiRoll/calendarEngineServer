@@ -7,6 +7,7 @@ import { RoomParticipants } from "src/entities/RoomParticipants";
 import { ChatRooms } from "src/entities/ChatRooms";
 import { ChatRoomsFetcher } from "./chatrooms.fetcher";
 import { SharedspaceChatRooms } from "src/entities/SharedspaceChatRooms";
+import { SharedspacesModule } from "src/sharedspaces/sharedspaces.module";
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { SharedspaceChatRooms } from "src/entities/SharedspaceChatRooms";
       RoomParticipants,
     ]),
     RolesModule,
+    SharedspacesModule,
   ],
   controllers: [ ChatRoomsController ],
   providers: [
