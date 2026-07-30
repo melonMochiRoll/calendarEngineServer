@@ -13,6 +13,7 @@ import { SharedspaceChatRooms } from "src/entities/SharedspaceChatRooms";
 import { DmChatRooms } from "src/entities/DmChatRooms";
 import { CreateSharedspaceChatRoomDTO } from "./dto/create.sharedspace.chatroom.dto";
 import { RolesService } from "src/roles/roles.service";
+import { SharedspaceFetcher } from "src/sharedspaces/sharedspaces.fetcher";
 
 @Injectable()
 export class ChatRoomsService {
@@ -24,6 +25,7 @@ export class ChatRoomsService {
     private roomParticipantsRepository: Repository<RoomParticipants>,
     private rolesService: RolesService,
     private chatRoomsFetcher: ChatRoomsFetcher,
+    private sharedspaceFetcher: SharedspaceFetcher,
   ) {}
 
   async getChatRoomParticipants(
@@ -195,6 +197,8 @@ export class ChatRoomsService {
       });
 
       await qr.commitTransaction();
+
+      await this.sharedspaceFetcher.fetchSharedspaceAndWrite(`sharedspace:${SharedspaceId}`, SharedspaceId);
     } catch (err) {
       await qr.rollbackTransaction();
 
