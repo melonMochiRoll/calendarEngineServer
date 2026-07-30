@@ -35,7 +35,7 @@ export class SharedspaceFetcher {
         this.refreshLock.add(cacheKey);
 
         try {
-          await this.fetchSharedspaceAndWrite(cacheKey, id);
+          this.fetchSharedspaceAndWrite(cacheKey, id);
         } finally {
           this.refreshLock.delete(cacheKey);
         }
