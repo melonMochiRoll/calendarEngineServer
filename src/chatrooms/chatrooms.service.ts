@@ -14,6 +14,7 @@ import { DmChatRooms } from "src/entities/DmChatRooms";
 import { CreateSharedspaceChatRoomDTO } from "./dto/create.sharedspace.chatroom.dto";
 import { RolesService } from "src/roles/roles.service";
 import { SharedspaceFetcher } from "src/sharedspaces/sharedspaces.fetcher";
+import { UpdateSharedspaceChatRoomNameDTO } from "./dto/update.sharedspace.chatroom.name.dto";
 
 @Injectable()
 export class ChatRoomsService {
@@ -21,6 +22,8 @@ export class ChatRoomsService {
     private dataSource: DataSource,
     @InjectRepository(ChatRooms)
     private chatRoomsRepository: Repository<ChatRooms>,
+    @InjectRepository(SharedspaceChatRooms)
+    private sharedspaceChatRoomsRepository: Repository<SharedspaceChatRooms>,
     @InjectRepository(RoomParticipants)
     private roomParticipantsRepository: Repository<RoomParticipants>,
     private rolesService: RolesService,
@@ -206,5 +209,28 @@ export class ChatRoomsService {
     } finally {
       await qr.release();
     }
+  }
+
+  async updateSharedspaceChatRoomName(
+    SharedspaceId: string,
+    dto: UpdateSharedspaceChatRoomNameDTO,
+    UserId: string,
+  ) {
+    const { ChatRoomId, name } = dto;
+
+    const isOwner = await this.rolesService.requireOwner(UserId, SharedspaceId);
+
+    if (!isOwner) {
+      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+    }
+
+    await this.sharedspaceChatRoomsRepository.update({
+      id: ChatRoomId,
+      SharedspaceId,
+    }, {
+      name,
+    });
+
+    await this.sharedspaceFetcher.fetchSharedspaceAndWrite(`sharedspace:${SharedspaceId}`, SharedspaceId);
   }
 }

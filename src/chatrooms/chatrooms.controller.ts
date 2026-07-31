@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { ChatRoomsService } from "./chatrooms.service";
 import { JwtAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { User } from "src/common/decorator/user.decorator";
@@ -7,6 +7,7 @@ import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
 import { CreateDmChatRoomDTO } from "./dto/create.dm.chatroom.dto";
 import { UUIDv7OrEmptyPipe } from "src/common/pipe/uuidv7OrEmpty.pipe";
 import { CreateSharedspaceChatRoomDTO } from "./dto/create.sharedspace.chatroom.dto";
+import { UpdateSharedspaceChatRoomNameDTO } from "./dto/update.sharedspace.chatroom.name.dto";
 
 @Controller('api')
 export class ChatRoomsController {
@@ -41,5 +42,15 @@ export class ChatRoomsController {
     @Body() dto: CreateDmChatRoomDTO,
   ) {
     return this.chatRoomsService.createDmChatRoom(user.id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
+  @Patch('sharedspaces/:SharedspaceId/chatrooms/name')
+  updateSharedspaceChatRoomName(
+    @Param('SharedspaceId') SharedspaceId: string,
+    @Body() dto: UpdateSharedspaceChatRoomNameDTO,
+    @User() user: Users,
+  ) {
+    return this.chatRoomsService.updateSharedspaceChatRoomName(SharedspaceId, dto, user.id);
   }
 }
