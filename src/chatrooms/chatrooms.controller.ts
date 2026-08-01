@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { ChatRoomsService } from "./chatrooms.service";
 import { JwtAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { User } from "src/common/decorator/user.decorator";
@@ -52,5 +52,15 @@ export class ChatRoomsController {
     @User() user: Users,
   ) {
     return this.chatRoomsService.updateSharedspaceChatRoomName(SharedspaceId, dto, user.id);
+  }
+
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
+  @Delete('sharedspaces/:SharedspaceId/chatrooms')
+  deleteSharedspaceChatRoom(
+    @Param('SharedspaceId') SharedspaceId: string,
+    @Query('ChatRoomId') ChatRoomId: string,
+    @User() user: Users,
+  ) {
+    return this.chatRoomsService.deleteSharedspaceChatRoom(SharedspaceId, ChatRoomId, user.id);
   }
 }

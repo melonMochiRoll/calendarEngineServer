@@ -15,6 +15,7 @@ import { CreateSharedspaceChatRoomDTO } from "./dto/create.sharedspace.chatroom.
 import { RolesService } from "src/roles/roles.service";
 import { SharedspaceFetcher } from "src/sharedspaces/sharedspaces.fetcher";
 import { UpdateSharedspaceChatRoomNameDTO } from "./dto/update.sharedspace.chatroom.name.dto";
+import dayjs from "dayjs";
 
 @Injectable()
 export class ChatRoomsService {
@@ -229,6 +230,27 @@ export class ChatRoomsService {
       SharedspaceId,
     }, {
       name,
+    });
+
+    await this.sharedspaceFetcher.fetchSharedspaceAndWrite(`sharedspace:${SharedspaceId}`, SharedspaceId);
+  }
+
+  async deleteSharedspaceChatRoom(
+    SharedspaceId: string,
+    ChatRoomId: string,
+    UserId: string,
+  ) {
+    const isOwner = await this.rolesService.requireOwner(UserId, SharedspaceId);
+
+    if (!isOwner) {
+      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+    }
+
+    await this.chatRoomsRepository.update({
+      id: ChatRoomId,
+      type: CHATROOM_TYPE.SPACE,
+    }, {
+      removedAt: dayjs().toDate(),
     });
 
     await this.sharedspaceFetcher.fetchSharedspaceAndWrite(`sharedspace:${SharedspaceId}`, SharedspaceId);
