@@ -65,6 +65,11 @@ export class SharedspaceFetcher {
       where: {
         id,
         removedAt: IsNull(),
+        SharedspaceChatRooms: {
+          ChatRoom: {
+            removedAt: IsNull(), 
+          },
+        },
       },
       relations: {
         SharedspaceChatRooms: true,
