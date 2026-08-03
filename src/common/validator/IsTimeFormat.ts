@@ -6,12 +6,12 @@ import {
   ValidationArguments,
 } from 'class-validator';
 
-const TimeFormatRexExp = /^([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/;
-
 @ValidatorConstraint({ async: false })
 export class IsTimeFormatConstraint implements ValidatorConstraintInterface {
+  private timeFormatRexExp = /^([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/;
+
   validate(value: any, args: ValidationArguments) {
-    return typeof value === 'string' && TimeFormatRexExp.test(value);
+    return typeof value === 'string' && this.timeFormatRexExp.test(value);
   }
 }
 
