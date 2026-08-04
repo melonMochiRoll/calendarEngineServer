@@ -37,7 +37,7 @@ export class ChatRoomsController {
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Post('chatrooms')
+  @Post('dms/chatrooms')
   createDmChatRoom(
     @User() user: Users,
     @Body() dto: CreateDmChatRoomDTO,
