@@ -57,10 +57,10 @@ export class ChatRoomsController {
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Delete('sharedspaces/:SharedspaceId/chatrooms')
+  @Delete('sharedspaces/:SharedspaceId/chatrooms/:ChatRoomId')
   deleteSharedspaceChatRoom(
     @Param('SharedspaceId') SharedspaceId: string,
-    @Query('ChatRoomId') ChatRoomId: string,
+    @Param('ChatRoomId') ChatRoomId: string,
     @User() user: Users,
   ) {
     return this.chatRoomsService.deleteSharedspaceChatRoom(SharedspaceId, ChatRoomId, user.id);
