@@ -67,7 +67,7 @@ export class ChatRoomsController {
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Post('dm/chatrooms/:ChatRoomId/participants')
+  @Post('dms/chatrooms/:ChatRoomId/participants')
   createDmChatRoomParticipants(
     @Param('ChatRoomId') ChatRoomId: string,
     @Body() dto: CreateDmChatRoomParticipantsDTO,
