@@ -16,6 +16,7 @@ import { RolesService } from "src/roles/roles.service";
 import { SharedspaceFetcher } from "src/sharedspaces/sharedspaces.fetcher";
 import { UpdateSharedspaceChatRoomNameDTO } from "./dto/update.sharedspace.chatroom.name.dto";
 import dayjs from "dayjs";
+import { CreateDmChatRoomParticipantsDTO } from "./dto/create.dm.chatroom.participants";
 
 @Injectable()
 export class ChatRoomsService {
@@ -254,5 +255,28 @@ export class ChatRoomsService {
     });
 
     await this.sharedspaceFetcher.fetchSharedspaceAndWrite(`sharedspace:${SharedspaceId}`, SharedspaceId);
+  }
+
+  async createDmChatRoomParticipants(
+    ChatRoomId: string,
+    dto: CreateDmChatRoomParticipantsDTO,
+    UserId: string,
+  ) {
+    const { targetUserIds } = dto;
+
+    const isParticipant = await this.chatRoomsFetcher.isParticipant(UserId, ChatRoomId);
+
+    if (!isParticipant) {
+      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+    }
+
+    const entities = targetUserIds.map(targetUserId => {
+      return {
+        UserId: targetUserId,
+        RoomId: ChatRoomId,
+      };
+    });
+
+    await this.roomParticipantsRepository.insert(entities);
   }
 }

@@ -8,6 +8,7 @@ import { CreateDmChatRoomDTO } from "./dto/create.dm.chatroom.dto";
 import { UUIDv7OrEmptyPipe } from "src/common/pipe/uuidv7OrEmpty.pipe";
 import { CreateSharedspaceChatRoomDTO } from "./dto/create.sharedspace.chatroom.dto";
 import { UpdateSharedspaceChatRoomNameDTO } from "./dto/update.sharedspace.chatroom.name.dto";
+import { CreateDmChatRoomParticipantsDTO } from "./dto/create.dm.chatroom.participants";
 
 @Controller('api')
 export class ChatRoomsController {
@@ -62,5 +63,15 @@ export class ChatRoomsController {
     @User() user: Users,
   ) {
     return this.chatRoomsService.deleteSharedspaceChatRoom(SharedspaceId, ChatRoomId, user.id);
+  }
+
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
+  @Post('dm/chatrooms/:ChatRoomId/participants')
+  createDmChatRoomParticipants(
+    @Param('ChatRoomId') ChatRoomId: string,
+    @Body() dto: CreateDmChatRoomParticipantsDTO,
+    @User() user: Users,
+  ) {
+    return this.chatRoomsService.createDmChatRoomParticipants(ChatRoomId, dto, user.id);
   }
 }
