@@ -46,13 +46,14 @@ export class ChatRoomsController {
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
-  @Patch('sharedspaces/:SharedspaceId/chatrooms/name')
+  @Patch('sharedspaces/:SharedspaceId/chatrooms/:ChatRoomId/name')
   updateSharedspaceChatRoomName(
     @Param('SharedspaceId') SharedspaceId: string,
+    @Param('ChatRoomId') ChatRoomId: string,
     @Body() dto: UpdateSharedspaceChatRoomNameDTO,
     @User() user: Users,
   ) {
-    return this.chatRoomsService.updateSharedspaceChatRoomName(SharedspaceId, dto, user.id);
+    return this.chatRoomsService.updateSharedspaceChatRoomName(SharedspaceId, ChatRoomId, dto, user.id);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)

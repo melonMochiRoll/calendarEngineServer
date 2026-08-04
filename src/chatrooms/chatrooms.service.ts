@@ -215,10 +215,11 @@ export class ChatRoomsService {
 
   async updateSharedspaceChatRoomName(
     SharedspaceId: string,
+    ChatRoomId: string,
     dto: UpdateSharedspaceChatRoomNameDTO,
     UserId: string,
   ) {
-    const { ChatRoomId, name } = dto;
+    const { name } = dto;
 
     const isOwner = await this.rolesService.requireOwner(UserId, SharedspaceId);
 
