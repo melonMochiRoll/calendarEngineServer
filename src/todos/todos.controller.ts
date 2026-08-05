@@ -19,7 +19,7 @@ export class TodosController {
   @UseGuards(PublicAuthGuard)
   @Get(':SharedspaceId/todos')
   getTodosByMonth(
-    @Param('SharedspaceId') SharedspaceId: string,
+    @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Query('date', DateValidationPipe) date: string,
     @User() user: Users,
   ) {
@@ -33,7 +33,7 @@ export class TodosController {
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post(':SharedspaceId/todos')
   createTodo(
-    @Param('SharedspaceId') SharedspaceId: string,
+    @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Body() dto: CreateTodoDTO,
     @User() user: Users,
   ) {
@@ -43,7 +43,7 @@ export class TodosController {
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Put(':SharedspaceId/todos')
   updateTodo(
-    @Param('SharedspaceId') SharedspaceId: string,
+    @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Body() dto: UpdateTodoDto,
     @User() user: Users,
   ) {
@@ -54,7 +54,7 @@ export class TodosController {
   @HttpCode(204)
   @Delete(':SharedspaceId/todos/:id')
   deleteTodo(
-    @Param('SharedspaceId') SharedspaceId: string,
+    @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Param('id', UUIDv7ValidationPipe) todoId: string,
     @User() user: Users,
   ) {
@@ -64,7 +64,7 @@ export class TodosController {
   @UseGuards(PublicAuthGuard)
   @Get(':SharedspaceId/todos/search')
   searchTodos(
-    @Param('SharedspaceId') SharedspaceId: string,
+    @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Query('query') query: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeTodoId: string,
     @User() user: Users,

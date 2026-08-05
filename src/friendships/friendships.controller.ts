@@ -8,6 +8,7 @@ import { Users } from "src/entities/Users";
 import { RejectFriendshipDTO } from "./dto/reject.friendship.dto";
 import { AcceptFriendshipDTO } from "./dto/accept.friendship.dto";
 import { UUIDv7OrEmptyPipe } from "src/common/pipe/uuidv7OrEmpty.pipe";
+import { UUIDv7ValidationPipe } from "src/common/pipe/uuidv7.validation.pipe";
 
 @Controller('api/friendships')
 export class FriendshipsController {
@@ -63,7 +64,7 @@ export class FriendshipsController {
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Delete()
   deleteFriendship(
-    @Query('target', UUIDv7OrEmptyPipe) RequesterId: string,
+    @Query('target', UUIDv7ValidationPipe) RequesterId: string,
     @User() user: Users,
   ) {
     return this.friendshipsService.deleteFriendship(RequesterId, user.id);

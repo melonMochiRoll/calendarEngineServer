@@ -55,7 +55,7 @@ export class InvitesController {
   @Delete('cancel/:id')
   cancelInvite(
     @Param('id', UUIDv7ValidationPipe) targetInviteId: string,
-    @Query('SharedspaceId') SharedspaceId: string,
+    @Query('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @User() user: Users,
   ) {
     return this.invitesService.cancelInvite(targetInviteId, SharedspaceId, user.id);

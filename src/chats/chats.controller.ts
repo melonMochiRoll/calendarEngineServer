@@ -6,6 +6,7 @@ import { GeneratePresignedPutUrlDTO } from "./dto/generate.presigned.put.url.dto
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
 import { UUIDv7OrEmptyPipe } from "src/common/pipe/uuidv7OrEmpty.pipe";
+import { UUIDv7ValidationPipe } from "src/common/pipe/uuidv7.validation.pipe";
 
 @Controller('api')
 export class ChatsController {
@@ -16,7 +17,7 @@ export class ChatsController {
   @UseGuards(PublicAuthGuard)
   @Get('sharedspaces/chatrooms/:ChatRoomId/chats')
   getSharedspaceChatRoomChats(
-    @Param('ChatRoomId') ChatRoomId: string,
+    @Param('ChatRoomId', UUIDv7ValidationPipe) ChatRoomId: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeChatId: string,
     @User() user: Users,
   ) {
@@ -30,7 +31,7 @@ export class ChatsController {
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Get('dm/chatrooms/:ChatRoomId/chats')
   getDmChatRoomChats(
-    @Param('ChatRoomId') ChatRoomId: string,
+    @Param('ChatRoomId', UUIDv7ValidationPipe) ChatRoomId: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeChatId: string,
     @User() user: Users,
   ) {
@@ -40,7 +41,7 @@ export class ChatsController {
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post('chatrooms/:ChatRoomId/presigned-url')
   generatePresignedPutUrl(
-    @Param('ChatRoomId') ChatRoomId: string,
+    @Param('ChatRoomId', UUIDv7ValidationPipe) ChatRoomId: string,
     @Body() dto: GeneratePresignedPutUrlDTO,
   ) {
     return this.chatsService.generatePresignedPutUrl(ChatRoomId, dto);

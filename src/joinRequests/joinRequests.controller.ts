@@ -18,7 +18,7 @@ export class JoinRequestsController {
   @UseGuards(JwtAuthGuard)
   @Get(':SharedspaceId/joinrequest')
   getJoinRequests(
-    @Param('SharedspaceId') SharedspaceId: string,
+    @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeJoinRequestId: string,
     @User() user: Users,
   ) {
@@ -28,7 +28,7 @@ export class JoinRequestsController {
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post(':SharedspaceId/joinrequest/:id/resolve')
   resolveJoinRequest(
-    @Param('SharedspaceId') SharedspaceId: string,
+    @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Param('id', UUIDv7ValidationPipe) joinRequestId: string,
     @Body() dto: ResolveJoinRequestDTO,
     @User() user: Users,
@@ -44,7 +44,7 @@ export class JoinRequestsController {
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post(':SharedspaceId/joinrequest')
   createJoinRequest(
-    @Param('SharedspaceId') SharedspaceId: string,
+    @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Body() dto: CreateJoinRequestDTO,
     @User() user: Users,
   ) {
@@ -54,7 +54,7 @@ export class JoinRequestsController {
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post(':url/joinrequest/:id')
   rejectJoinRequest(
-    @Param('SharedspaceId') SharedspaceId: string,
+    @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Param('id', UUIDv7ValidationPipe) joinRequestId: string,
     @User() user: Users,
   ) {
