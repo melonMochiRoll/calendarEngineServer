@@ -282,15 +282,6 @@ export class ChatsService {
     }
 
     if (type === CHATROOM_TYPE.DM) {
-      const room = await this.chatRoomsFetcher.getDmChatRoomById(ChatRoomId);
-
-      if (!room) {
-        throw new WsException({
-          type: ERROR_TYPE.BAD_REQUEST_ERROR,
-          message: BAD_REQUEST_MESSAGE,
-        });
-      }
-
       const isParticipant = await this.chatRoomsFetcher.isParticipant(UserId, ChatRoomId);
 
       if (!isParticipant) {
