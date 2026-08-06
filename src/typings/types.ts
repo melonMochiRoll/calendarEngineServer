@@ -2,6 +2,7 @@ import { SHAREDSPACE_ROLE, SUBSCRIBEDSPACES_SORT } from "src/common/constant/con
 import { ChatImages } from "src/entities/ChatImages";
 import { ChatRooms } from "src/entities/ChatRooms";
 import { Chats } from "src/entities/Chats";
+import { DmChatRooms } from "src/entities/DmChatRooms";
 import { Images } from "src/entities/Images";
 import { ProfileImages } from "src/entities/ProfileImages";
 import { SharedspaceChatRooms } from "src/entities/SharedspaceChatRooms";
@@ -83,6 +84,8 @@ export type TSharedspaceChatRoomDefault = Pick<SharedspaceChatRooms, 'id' | 'nam
   {
     Sharedspace: Pick<Sharedspaces, 'private'>
   };
+
+export type TDmChatRoomDefault = Pick<DmChatRooms, 'id' | 'name'>;
 
 export type CacheItem<T> = {
   value: T,
