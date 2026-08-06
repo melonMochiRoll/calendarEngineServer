@@ -3,11 +3,12 @@ import { ChatRooms } from "src/entities/ChatRooms";
 import { IsNull, Repository } from "typeorm";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
-import { TSharedspaceChatRoomDefault } from "src/typings/types";
+import { TDmChatRoomDefault, TSharedspaceChatRoomDefault } from "src/typings/types";
 import { RoomParticipants } from "src/entities/RoomParticipants";
 import { Inject } from "@nestjs/common";
 import { SharedspaceChatRooms } from "src/entities/SharedspaceChatRooms";
 import { CHATROOM_TYPE } from "src/common/constant/constants";
+import { DmChatRooms } from "src/entities/DmChatRooms";
 
 export class ChatRoomsFetcher {
   constructor(
@@ -17,6 +18,8 @@ export class ChatRoomsFetcher {
     private chatRoomsRepository: Repository<ChatRooms>,
     @InjectRepository(SharedspaceChatRooms)
     private sharedspaceChatRoomsRepository: Repository<SharedspaceChatRooms>,
+    @InjectRepository(DmChatRooms)
+    private dmChatRoomsRepository: Repository<DmChatRooms>,
     @InjectRepository(RoomParticipants)
     private roomParticipantsRepository: Repository<RoomParticipants>,
   ) {}
@@ -48,6 +51,35 @@ export class ChatRoomsFetcher {
       },
       relations: {
         Sharedspace: true,
+      },
+    });
+
+    const minute = 60000;
+
+    await this.cacheManager.set(cacheKey, chatRoom, 10 * minute);
+    return chatRoom;
+  }
+
+  async getDmChatRoomById(id: string) {
+    const cacheKey = `chatRoom:${id}`;
+
+    const cachedItem = await this.cacheManager.get<TDmChatRoomDefault>(cacheKey);
+
+    if (cachedItem) {
+      return cachedItem;
+    }
+
+    const chatRoom = await this.dmChatRoomsRepository.findOne({
+      select: {
+        id: true,
+        name: true,
+      },
+      where: {
+        id,
+        ChatRoom: {
+          type: CHATROOM_TYPE.DM,
+          removedAt: IsNull(),
+        },
       },
     });
 
