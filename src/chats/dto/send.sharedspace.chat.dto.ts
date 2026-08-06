@@ -17,5 +17,9 @@ export class SendSharedspacechatDTO {
   imageIds: string[];
 
   @IsArray()
-  imageKeys: string[]
+  imageKeys: string[];
+
+  @IsNotEmpty()
+  @IsString()
+  type: string;
 }

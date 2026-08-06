@@ -7,7 +7,7 @@ import { RolesService } from "src/roles/roles.service";
 import { DataSource, In, IsNull, LessThan, Repository } from "typeorm";
 import dayjs from "dayjs";
 import { GeneratePresignedPutUrlDTO } from "./dto/generate.presigned.put.url.dto";
-import { ChatToClient, IMAGE_STATUS, IMAGE_TYPE } from "src/common/constant/constants";
+import { CHATROOM_TYPE, ChatToClient, IMAGE_STATUS, IMAGE_TYPE } from "src/common/constant/constants";
 import { StorageR2Service } from "src/storage/storage.r2.service";
 import { SendSharedspacechatDTO } from "src/chats/dto/send.sharedspace.chat.dto";
 import { UpdateSharedspaceChatDTO } from "src/chats/dto/update.sharedspace.chat.dto";
@@ -259,24 +259,46 @@ export class ChatsService {
     dto: SendSharedspacechatDTO,
     UserId: string,
   ) {
-    const { ChatRoomId, ChatId, content, imageIds, imageKeys } = dto;
+    const { ChatRoomId, ChatId, content, imageIds, imageKeys, type } = dto;
 
-    const room = await this.chatRoomsFetcher.getSharedspaceChatRoomById(ChatRoomId);
+    if (type === CHATROOM_TYPE.SPACE) {
+      const room = await this.chatRoomsFetcher.getSharedspaceChatRoomById(ChatRoomId);
 
-    if (!room) {
-      throw new WsException({
-        type: ERROR_TYPE.BAD_REQUEST_ERROR,
-        message: BAD_REQUEST_MESSAGE,
-      });
+      if (!room || !room?.SharedspaceId) {
+        throw new WsException({
+          type: ERROR_TYPE.BAD_REQUEST_ERROR,
+          message: BAD_REQUEST_MESSAGE,
+        });
+      }
+
+      const isParticipant = await this.rolesService.requireParticipant(UserId, room.SharedspaceId);
+
+      if (!isParticipant) {
+        throw new WsException({
+          type: ERROR_TYPE.UNAUTHORIZED_ERROR,
+          message: ACCESS_DENIED_MESSAGE,
+        });
+      }
     }
 
-    const isParticipant = await this.rolesService.requireParticipant(UserId, room.SharedspaceId);
+    if (type === CHATROOM_TYPE.DM) {
+      const room = await this.chatRoomsFetcher.getDmChatRoomById(ChatRoomId);
 
-    if (!isParticipant) {
-      throw new WsException({
-        type: ERROR_TYPE.UNAUTHORIZED_ERROR,
-        message: ACCESS_DENIED_MESSAGE,
-      });
+      if (!room) {
+        throw new WsException({
+          type: ERROR_TYPE.BAD_REQUEST_ERROR,
+          message: BAD_REQUEST_MESSAGE,
+        });
+      }
+
+      const isParticipant = await this.chatRoomsFetcher.isParticipant(UserId, ChatRoomId);
+
+      if (!isParticipant) {
+        throw new WsException({
+          type: ERROR_TYPE.UNAUTHORIZED_ERROR,
+          message: ACCESS_DENIED_MESSAGE,
+        });
+      }
     }
 
     const qr = this.dataSource.createQueryRunner();
@@ -288,7 +310,7 @@ export class ChatsService {
         id: ChatId,
         content,
         SenderId: UserId,
-        RoomId: room.id,
+        RoomId: ChatRoomId,
       });
 
       if (imageIds.length) {
