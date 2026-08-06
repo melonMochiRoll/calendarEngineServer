@@ -506,6 +506,9 @@ export class ChatsService {
       },
       where: {
         id: ChatId,
+        SenderId: UserId,
+        RoomId: ChatRoomId,
+        removedAt: IsNull(),
       },
     });
 
