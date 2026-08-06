@@ -16,7 +16,7 @@ import { RolesService } from "src/roles/roles.service";
 import { SharedspaceFetcher } from "src/sharedspaces/sharedspaces.fetcher";
 import { UpdateSharedspaceChatRoomNameDTO } from "./dto/update.sharedspace.chatroom.name.dto";
 import dayjs from "dayjs";
-import { CreateDmChatRoomParticipantsDTO } from "./dto/create.dm.chatroom.participants";
+import { InviteDmChatRoomDTO } from "./dto/invite.dm.chatroom";
 
 @Injectable()
 export class ChatRoomsService {
@@ -258,9 +258,9 @@ export class ChatRoomsService {
     await this.sharedspaceFetcher.fetchSharedspaceAndWrite(`sharedspace:${SharedspaceId}`, SharedspaceId);
   }
 
-  async createDmChatRoomParticipants(
+  async inviteDmChatRoom(
     ChatRoomId: string,
-    dto: CreateDmChatRoomParticipantsDTO,
+    dto: InviteDmChatRoomDTO,
     UserId: string,
   ) {
     const { targetUserIds } = dto;
