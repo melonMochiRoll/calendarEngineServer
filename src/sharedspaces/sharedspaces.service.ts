@@ -544,7 +544,7 @@ export class SharedspacesService {
     await this.sharedspaceFetcher.invalidateSharedspaceMembersCache(SharedspaceId);
   }
 
-  async kickSharedspaceMembers(
+  async kickSharedspace(
     SharedspaceId: string,
     targetUserId: string,
     UserId: string,

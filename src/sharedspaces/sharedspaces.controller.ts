@@ -113,12 +113,12 @@ export class SharedspacesController {
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Delete(':SharedspaceId/members/:id')
-  kickSharedspaceMembers(
+  kickSharedspace(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Param('id', UUIDv7ValidationPipe) targetUserId: string,
     @User() user: Users,
   ) {
-    return this.sharedspacesService.kickSharedspaceMembers(SharedspaceId, targetUserId, user.id);
+    return this.sharedspacesService.kickSharedspace(SharedspaceId, targetUserId, user.id);
   }
 
   @UseGuards(JwtAuthGuard)
