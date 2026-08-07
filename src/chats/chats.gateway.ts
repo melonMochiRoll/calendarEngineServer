@@ -22,7 +22,7 @@ import { WsExceptionFilter } from "src/common/exception/ws-exception.filter";
     maxDisconnectionDuration: 1 * 60 * 1000,
   },
 })
-export class SharedspaceChatsGateway {
+export class ChatsGateway {
   constructor(
     private chatsService: ChatsService,
   ) {}

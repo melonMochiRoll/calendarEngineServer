@@ -9,7 +9,7 @@ import { Images } from "src/entities/Images";
 import { StorageModule } from "src/storage/storage.module";
 import { RefreshTokens } from "src/entities/RefreshTokens";
 import { ChatImages } from "src/entities/ChatImages";
-import { SharedspaceChatsGateway } from "./sharedspace.chats.gateway";
+import { ChatsGateway } from "./chats.gateway";
 import { UsersModule } from "src/users/users.module";
 import { ChatRoomsModule } from "src/chatrooms/chatrooms.module";
 
@@ -30,7 +30,7 @@ import { ChatRoomsModule } from "src/chatrooms/chatrooms.module";
   controllers: [ ChatsController ],
   providers: [
     ChatsService,
-    SharedspaceChatsGateway,
+    ChatsGateway,
   ],
   exports: [ ChatsService ],
 })
