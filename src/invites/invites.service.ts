@@ -190,6 +190,7 @@ export class InvitesService {
 
       await qr.commitTransaction();
       await this.rolesService.invalidateUserRoleCache(UserId, SharedspaceId);
+      await this.sharedspaceFetcher.invalidateSharedspaceMembersCache(SharedspaceId);
     } catch (err) {
       await qr.rollbackTransaction();
 
