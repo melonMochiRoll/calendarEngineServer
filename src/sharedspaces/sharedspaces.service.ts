@@ -487,10 +487,6 @@ export class SharedspacesService {
     };
   }
 
-  async invalidateSharedspaceMembersCache(SharedspaceId: string) {
-    await this.cacheManager.del(`sharedspaceMembers:${SharedspaceId}`);
-  }
-
   async createSharedspaceMembers(
     SharedspaceId: string,
     dto: CreateSharedspaceMembersDTO,
@@ -530,7 +526,7 @@ export class SharedspacesService {
       SharedspaceId,
       RoleId: roleInfo.id,
     });
-    await this.invalidateSharedspaceMembersCache(SharedspaceId);
+    await this.sharedspaceFetcher.invalidateSharedspaceMembersCache(SharedspaceId);
   }
 
   async updateSharedspaceMembers(
@@ -574,7 +570,7 @@ export class SharedspacesService {
     });
 
     await this.rolesService.invalidateUserRoleCache(targetUserId, SharedspaceId);
-    await this.invalidateSharedspaceMembersCache(SharedspaceId);
+    await this.sharedspaceFetcher.invalidateSharedspaceMembersCache(SharedspaceId);
   }
 
   async deleteSharedspaceMembers(
@@ -612,7 +608,7 @@ export class SharedspacesService {
     );
 
     await this.rolesService.invalidateUserRoleCache(targetUserId, SharedspaceId);
-    await this.invalidateSharedspaceMembersCache(SharedspaceId);
+    await this.sharedspaceFetcher.invalidateSharedspaceMembersCache(SharedspaceId);
   }
 
   async searchUsersWithParticipantStatus(

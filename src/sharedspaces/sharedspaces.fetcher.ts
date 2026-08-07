@@ -101,4 +101,8 @@ export class SharedspaceFetcher {
   async invalidateSharedspaceCache(id: string) {
     await this.cacheManager.del(`sharedspace:${id}`);
   }
+
+  async invalidateSharedspaceMembersCache(SharedspaceId: string) {
+    await this.cacheManager.del(`sharedspaceMembers:${SharedspaceId}`);
+  }
 }
