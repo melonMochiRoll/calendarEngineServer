@@ -7,7 +7,6 @@ import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { SpaceMembers } from "src/entities/SpaceMembers";
 import { Users } from "src/entities/Users";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, CONFLICT_OWNER_MESSAGE, NOT_FOUND_RESOURCE, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
-import { CreateSharedspaceMembersDTO } from "./dto/create.sharedspace.members.dto";
 import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dto";
 import { UpdateSharedspacePrivateDTO } from "./dto/update.sharedspace.private.dto";
 import { Chats } from "src/entities/Chats";
@@ -485,48 +484,6 @@ export class SharedspacesService {
       members,
       hasMoreData,
     };
-  }
-
-  async createSharedspaceMembers(
-    SharedspaceId: string,
-    dto: CreateSharedspaceMembersDTO,
-    UserId: string,
-  ) {
-    const { UserId: targetUserId, RoleName } = dto;
-
-    const isOwner = await this.rolesService.requireOwner(UserId, SharedspaceId);
-
-    if (!isOwner) {
-      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
-    }
-
-    const roleInfo = await this.rolesService.getRoleInfo(RoleName);
-
-    if (!roleInfo || roleInfo.name === SHAREDSPACE_ROLE.OWNER) {
-      throw new BadRequestException(BAD_REQUEST_MESSAGE);
-    }
-
-    const isMember = await this.spaceMembersRepository.findOne({
-      select: {
-        RoleId: true,
-      },
-      where: {
-        UserId: targetUserId,
-        SharedspaceId,
-      },
-    });
-
-    if (isMember) {
-      throw new ConflictException(CONFLICT_MESSAGE);
-    }
-
-    await this.spaceMembersRepository.insert({
-      id: uuidv7(),
-      UserId: targetUserId,
-      SharedspaceId,
-      RoleId: roleInfo.id,
-    });
-    await this.sharedspaceFetcher.invalidateSharedspaceMembersCache(SharedspaceId);
   }
 
   async updateSharedspaceMembers(
