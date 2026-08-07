@@ -3,7 +3,7 @@ import { Users } from "./Users";
 import { Sharedspaces } from "./Sharedspaces";
 import { UUIDV7Transformer } from "src/common/transformer/uuidv7Transformer";
 
-@Index('todos_SharedspaceId_date_uq_idx', ['SharedspaceId', 'date'], { unique: true })
+@Index('todos_SharedspaceId_date_uq_idx', ['SharedspaceId', 'date'])
 @Entity({ name: 'todos' })
 export class Todos {
   @PrimaryColumn({ type: 'binary', name: 'id', length: 16, transformer: new UUIDV7Transformer() })
