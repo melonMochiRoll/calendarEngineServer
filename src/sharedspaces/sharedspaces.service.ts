@@ -530,6 +530,20 @@ export class SharedspacesService {
     await this.sharedspaceFetcher.invalidateSharedspaceMembersCache(SharedspaceId);
   }
 
+  async leaveSharedspace(
+    SharedspaceId: string,
+    UserId: string,
+  ) {
+    const now = dayjs().toDate();
+
+    await this.spaceMembersRepository.update(
+      { UserId, SharedspaceId },
+      { removedAt: now }
+    );
+    await this.rolesService.invalidateUserRoleCache(UserId, SharedspaceId);
+    await this.sharedspaceFetcher.invalidateSharedspaceMembersCache(SharedspaceId);
+  }
+
   async kickSharedspaceMembers(
     SharedspaceId: string,
     targetUserId: string,
