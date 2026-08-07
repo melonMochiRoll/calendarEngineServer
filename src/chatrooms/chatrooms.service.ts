@@ -280,4 +280,14 @@ export class ChatRoomsService {
 
     await this.roomParticipantsRepository.insert(entities);
   }
+
+  async leaveDmChatRoom(
+    ChatRoomId: string,
+    UserId: string,
+  ) {
+    await this.roomParticipantsRepository.delete({
+      UserId,
+      RoomId: ChatRoomId,
+    });
+  }
 }

@@ -76,4 +76,13 @@ export class ChatRoomsController {
   ) {
     return this.chatRoomsService.inviteDmChatRoom(ChatRoomId, dto, user.id);
   }
+
+  @UseGuards(JwtAuthGuard, CSRFAuthGuard)
+  @Delete('dms/chatrooms/:ChatRoomId/participants/me')
+  leaveDmChatRoom(
+    @Param('ChatRoomId', UUIDv7ValidationPipe) ChatRoomId: string,
+    @User() user: Users,
+  ) {
+    return this.chatRoomsService.leaveDmChatRoom(ChatRoomId, user.id);
+  }
 }
