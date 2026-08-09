@@ -4,7 +4,7 @@ import { UpdateSharedspaceNameDTO } from "./dto/update.sharedspace.name.dto";
 import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { User } from "src/common/decorator/user.decorator";
 import { Users } from "src/entities/Users";
-import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dto";
+import { UpdateSharedspaceMemberDTO } from "./dto/update.sharedspace.member.dto";
 import { UpdateSharedspacePrivateDTO } from "./dto/update.sharedspace.private.dto";
 import { JwtAuthGuard, PublicAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
@@ -94,12 +94,12 @@ export class SharedspacesController {
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Patch(':SharedspaceId/members')
-  updateSharedspaceMembers(
+  updateSharedspaceMember(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
-    @Body() dto: UpdateSharedspaceMembersDTO,
+    @Body() dto: UpdateSharedspaceMemberDTO,
     @User() user: Users,
   ) {
-    return this.sharedspacesService.updateSharedspaceMembers(SharedspaceId, dto, user.id);
+    return this.sharedspacesService.updateSharedspaceMember(SharedspaceId, dto, user.id);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)

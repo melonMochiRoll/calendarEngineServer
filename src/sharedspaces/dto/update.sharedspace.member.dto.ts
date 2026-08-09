@@ -1,7 +1,7 @@
 import { IsNotEmpty, IsString, IsUUID } from "class-validator";
 import { TSharedspaceRole } from "src/typings/types";
 
-export class UpdateSharedspaceMembersDTO {
+export class UpdateSharedspaceMemberDTO {
 
   @IsNotEmpty()
   @IsUUID(7)

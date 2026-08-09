@@ -7,7 +7,7 @@ import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
 import { SpaceMembers } from "src/entities/SpaceMembers";
 import { Users } from "src/entities/Users";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, CONFLICT_OWNER_MESSAGE, NOT_FOUND_RESOURCE, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
-import { UpdateSharedspaceMembersDTO } from "./dto/update.sharedspace.members.dto";
+import { UpdateSharedspaceMemberDTO } from "./dto/update.sharedspace.member.dto";
 import { UpdateSharedspacePrivateDTO } from "./dto/update.sharedspace.private.dto";
 import { Chats } from "src/entities/Chats";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
@@ -486,9 +486,9 @@ export class SharedspacesService {
     };
   }
 
-  async updateSharedspaceMembers(
+  async updateSharedspaceMember(
     SharedspaceId: string,
-    dto: UpdateSharedspaceMembersDTO,
+    dto: UpdateSharedspaceMemberDTO,
     UserId: string,
   ) {
     const { UserId: targetUserId, RoleName } = dto;
