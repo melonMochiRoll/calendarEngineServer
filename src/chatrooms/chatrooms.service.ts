@@ -146,6 +146,7 @@ export class ChatRoomsService {
 
       await qr.manager.insert(DmChatRooms, {
         id: RoomId,
+        lastMessageAt: dayjs().toDate(),
       });
 
       await qr.manager.insert(RoomParticipants, {
