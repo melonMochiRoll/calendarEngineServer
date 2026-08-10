@@ -18,6 +18,7 @@ import { SpaceMembers } from "src/entities/SpaceMembers";
 import { WsException } from "@nestjs/websockets";
 import { ERROR_TYPE } from "src/common/constant/auth.constants";
 import { ChatRoomsFetcher } from "src/chatrooms/chatrooms.fetcher";
+import { DmChatRooms } from "src/entities/DmChatRooms";
 
 @Injectable()
 export class ChatsService {
@@ -311,6 +312,14 @@ export class ChatsService {
         });
 
         await Promise.all(updatePromises);
+      }
+
+      if (type === CHATROOM_TYPE.DM) {
+        await qr.manager.update(DmChatRooms, {
+          id: ChatRoomId,
+        }, {
+          lastMessageAt: dayjs().toDate(),
+        });
       }
 
       await qr.commitTransaction();
