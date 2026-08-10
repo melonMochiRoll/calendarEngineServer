@@ -10,6 +10,9 @@ export class DmChatRooms {
   @Column({ type: 'varchar', name: 'name', length: 30, nullable: true })
   name: string | null;
 
+  @Column({ type: 'datetime', precision: 6 })
+  lastMessageAt: Date;
+
   @OneToOne(() => ChatRooms, chatRooms => chatRooms.DmChatRoom)
   @JoinColumn({
     name: 'id',
