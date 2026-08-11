@@ -279,7 +279,10 @@ export class UsersService {
       }
 
       await qr.manager.update(Images, { id: ImageId }, { status: IMAGE_STATUS.ACTIVE });
-      await qr.manager.insert(ProfileImages, { id: ImageId, path: key, UserId });
+      await qr.manager.upsert(ProfileImages,
+        { id: ImageId, path: key, UserId },
+        ['UserId'],
+      );
 
       await qr.commitTransaction();
 
