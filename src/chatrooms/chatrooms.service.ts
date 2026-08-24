@@ -17,6 +17,7 @@ import { SharedspaceFetcher } from "src/sharedspaces/sharedspaces.fetcher";
 import { UpdateSharedspaceChatRoomNameDTO } from "./dto/update.sharedspace.chatroom.name.dto";
 import dayjs from "dayjs";
 import { InviteDmChatRoomDTO } from "./dto/invite.dm.chatroom";
+import { stringToUUID, uuidToString } from "src/common/function/utilFunctions";
 
 @Injectable()
 export class ChatRoomsService {
@@ -132,6 +133,23 @@ export class ChatRoomsService {
   ) {
     const { targetUserId } = dto;
 
+    const userIds = [ UserId, targetUserId ].map(id => stringToUUID(id));
+
+    const oneOnOneChatRoom = await this.roomParticipantsRepository
+      .createQueryBuilder('roomParticipants')
+      .select([
+        'roomParticipants.RoomId AS RoomId',
+        'COUNT(roomParticipants.UserId) AS UserCount',
+      ])
+      .where('UserId IN (:...userIds)', { userIds })
+      .groupBy('RoomId')
+      .having('UserCount = :cnt', { cnt: userIds.length })
+      .getRawOne<{ RoomId: Buffer, UserCount: string }>();
+
+    if (oneOnOneChatRoom) {
+      return { ChatRoomId: uuidToString(oneOnOneChatRoom.RoomId) };
+    }
+
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
@@ -139,29 +157,31 @@ export class ChatRoomsService {
     try {
       const RoomId = uuidv7();
 
-      await qr.manager.insert(ChatRooms, {
+      await qr.manager.upsert(ChatRooms, {
         id: RoomId,
         type: CHATROOM_TYPE.DM,
-      });
+      }, ['id']);
 
-      await qr.manager.insert(DmChatRooms, {
+      await qr.manager.upsert(DmChatRooms, {
         id: RoomId,
         lastMessageAt: dayjs().toDate(),
-      });
+      }, ['id']);
 
-      await qr.manager.insert(RoomParticipants, {
+      await qr.manager.upsert(RoomParticipants, {
         id: uuidv7(),
         UserId,
         RoomId,
-      });
+      }, ['UserId', 'RoomId']);
 
-      await qr.manager.insert(RoomParticipants, {
+      await qr.manager.upsert(RoomParticipants, {
         id: uuidv7(),
         UserId: targetUserId,
         RoomId,
-      });
+      }, ['UserId', 'RoomId']);
 
       await qr.commitTransaction();
+
+      return { ChatRoomId: RoomId };
     } catch (err) {
       await qr.rollbackTransaction();
 
