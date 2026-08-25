@@ -1,7 +1,8 @@
 import { ForbiddenException, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { nanoid } from "nanoid";
-import { CHATROOM_TYPE, USER_STATUS } from "src/common/constant/constants";
+import { Cache } from 'cache-manager';
+import { CACHE_EMPTY_SYMBOL, CHATROOM_TYPE, USER_STATUS } from "src/common/constant/constants";
 import { ACCESS_DENIED_MESSAGE } from "src/common/constant/error.message";
 import { ChatRooms } from "src/entities/ChatRooms";
 import { DataSource, IsNull, LessThan, Repository } from "typeorm";
@@ -18,10 +19,13 @@ import { UpdateSharedspaceChatRoomNameDTO } from "./dto/update.sharedspace.chatr
 import dayjs from "dayjs";
 import { InviteDmChatRoomDTO } from "./dto/invite.dm.chatroom";
 import { stringToUUID, uuidToString } from "src/common/function/utilFunctions";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
 
 @Injectable()
 export class ChatRoomsService {
   constructor(
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
     private dataSource: DataSource,
     @InjectRepository(ChatRooms)
     private chatRoomsRepository: Repository<ChatRooms>,
@@ -133,6 +137,14 @@ export class ChatRoomsService {
   ) {
     const { targetUserId } = dto;
 
+    const cacheKey = `roomParticipants:oneOnOne:${UserId}:${targetUserId}`;
+
+    const cachedItem = await this.cacheManager.get<{ ChatRoomId: string }>(cacheKey);
+
+    if (cachedItem) {
+      return { ChatRoomId: cachedItem.ChatRoomId };
+    }
+
     const userIds = [ UserId, targetUserId ].map(id => stringToUUID(id));
 
     const oneOnOneChatRoom = await this.roomParticipantsRepository
@@ -146,8 +158,13 @@ export class ChatRoomsService {
       .having('UserCount = :cnt', { cnt: userIds.length })
       .getRawOne<{ RoomId: Buffer, UserCount: string }>();
 
+    const minute = 60000;
+
     if (oneOnOneChatRoom) {
-      return { ChatRoomId: uuidToString(oneOnOneChatRoom.RoomId) };
+      const result = { ChatRoomId: uuidToString(oneOnOneChatRoom.RoomId) };
+
+      await this.cacheManager.set(cacheKey, result, 5 * minute);
+      return result;
     }
 
     const qr = this.dataSource.createQueryRunner();
@@ -180,6 +197,8 @@ export class ChatRoomsService {
       }, ['UserId', 'RoomId']);
 
       await qr.commitTransaction();
+
+      await this.cacheManager.set(cacheKey, { ChatRoomId: RoomId }, 5 * minute);
 
       return { ChatRoomId: RoomId };
     } catch (err) {
