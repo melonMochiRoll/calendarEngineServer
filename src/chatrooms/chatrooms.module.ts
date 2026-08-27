@@ -9,10 +9,12 @@ import { ChatRoomsFetcher } from "./chatrooms.fetcher";
 import { SharedspaceChatRooms } from "src/entities/SharedspaceChatRooms";
 import { SharedspacesModule } from "src/sharedspaces/sharedspaces.module";
 import { DmChatRooms } from "src/entities/DmChatRooms";
+import { Users } from "src/entities/Users";
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
+      Users,
       ChatRooms,
       SharedspaceChatRooms,
       DmChatRooms,
