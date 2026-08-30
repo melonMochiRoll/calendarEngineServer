@@ -21,6 +21,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { TaskModule } from './task/task.module';
 import { ChatRoomsModule } from './chatrooms/chatrooms.module';
 import { FriendshipsModule } from './friendships/friendships.module';
+import { RedisClientModule } from './redisClient/redisClient.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { FriendshipsModule } from './friendships/friendships.module';
     TaskModule,
     ChatRoomsModule,
     FriendshipsModule,
+    RedisClientModule,
   ],
   controllers: [],
   providers: [
