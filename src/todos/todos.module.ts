@@ -6,6 +6,7 @@ import { Todos } from 'src/entities/Todos';
 import { SharedspacesModule } from 'src/sharedspaces/sharedspaces.module';
 import { RolesModule } from 'src/roles/roles.module';
 import { UsersModule } from 'src/users/users.module';
+import { RedisClientModule } from 'src/redisClient/redisClient.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { UsersModule } from 'src/users/users.module';
     SharedspacesModule,
     RolesModule,
     UsersModule,
+    RedisClientModule,
   ],
   controllers: [ TodosController ],
   providers: [

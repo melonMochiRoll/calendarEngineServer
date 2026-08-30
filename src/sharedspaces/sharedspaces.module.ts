@@ -7,6 +7,7 @@ import { SpaceMembers } from 'src/entities/SpaceMembers';
 import { Users } from 'src/entities/Users';
 import { RolesModule } from 'src/roles/roles.module';
 import { SharedspaceFetcher } from './sharedspaces.fetcher';
+import { RedisClientModule } from 'src/redisClient/redisClient.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { SharedspaceFetcher } from './sharedspaces.fetcher';
       Users,
     ]),
     RolesModule,
+    RedisClientModule,
   ],
   controllers: [ SharedspacesController ],
   providers: [

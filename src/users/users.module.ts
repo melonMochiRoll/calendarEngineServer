@@ -9,6 +9,7 @@ import { RolesModule } from 'src/roles/roles.module';
 import { Images } from 'src/entities/Images';
 import { StorageModule } from 'src/storage/storage.module';
 import { UsersFetcher } from './users.fetcher';
+import { RedisClientModule } from 'src/redisClient/redisClient.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { UsersFetcher } from './users.fetcher';
     SharedspacesModule,
     RolesModule,
     StorageModule,
+    RedisClientModule,
   ],
   controllers: [
     UsersController,
