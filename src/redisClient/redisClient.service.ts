@@ -23,4 +23,8 @@ export class RedisClientService {
   async set<T extends TCacheTarget>(key: string, value: T, ttl = 5000) {
     await this.redis.set(key, JSON.stringify(value), 'PX', ttl);
   }
+
+  async del(key: string) {
+    await this.redis.del(key);
+  }
 }
