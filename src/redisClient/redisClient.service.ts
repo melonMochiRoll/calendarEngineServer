@@ -1,6 +1,7 @@
 import { InjectRedis } from "@nestjs-modules/ioredis";
 import { Injectable } from "@nestjs/common";
 import Redis from "ioredis";
+import { TCacheTarget } from "src/typings/types";
 
 @Injectable()
 export class RedisClientService {
@@ -19,7 +20,7 @@ export class RedisClientService {
     return JSON.parse(result) as T;
   }
 
-  async set(key: string, value: string, ttl = 5000) {
+  async set<T extends TCacheTarget>(key: string, value: T, ttl = 5000) {
     await this.redis.set(key, JSON.stringify(value), 'PX', ttl);
   }
 }
