@@ -107,3 +107,5 @@ export type TChatPayload = Pick<Chats,
   };
 
 export type TSubscribedspacesSort = typeof SUBSCRIBEDSPACES_SORT[keyof typeof SUBSCRIBEDSPACES_SORT];
+
+export type TCacheTarget = string | number | boolean | object | null;
