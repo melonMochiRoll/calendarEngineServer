@@ -9,6 +9,7 @@ import { Inject } from "@nestjs/common";
 import { SharedspaceChatRooms } from "src/entities/SharedspaceChatRooms";
 import { CHATROOM_TYPE } from "src/common/constant/constants";
 import { DmChatRooms } from "src/entities/DmChatRooms";
+import { RedisClientService } from "src/redisClient/redisClient.service";
 
 export class ChatRoomsFetcher {
   constructor(
@@ -22,12 +23,13 @@ export class ChatRoomsFetcher {
     private dmChatRoomsRepository: Repository<DmChatRooms>,
     @InjectRepository(RoomParticipants)
     private roomParticipantsRepository: Repository<RoomParticipants>,
+    private redisClientService: RedisClientService,
   ) {}
 
   async getSharedspaceChatRoomById(id: string): Promise<TSharedspaceChatRoomDefault> {
     const cacheKey = `chatRoom:${id}`;
 
-    const cachedItem = await this.cacheManager.get<TSharedspaceChatRoomDefault>(cacheKey);
+    const cachedItem = await this.redisClientService.get<TSharedspaceChatRoomDefault>(cacheKey);
 
     if (cachedItem) {
       return cachedItem;
@@ -56,14 +58,14 @@ export class ChatRoomsFetcher {
 
     const minute = 60000;
 
-    await this.cacheManager.set(cacheKey, chatRoom, 10 * minute);
+    await this.redisClientService.set(cacheKey, chatRoom, 10 * minute);
     return chatRoom;
   }
 
   async getDmChatRoomById(id: string) {
     const cacheKey = `chatRoom:${id}`;
 
-    const cachedItem = await this.cacheManager.get<TDmChatRoomDefault>(cacheKey);
+    const cachedItem = await this.redisClientService.get<TDmChatRoomDefault>(cacheKey);
 
     if (cachedItem) {
       return cachedItem;
@@ -85,7 +87,7 @@ export class ChatRoomsFetcher {
 
     const minute = 60000;
 
-    await this.cacheManager.set(cacheKey, chatRoom, 10 * minute);
+    await this.redisClientService.set(cacheKey, chatRoom, 10 * minute);
     return chatRoom;
   }
 
@@ -95,7 +97,7 @@ export class ChatRoomsFetcher {
   ) {
     const cacheKey = `isParticipants:${UserId}:${RoomId}`;
 
-    const cachedItem = await this.cacheManager.get<boolean>(cacheKey);
+    const cachedItem = await this.redisClientService.get<boolean>(cacheKey);
 
     if (cachedItem) {
       return cachedItem;
@@ -115,7 +117,7 @@ export class ChatRoomsFetcher {
     const minute = 60000;
 
     if (isParticipant) {
-      await this.cacheManager.set(cacheKey, isParticipant, 5 * minute);
+      await this.redisClientService.set(cacheKey, isParticipant, 5 * minute);
     }
     
     return isParticipant;

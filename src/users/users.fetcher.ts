@@ -6,6 +6,7 @@ import { CACHE_EMPTY_SYMBOL } from "src/common/constant/constants";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Users } from "src/entities/Users";
+import { RedisClientService } from "src/redisClient/redisClient.service";
 
 @Injectable()
 export class UsersFetcher {
@@ -14,12 +15,13 @@ export class UsersFetcher {
     private cacheManager: Cache,
     @InjectRepository(Users)
     private usersRepository: Repository<Users>,
+    private redisClientService: RedisClientService,
   ) {}
 
   async getUserById(id: string): Promise<TUserDefault> {
     const cacheKey = `user:${id}`;
 
-    const cachedItem = await this.cacheManager.get<TUserDefault | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
+    const cachedItem = await this.redisClientService.get<TUserDefault | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
     if (cachedItem) {
       return cachedItem === CACHE_EMPTY_SYMBOL ? null : cachedItem;
@@ -51,7 +53,7 @@ export class UsersFetcher {
     const minute = 60000;
 
     if (!result) {
-      await this.cacheManager.set(cacheKey, CACHE_EMPTY_SYMBOL, 3 * second);
+      await this.redisClientService.set(cacheKey, CACHE_EMPTY_SYMBOL, 3 * second);
       return null;
     }
 
@@ -60,14 +62,14 @@ export class UsersFetcher {
       ProfileImage: result.ProfileImage?.path,
     };
 
-    await this.cacheManager.set(cacheKey, user, 10 * minute);
+    await this.redisClientService.set(cacheKey, user, 10 * minute);
     return user;
   }
 
   async getUserByEmail(email: string): Promise<TUserDefault> {
     const cacheKey = `user:${email}`;
 
-    const targetUserId = await this.cacheManager.get<string | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
+    const targetUserId = await this.redisClientService.get<string | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
     if (targetUserId) {
       return targetUserId === CACHE_EMPTY_SYMBOL ? null : this.getUserById(targetUserId);
@@ -99,7 +101,7 @@ export class UsersFetcher {
     const minute = 60000;
 
     if (!result) {
-      await this.cacheManager.set(cacheKey, CACHE_EMPTY_SYMBOL, 3 * second);
+      await this.redisClientService.set(cacheKey, CACHE_EMPTY_SYMBOL, 3 * second);
       return null;
     }
 
@@ -108,14 +110,14 @@ export class UsersFetcher {
       ProfileImage: result.ProfileImage?.path,
     };
 
-    await this.cacheManager.set(cacheKey, user.id, 10 * minute);
+    await this.redisClientService.set(cacheKey, user.id, 10 * minute);
     return user;
   }
 
   async getUserByNickname(nickname: string): Promise<TUserDefault> {
     const cacheKey = `user:${nickname}`;
 
-    const targetUserId = await this.cacheManager.get<string | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
+    const targetUserId = await this.redisClientService.get<string | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
     if (targetUserId) {
       return targetUserId === CACHE_EMPTY_SYMBOL ? null : this.getUserById(targetUserId);
@@ -147,7 +149,7 @@ export class UsersFetcher {
     const minute = 60000;
 
     if (!result) {
-      await this.cacheManager.set(cacheKey, CACHE_EMPTY_SYMBOL, 3 * second);
+      await this.redisClientService.set(cacheKey, CACHE_EMPTY_SYMBOL, 3 * second);
       return null;
     }
 
@@ -156,7 +158,7 @@ export class UsersFetcher {
       ProfileImage: result.ProfileImage?.path,
     };
 
-    await this.cacheManager.set(cacheKey, user.id, 10 * minute);
+    await this.redisClientService.set(cacheKey, user.id, 10 * minute);
     return user;
   }
 }

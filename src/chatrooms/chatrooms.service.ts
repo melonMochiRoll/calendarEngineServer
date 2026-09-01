@@ -20,6 +20,7 @@ import dayjs from "dayjs";
 import { InviteDmChatRoomDTO } from "./dto/invite.dm.chatroom";
 import { stringToUUID, uuidToString } from "src/common/function/utilFunctions";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { RedisClientService } from "src/redisClient/redisClient.service";
 
 @Injectable()
 export class ChatRoomsService {
@@ -34,6 +35,7 @@ export class ChatRoomsService {
     @InjectRepository(RoomParticipants)
     private roomParticipantsRepository: Repository<RoomParticipants>,
     private rolesService: RolesService,
+    private redisClientService: RedisClientService,
     private chatRoomsFetcher: ChatRoomsFetcher,
     private sharedspaceFetcher: SharedspaceFetcher,
   ) {}
@@ -139,7 +141,7 @@ export class ChatRoomsService {
 
     const cacheKey = `roomParticipants:oneOnOne:${UserId}:${targetUserId}`;
 
-    const cachedItem = await this.cacheManager.get<{ ChatRoomId: string }>(cacheKey);
+    const cachedItem = await this.redisClientService.get<{ ChatRoomId: string }>(cacheKey);
 
     if (cachedItem) {
       return { ChatRoomId: cachedItem.ChatRoomId };
@@ -163,7 +165,7 @@ export class ChatRoomsService {
     if (oneOnOneChatRoom) {
       const result = { ChatRoomId: uuidToString(oneOnOneChatRoom.RoomId) };
 
-      await this.cacheManager.set(cacheKey, result, 5 * minute);
+      await this.redisClientService.set(cacheKey, result, 5 * minute);
       return result;
     }
 
@@ -198,7 +200,7 @@ export class ChatRoomsService {
 
       await qr.commitTransaction();
 
-      await this.cacheManager.set(cacheKey, { ChatRoomId: RoomId }, 5 * minute);
+      await this.redisClientService.set(cacheKey, { ChatRoomId: RoomId }, 5 * minute);
 
       return { ChatRoomId: RoomId };
     } catch (err) {

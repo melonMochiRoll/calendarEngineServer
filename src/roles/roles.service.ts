@@ -8,6 +8,7 @@ import { ROLES_ARRAY_KEY } from "src/common/constant/auth.constants";
 import { SpaceMembers } from "src/entities/SpaceMembers";
 import { TSharedspaceRole } from "src/typings/types";
 import { CACHE_EMPTY_SYMBOL, SHAREDSPACE_ROLE } from "src/common/constant/constants";
+import { RedisClientService } from "src/redisClient/redisClient.service";
 
 @Injectable()
 export class RolesService {
@@ -18,6 +19,7 @@ export class RolesService {
     private rolesRepository: Repository<Roles>,
     @InjectRepository(SpaceMembers)
     private spaceMembersRepository: Repository<SpaceMembers>,
+    private redisClientService: RedisClientService,
   ) {}
 
   async initRoles() {
@@ -35,7 +37,7 @@ export class RolesService {
   }
 
   async getRolesArray() {
-    const cachedrolesArray = await this.cacheManager.get<Pick<Roles, 'id' | 'name'>[]>(ROLES_ARRAY_KEY);
+    const cachedrolesArray = await this.redisClientService.get<Pick<Roles, 'id' | 'name'>[]>(ROLES_ARRAY_KEY);
 
     if (cachedrolesArray) {
       return cachedrolesArray;
@@ -54,7 +56,7 @@ export class RolesService {
     }, []) as Pick<Roles, 'id' | 'name'>[];
 
     if (roles) {
-      await this.cacheManager.set(ROLES_ARRAY_KEY, rolesArray, 0);
+      await this.redisClientService.set(ROLES_ARRAY_KEY, rolesArray, 0);
     }
 
     return rolesArray;
@@ -65,7 +67,7 @@ export class RolesService {
     SharedspaceId: string,
   ) {
     const cacheKey = `user:role:${UserId}:${SharedspaceId}`;
-    const cachedUserRole = await this.cacheManager.get<Pick<SpaceMembers, 'RoleId'> | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
+    const cachedUserRole = await this.redisClientService.get<Pick<SpaceMembers, 'RoleId'> | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
     if (cachedUserRole) {
       return cachedUserRole === CACHE_EMPTY_SYMBOL ? null : cachedUserRole;
@@ -84,11 +86,11 @@ export class RolesService {
     const minute = 60000;
 
     if (!userRole) {
-      await this.cacheManager.set(cacheKey, CACHE_EMPTY_SYMBOL, 1 * minute);
+      await this.redisClientService.set(cacheKey, CACHE_EMPTY_SYMBOL, 1 * minute);
       return null;
     }
 
-    await this.cacheManager.set(cacheKey, userRole, 5 * minute);
+    await this.redisClientService.set(cacheKey, userRole, 5 * minute);
     return userRole;
   }
 
@@ -96,7 +98,7 @@ export class RolesService {
     UserId: string,
     SpaceId: string,
   ) {
-    await this.cacheManager.del(`user:role:${UserId}:${SpaceId}`);
+    await this.redisClientService.del(`user:role:${UserId}:${SpaceId}`);
   }
 
   async requireRole(

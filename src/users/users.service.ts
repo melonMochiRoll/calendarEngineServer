@@ -26,6 +26,7 @@ import { UpdateProfileImageDTO } from "./dto/update.profile.image.dto";
 import { UsersFetcher } from "./users.fetcher";
 import { SharedspaceFetcher } from "src/sharedspaces/sharedspaces.fetcher";
 import { getFullImageUrl } from "src/common/function/utilFunctions";
+import { RedisClientService } from "src/redisClient/redisClient.service";
 
 @Injectable()
 export class UsersService {
@@ -42,6 +43,7 @@ export class UsersService {
     private imagesRepository: Repository<Images>,
     private rolesService: RolesService,
     private storageR2Service: StorageR2Service,
+    private redisClientService: RedisClientService,
     private sharedspaceFetcher: SharedspaceFetcher,
   ) {}
 
@@ -76,7 +78,7 @@ export class UsersService {
       status: USER_STATUS.ACTIVE,
     });
 
-    await this.cacheManager.del(`user:${id}`);
+    await this.redisClientService.del(`user:${id}`);
   }
 
   async scheduleUserDeletion(UserId: string) {
@@ -286,7 +288,7 @@ export class UsersService {
 
       await qr.commitTransaction();
 
-      await this.cacheManager.del(`user:${UserId}`);
+      await this.redisClientService.del(`user:${UserId}`);
     } catch (err) {
       await qr.rollbackTransaction();
 

@@ -12,6 +12,7 @@ import { Cache } from 'cache-manager';
 import { CACHE_EMPTY_SYMBOL } from "src/common/constant/constants";
 import { uuidv7 } from "uuidv7";
 import { SharedspaceFetcher } from "src/sharedspaces/sharedspaces.fetcher";
+import { RedisClientService } from "src/redisClient/redisClient.service";
 
 @Injectable()
 export class TodosService {
@@ -21,6 +22,7 @@ export class TodosService {
     @InjectRepository(Todos)
     private todosRepository: Repository<Todos>,
     private rolesService: RolesService,
+    private redisClientService: RedisClientService,
     private sharedspaceFetcher: SharedspaceFetcher,
   ) {}
 
@@ -48,7 +50,7 @@ export class TodosService {
 
     const cacheKey = `todos:${space.id}:${year}-${month}`;
 
-    const cachedItem = await this.cacheManager.get<Map<string, Todos> | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
+    const cachedItem = await this.redisClientService.get<Map<string, Todos> | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
     if (cachedItem) {
       if (cachedItem === CACHE_EMPTY_SYMBOL) {
@@ -92,7 +94,7 @@ export class TodosService {
     const minute = 60000;
 
     if (!todos) {
-      await this.cacheManager.set(cacheKey, CACHE_EMPTY_SYMBOL, 1 * minute);
+      await this.redisClientService.set(cacheKey, CACHE_EMPTY_SYMBOL, 1 * minute);
       return null;
     }
 
@@ -104,7 +106,7 @@ export class TodosService {
       return map;
     }, {});
 
-    await this.cacheManager.set(cacheKey, todosMap, 1 * minute);
+    await this.redisClientService.set(cacheKey, todosMap, 1 * minute);
 
     return todosMap;
   }
@@ -249,6 +251,6 @@ export class TodosService {
     
     const [ year, month ] = dayjs(date).format('YYYY-MM').split('-');
 
-    await this.cacheManager.del(`todos:${id}:${year}-${month}`);
+    await this.redisClientService.del(`todos:${id}:${year}-${month}`);
   }
 }

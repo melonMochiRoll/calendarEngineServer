@@ -25,6 +25,7 @@ import { getFullImageUrl, stringToUUID, uuidToString } from "src/common/function
 import { TSubscribedspacesSort } from "src/typings/types";
 import { ChatRooms } from "src/entities/ChatRooms";
 import { SharedspaceChatRooms } from "src/entities/SharedspaceChatRooms";
+import { RedisClientService } from "src/redisClient/redisClient.service";
 
 @Injectable()
 export class SharedspacesService {
@@ -39,6 +40,7 @@ export class SharedspacesService {
     @InjectRepository(SpaceMembers)
     private spaceMembersRepository: Repository<SpaceMembers>,
     private rolesService: RolesService,
+    private redisClientService: RedisClientService,
     private sharedspaceFetcher: SharedspaceFetcher,
   ) {}
 
@@ -393,7 +395,7 @@ export class SharedspacesService {
     const cacheKey = `sharedspaceMembers:${SharedspaceId}`;
 
     if (!beforeUserId) {
-      const cachedItem = await this.cacheManager.get(cacheKey);
+      const cachedItem = await this.redisClientService.get(cacheKey);
 
       if (cachedItem) {
         return cachedItem;
@@ -477,7 +479,7 @@ export class SharedspacesService {
 
     if (!beforeUserId) {
       const minute = 60000;
-      await this.cacheManager.set(cacheKey, { members, hasMoreData }, 10 * minute);
+      await this.redisClientService.set(cacheKey, { members, hasMoreData }, 10 * minute);
     }
 
     return {

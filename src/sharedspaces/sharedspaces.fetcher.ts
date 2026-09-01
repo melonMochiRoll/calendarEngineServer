@@ -7,6 +7,7 @@ import { CacheItem, TSharedspaceDefault } from "src/typings/types";
 import dayjs from "dayjs";
 import { NOT_FOUND_SPACE_MESSAGE } from "src/common/constant/error.message";
 import { Sharedspaces } from "src/entities/Sharedspaces";
+import { RedisClientService } from "src/redisClient/redisClient.service";
 
 @Injectable()
 export class SharedspaceFetcher {
@@ -15,6 +16,7 @@ export class SharedspaceFetcher {
     private cacheManager: Cache,
     @InjectRepository(Sharedspaces)
     private sharedspacesRepository: Repository<Sharedspaces>,
+    private redisClientService: RedisClientService,
   ) {}
   private refreshLock = new Set<String>();
 
@@ -24,7 +26,7 @@ export class SharedspaceFetcher {
   ) {
     const cacheKey = `sharedspace:${id}`;
 
-    const cachedItem = await this.cacheManager.get<CacheItem<TSharedspaceDefault>>(cacheKey);
+    const cachedItem = await this.redisClientService.get<CacheItem<TSharedspaceDefault>>(cacheKey);
 
     if (cachedItem) {
       const random = Math.log(Math.random());
@@ -89,7 +91,7 @@ export class SharedspaceFetcher {
     const minute = 60000;
     const ttl = 0.1 * minute;
 
-    await this.cacheManager.set(cacheKey, {
+    await this.redisClientService.set(cacheKey, {
       value: space,
       duration: delta,
       expireTime: dayjs().valueOf() + ttl,
@@ -99,10 +101,10 @@ export class SharedspaceFetcher {
   }
 
   async invalidateSharedspaceCache(id: string) {
-    await this.cacheManager.del(`sharedspace:${id}`);
+    await this.redisClientService.del(`sharedspace:${id}`);
   }
 
   async invalidateSharedspaceMembersCache(SharedspaceId: string) {
-    await this.cacheManager.del(`sharedspaceMembers:${SharedspaceId}`);
+    await this.redisClientService.del(`sharedspaceMembers:${SharedspaceId}`);
   }
 }
