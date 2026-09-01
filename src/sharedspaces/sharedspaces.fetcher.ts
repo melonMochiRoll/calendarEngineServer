@@ -89,7 +89,7 @@ export class SharedspaceFetcher {
     }
 
     const minute = 60000;
-    const ttl = 0.1 * minute;
+    const ttl = 5 * minute;
 
     await this.redisClientService.set(cacheKey, {
       value: space,
