@@ -21,6 +21,11 @@ export class RedisClientService {
   }
 
   async set<T extends TCacheTarget>(key: string, value: T, ttl = 5000) {
+    if (ttl === 0) {
+      await this.redis.set(key, JSON.stringify(value));
+      return;
+    }
+
     await this.redis.set(key, JSON.stringify(value), 'PX', ttl);
   }
 
