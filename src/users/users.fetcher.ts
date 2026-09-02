@@ -78,7 +78,7 @@ export class UsersFetcher {
       const targetUserId = await this.redisClientService.get<string | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
       if (targetUserId) {
-        return targetUserId === CACHE_EMPTY_SYMBOL ? null : this.getUserById(targetUserId);
+        return targetUserId === CACHE_EMPTY_SYMBOL ? null : await this.getUserById(targetUserId);
       }
     } catch (err) {
       console.error(`Redis 키 조회 실패 : ${cacheKey}`, err);
@@ -135,7 +135,7 @@ export class UsersFetcher {
       const targetUserId = await this.redisClientService.get<string | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
       if (targetUserId) {
-        return targetUserId === CACHE_EMPTY_SYMBOL ? null : this.getUserById(targetUserId);
+        return targetUserId === CACHE_EMPTY_SYMBOL ? null : await this.getUserById(targetUserId);
       }
     } catch (err) {
       console.error(`Redis 키 조회 실패 : ${cacheKey}`, err);
