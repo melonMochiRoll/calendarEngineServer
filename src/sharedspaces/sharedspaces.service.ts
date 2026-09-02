@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, FindOptionsWhere, In, IsNull, LessThan, Repository } from "typeorm";
 import { Sharedspaces } from "src/entities/Sharedspaces";
@@ -10,8 +10,6 @@ import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE, CONFLICT_MESSAGE, CONFLICT_
 import { UpdateSharedspaceMemberDTO } from "./dto/update.sharedspace.member.dto";
 import { UpdateSharedspacePrivateDTO } from "./dto/update.sharedspace.private.dto";
 import { Chats } from "src/entities/Chats";
-import { CACHE_MANAGER } from "@nestjs/cache-manager";
-import { Cache } from 'cache-manager';
 import { RolesService } from "src/roles/roles.service";
 import dayjs from "dayjs";
 import { JOB_NAMES, JOB_STATUS, SHAREDSPACE_ROLE, SUBSCRIBEDSPACES_SORT, USER_STATUS, CHATROOM_TYPE } from "src/common/constant/constants";
@@ -30,8 +28,6 @@ import { RedisClientService } from "src/redisClient/redisClient.service";
 @Injectable()
 export class SharedspacesService {
   constructor(
-    @Inject(CACHE_MANAGER)
-    private cacheManager: Cache,
     private dataSource: DataSource,
     @InjectRepository(Users)
     private usersRepository: Repository<Users>,

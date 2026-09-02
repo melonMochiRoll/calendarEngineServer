@@ -1,11 +1,8 @@
 import { InjectRepository } from "@nestjs/typeorm";
 import { ChatRooms } from "src/entities/ChatRooms";
 import { IsNull, Repository } from "typeorm";
-import { CACHE_MANAGER } from "@nestjs/cache-manager";
-import { Cache } from 'cache-manager';
 import { TDmChatRoomDefault, TSharedspaceChatRoomDefault } from "src/typings/types";
 import { RoomParticipants } from "src/entities/RoomParticipants";
-import { Inject } from "@nestjs/common";
 import { SharedspaceChatRooms } from "src/entities/SharedspaceChatRooms";
 import { CHATROOM_TYPE } from "src/common/constant/constants";
 import { DmChatRooms } from "src/entities/DmChatRooms";
@@ -13,8 +10,6 @@ import { RedisClientService } from "src/redisClient/redisClient.service";
 
 export class ChatRoomsFetcher {
   constructor(
-    @Inject(CACHE_MANAGER)
-    private cacheManager: Cache,
     @InjectRepository(ChatRooms)
     private chatRoomsRepository: Repository<ChatRooms>,
     @InjectRepository(SharedspaceChatRooms)

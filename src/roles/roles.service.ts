@@ -1,9 +1,7 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Roles } from "src/entities/Roles";
 import { Repository } from "typeorm";
-import { CACHE_MANAGER } from "@nestjs/cache-manager";
-import { Cache } from 'cache-manager';
 import { ROLES_ARRAY_KEY } from "src/common/constant/auth.constants";
 import { SpaceMembers } from "src/entities/SpaceMembers";
 import { TSharedspaceRole } from "src/typings/types";
@@ -13,8 +11,6 @@ import { RedisClientService } from "src/redisClient/redisClient.service";
 @Injectable()
 export class RolesService {
   constructor(
-    @Inject(CACHE_MANAGER)
-    private cacheManager: Cache,
     @InjectRepository(Roles)
     private rolesRepository: Repository<Roles>,
     @InjectRepository(SpaceMembers)

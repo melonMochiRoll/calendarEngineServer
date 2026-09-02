@@ -1,6 +1,4 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
-import { CACHE_MANAGER } from "@nestjs/cache-manager";
-import { Cache } from 'cache-manager';
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { IsNull, Repository } from "typeorm";
 import { CacheItem, TSharedspaceDefault } from "src/typings/types";
@@ -13,8 +11,6 @@ import { nanoid } from "nanoid";
 @Injectable()
 export class SharedspaceFetcher {
   constructor(
-    @Inject(CACHE_MANAGER)
-    private cacheManager: Cache,
     @InjectRepository(Sharedspaces)
     private sharedspacesRepository: Repository<Sharedspaces>,
     private redisClientService: RedisClientService,

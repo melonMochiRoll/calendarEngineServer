@@ -1,6 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
-import { CACHE_MANAGER } from "@nestjs/cache-manager";
-import { Cache } from 'cache-manager';
+import { Injectable } from "@nestjs/common";
 import { TUserDefault } from "src/typings/types";
 import { CACHE_EMPTY_SYMBOL } from "src/common/constant/constants";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -11,8 +9,6 @@ import { RedisClientService } from "src/redisClient/redisClient.service";
 @Injectable()
 export class UsersFetcher {
   constructor(
-    @Inject(CACHE_MANAGER)
-    private cacheManager: Cache,
     @InjectRepository(Users)
     private usersRepository: Repository<Users>,
     private redisClientService: RedisClientService,

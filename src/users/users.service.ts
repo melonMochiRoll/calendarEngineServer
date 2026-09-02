@@ -4,8 +4,6 @@ import { Users } from "src/entities/Users";
 import { DataSource, In, Repository } from "typeorm";
 import bcrypt from 'bcrypt';
 import { CreateUserDTO } from "./dto/create.user.dto";
-import { CACHE_MANAGER } from "@nestjs/cache-manager";
-import { Cache } from 'cache-manager';
 import { CONFLICT_ACCOUNT_MESSAGE, CONFLICT_MESSAGE, PROFILE_IMAGE_TOO_LARGE_MESSAGE } from "src/common/constant/error.message";
 import { SpaceMembers } from "src/entities/SpaceMembers";
 import { RolesService } from "src/roles/roles.service";
@@ -31,8 +29,6 @@ import { RedisClientService } from "src/redisClient/redisClient.service";
 @Injectable()
 export class UsersService {
   constructor(
-    @Inject(CACHE_MANAGER)
-    private cacheManager: Cache,
     private dataSource: DataSource,
     private usersFetcher: UsersFetcher,
     @InjectRepository(Users)

@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable } from "@nestjs/common";
 import dayjs from "dayjs";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Between, IsNull, LessThan, Like, Repository } from "typeorm";
@@ -7,8 +7,6 @@ import { CreateTodoDTO } from "./dto/create.todo.dto";
 import { UpdateTodoDto } from "./dto/update.todo.dto";
 import { ACCESS_DENIED_MESSAGE, BAD_REQUEST_MESSAGE } from "src/common/constant/error.message";
 import { RolesService } from "src/roles/roles.service";
-import { CACHE_MANAGER } from "@nestjs/cache-manager";
-import { Cache } from 'cache-manager';
 import { CACHE_EMPTY_SYMBOL } from "src/common/constant/constants";
 import { uuidv7 } from "uuidv7";
 import { SharedspaceFetcher } from "src/sharedspaces/sharedspaces.fetcher";
@@ -17,8 +15,6 @@ import { RedisClientService } from "src/redisClient/redisClient.service";
 @Injectable()
 export class TodosService {
   constructor(
-    @Inject(CACHE_MANAGER)
-    private cacheManager: Cache,
     @InjectRepository(Todos)
     private todosRepository: Repository<Todos>,
     private rolesService: RolesService,

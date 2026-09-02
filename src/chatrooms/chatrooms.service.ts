@@ -1,7 +1,6 @@
-import { ForbiddenException, Inject, Injectable } from "@nestjs/common";
+import { ForbiddenException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { nanoid } from "nanoid";
-import { Cache } from 'cache-manager';
 import { CACHE_EMPTY_SYMBOL, CHATROOM_TYPE, USER_STATUS } from "src/common/constant/constants";
 import { ACCESS_DENIED_MESSAGE } from "src/common/constant/error.message";
 import { ChatRooms } from "src/entities/ChatRooms";
@@ -19,14 +18,11 @@ import { UpdateSharedspaceChatRoomNameDTO } from "./dto/update.sharedspace.chatr
 import dayjs from "dayjs";
 import { InviteDmChatRoomDTO } from "./dto/invite.dm.chatroom";
 import { stringToUUID, uuidToString } from "src/common/function/utilFunctions";
-import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { RedisClientService } from "src/redisClient/redisClient.service";
 
 @Injectable()
 export class ChatRoomsService {
   constructor(
-    @Inject(CACHE_MANAGER)
-    private cacheManager: Cache,
     private dataSource: DataSource,
     @InjectRepository(ChatRooms)
     private chatRoomsRepository: Repository<ChatRooms>,
