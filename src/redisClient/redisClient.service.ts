@@ -29,6 +29,10 @@ export class RedisClientService {
     await this.redis.set(key, JSON.stringify(value), 'PX', ttl);
   }
 
+  async setIfNotExist(key: string, value: string, ttl = 3000) {
+    return await this.redis.set(key, value, 'PX', ttl, 'NX');
+  }
+  
   async del(key: string) {
     await this.redis.del(key);
   }
