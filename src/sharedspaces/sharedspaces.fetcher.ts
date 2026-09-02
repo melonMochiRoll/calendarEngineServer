@@ -37,11 +37,10 @@ export class SharedspaceFetcher {
       const isLocked = isRefresher && await this.redisClientService.setIfNotExist(lockKey, nanoid());
 
       if (isLocked === 'OK') {
-        try {
-          this.fetchSharedspaceAndWrite(cacheKey, id);
-        } finally {
-          await this.redisClientService.del(lockKey);
-        }
+        this.fetchSharedspaceAndWrite(cacheKey, id)
+          .finally(async () => {
+            await this.redisClientService.del(lockKey);
+          });
       }
 
       return cachedItem.value;
