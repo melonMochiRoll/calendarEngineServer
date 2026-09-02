@@ -38,6 +38,9 @@ export class SharedspaceFetcher {
 
       if (isLocked === 'OK') {
         this.fetchSharedspaceAndWrite(cacheKey, id)
+          .catch((err) => {
+            console.log(err);
+          })
           .finally(async () => {
             await this.redisClientService.del(lockKey);
           });
