@@ -8,6 +8,7 @@ import dayjs from "dayjs";
 import { NOT_FOUND_SPACE_MESSAGE } from "src/common/constant/error.message";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import { RedisClientService } from "src/redisClient/redisClient.service";
+import { nanoid } from "nanoid";
 
 @Injectable()
 export class SharedspaceFetcher {
@@ -18,7 +19,6 @@ export class SharedspaceFetcher {
     private sharedspacesRepository: Repository<Sharedspaces>,
     private redisClientService: RedisClientService,
   ) {}
-  private refreshLock = new Set<String>();
 
   async getSharedspaceById(
     id: string,
@@ -33,13 +33,14 @@ export class SharedspaceFetcher {
       const threshold = dayjs().valueOf() - (cachedItem.duration * beta * random);
       const isRefresher = threshold >= cachedItem.expireTime;
 
-      if (isRefresher && !this.refreshLock.has(cacheKey)) {
-        this.refreshLock.add(cacheKey);
+      const lockKey = `lock:${cacheKey}`;
+      const isLocked = isRefresher && await this.redisClientService.setIfNotExist(lockKey, nanoid());
 
+      if (isLocked === 'OK') {
         try {
           this.fetchSharedspaceAndWrite(cacheKey, id);
         } finally {
-          this.refreshLock.delete(cacheKey);
+          await this.redisClientService.del(lockKey);
         }
       }
 
