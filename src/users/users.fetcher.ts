@@ -17,10 +17,14 @@ export class UsersFetcher {
   async getUserById(id: string): Promise<TUserDefault> {
     const cacheKey = `user:${id}`;
 
-    const cachedItem = await this.redisClientService.get<TUserDefault | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
+    try {
+      const cachedItem = await this.redisClientService.get<TUserDefault | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
-    if (cachedItem) {
-      return cachedItem === CACHE_EMPTY_SYMBOL ? null : cachedItem;
+      if (cachedItem) {
+        return cachedItem === CACHE_EMPTY_SYMBOL ? null : cachedItem;
+      }
+    } catch (err) {
+      console.error(`Redis 키 조회 실패 : ${cacheKey}`, err);
     }
 
     const result = await this.usersRepository.findOne({
@@ -45,30 +49,39 @@ export class UsersFetcher {
       },
     });
 
-    const second = 1000;
-    const minute = 60000;
-
-    if (!result) {
-      await this.redisClientService.set(cacheKey, CACHE_EMPTY_SYMBOL, 3 * second);
-      return null;
-    }
-
-    const user = {
+    const user = result && {
       ...result,
       ProfileImage: result.ProfileImage?.path,
     };
 
-    await this.redisClientService.set(cacheKey, user, 10 * minute);
+    const second = 1000;
+    const minute = 60000;
+
+    try {
+      if (!result) {
+        await this.redisClientService.set(cacheKey, CACHE_EMPTY_SYMBOL, 3 * second);
+        return null;
+      }
+
+      await this.redisClientService.set(cacheKey, user, 10 * minute);
+    } catch (err) {
+      console.error(`Redis 키 저장 실패 : ${cacheKey}`, err);
+    }
+
     return user;
   }
 
   async getUserByEmail(email: string): Promise<TUserDefault> {
     const cacheKey = `user:${email}`;
 
-    const targetUserId = await this.redisClientService.get<string | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
+    try {
+      const targetUserId = await this.redisClientService.get<string | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
-    if (targetUserId) {
-      return targetUserId === CACHE_EMPTY_SYMBOL ? null : this.getUserById(targetUserId);
+      if (targetUserId) {
+        return targetUserId === CACHE_EMPTY_SYMBOL ? null : this.getUserById(targetUserId);
+      }
+    } catch (err) {
+      console.error(`Redis 키 조회 실패 : ${cacheKey}`, err);
     }
 
     const result = await this.usersRepository.findOne({
@@ -93,30 +106,39 @@ export class UsersFetcher {
       },
     });
 
-    const second = 1000;
-    const minute = 60000;
-
-    if (!result) {
-      await this.redisClientService.set(cacheKey, CACHE_EMPTY_SYMBOL, 3 * second);
-      return null;
-    }
-
-    const user = {
+    const user = result && {
       ...result,
       ProfileImage: result.ProfileImage?.path,
     };
 
-    await this.redisClientService.set(cacheKey, user.id, 10 * minute);
+    const second = 1000;
+    const minute = 60000;
+
+    try {
+      if (!result) {
+        await this.redisClientService.set(cacheKey, CACHE_EMPTY_SYMBOL, 3 * second);
+        return null;
+      }
+
+      await this.redisClientService.set(cacheKey, user.id, 10 * minute);
+    } catch (err) {
+      console.error(`Redis 키 저장 실패 : ${cacheKey}`, err);
+    }
+
     return user;
   }
 
   async getUserByNickname(nickname: string): Promise<TUserDefault> {
     const cacheKey = `user:${nickname}`;
 
-    const targetUserId = await this.redisClientService.get<string | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
+    try {
+      const targetUserId = await this.redisClientService.get<string | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
-    if (targetUserId) {
-      return targetUserId === CACHE_EMPTY_SYMBOL ? null : this.getUserById(targetUserId);
+      if (targetUserId) {
+        return targetUserId === CACHE_EMPTY_SYMBOL ? null : this.getUserById(targetUserId);
+      }
+    } catch (err) {
+      console.error(`Redis 키 조회 실패 : ${cacheKey}`, err);
     }
 
     const result = await this.usersRepository.findOne({
@@ -141,20 +163,25 @@ export class UsersFetcher {
       },
     });
 
-    const second = 1000;
-    const minute = 60000;
-
-    if (!result) {
-      await this.redisClientService.set(cacheKey, CACHE_EMPTY_SYMBOL, 3 * second);
-      return null;
-    }
-
-    const user = {
+    const user = result && {
       ...result,
       ProfileImage: result.ProfileImage?.path,
     };
 
-    await this.redisClientService.set(cacheKey, user.id, 10 * minute);
+    const second = 1000;
+    const minute = 60000;
+
+    try {
+      if (!result) {
+        await this.redisClientService.set(cacheKey, CACHE_EMPTY_SYMBOL, 3 * second);
+        return null;
+      }
+
+      await this.redisClientService.set(cacheKey, user.id, 10 * minute);
+    } catch (err) {
+      console.error(`Redis 키 저장 실패 : ${cacheKey}`, err);
+    }
+
     return user;
   }
 }
