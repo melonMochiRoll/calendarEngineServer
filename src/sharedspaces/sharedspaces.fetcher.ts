@@ -31,7 +31,8 @@ export class SharedspaceFetcher {
         const isRefresher = threshold >= cachedItem.expireTime;
 
         const lockKey = `lock:${cacheKey}`;
-        const isLocked = isRefresher && await this.redisClientService.setIfNotExist(lockKey, nanoid());
+        const isLocked = isRefresher && await this.redisClientService.setIfNotExist(lockKey, nanoid())
+          .catch(err => console.error(`Redis 락 획득 실패 : ${lockKey}`, err));
 
         if (isLocked === 'OK') {
           this.fetchSharedspaceAndWrite(cacheKey, id)
