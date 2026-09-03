@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { ormconfig } from 'ormconfig';
-import { CacheManagerModule } from './cacheManager/cacheManager.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { TodosModule } from './todos/todos.module';
@@ -41,7 +40,6 @@ import { RedisClientModule } from './redisClient/redisClient.module';
       Roles,
     ]),
     ScheduleModule.forRoot(),
-    CacheManagerModule,
     AuthModule,
     UsersModule,
     TodosModule,
