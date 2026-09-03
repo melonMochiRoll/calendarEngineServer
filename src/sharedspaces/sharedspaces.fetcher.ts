@@ -22,27 +22,31 @@ export class SharedspaceFetcher {
   ) {
     const cacheKey = `sharedspace:${id}`;
 
-    const cachedItem = await this.redisClientService.get<CacheItem<TSharedspaceDefault>>(cacheKey);
+    try {
+      const cachedItem = await this.redisClientService.get<CacheItem<TSharedspaceDefault>>(cacheKey);
 
-    if (cachedItem) {
-      const random = Math.log(Math.random());
-      const threshold = dayjs().valueOf() - (cachedItem.duration * beta * random);
-      const isRefresher = threshold >= cachedItem.expireTime;
+      if (cachedItem) {
+        const random = Math.log(Math.random());
+        const threshold = dayjs().valueOf() - (cachedItem.duration * beta * random);
+        const isRefresher = threshold >= cachedItem.expireTime;
 
-      const lockKey = `lock:${cacheKey}`;
-      const isLocked = isRefresher && await this.redisClientService.setIfNotExist(lockKey, nanoid());
+        const lockKey = `lock:${cacheKey}`;
+        const isLocked = isRefresher && await this.redisClientService.setIfNotExist(lockKey, nanoid());
 
-      if (isLocked === 'OK') {
-        this.fetchSharedspaceAndWrite(cacheKey, id)
-          .catch((err) => {
-            console.log(err);
-          })
-          .finally(async () => {
-            await this.redisClientService.del(lockKey);
-          });
+        if (isLocked === 'OK') {
+          this.fetchSharedspaceAndWrite(cacheKey, id)
+            .catch((err) => {
+              console.log(err);
+            })
+            .finally(async () => {
+              await this.redisClientService.del(lockKey);
+            });
+        }
+
+        return cachedItem.value;
       }
-
-      return cachedItem.value;
+    } catch (err) {
+      console.error(`Redis 키 조회 실패 : ${cacheKey}`, err);
     }
 
     const space = await this.fetchSharedspaceAndWrite(cacheKey, id);
@@ -90,11 +94,15 @@ export class SharedspaceFetcher {
     const minute = 60000;
     const ttl = 5 * minute;
 
-    await this.redisClientService.set(cacheKey, {
-      value: space,
-      duration: delta,
-      expireTime: dayjs().valueOf() + ttl,
-    }, ttl);
+    try {
+      await this.redisClientService.set(cacheKey, {
+        value: space,
+        duration: delta,
+        expireTime: dayjs().valueOf() + ttl,
+      }, ttl);
+    } catch (err) {
+      console.error(`Redis 키 저장 실패 : ${cacheKey}`, err);
+    }
 
     return space;
   }

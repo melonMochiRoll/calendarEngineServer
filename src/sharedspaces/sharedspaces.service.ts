@@ -390,12 +390,16 @@ export class SharedspacesService {
   ) {
     const cacheKey = `sharedspaceMembers:${SharedspaceId}`;
 
-    if (!beforeUserId) {
-      const cachedItem = await this.redisClientService.get(cacheKey);
+    try {
+      if (!beforeUserId) {
+        const cachedItem = await this.redisClientService.get(cacheKey);
 
-      if (cachedItem) {
-        return cachedItem;
+        if (cachedItem) {
+          return cachedItem;
+        }
       }
+    } catch (err) {
+      console.error(`Redis 키 조회 실패 : ${cacheKey}`, err);
     }
 
     const space = await this.sharedspaceFetcher.getSharedspaceById(SharedspaceId);
@@ -473,9 +477,14 @@ export class SharedspacesService {
       };
     });
 
-    if (!beforeUserId) {
-      const minute = 60000;
-      await this.redisClientService.set(cacheKey, { members, hasMoreData }, 10 * minute);
+    const minute = 60000;
+
+    try {
+      if (!beforeUserId) {
+        await this.redisClientService.set(cacheKey, { members, hasMoreData }, 10 * minute);
+      }
+    } catch (err) {
+      console.error(`Redis 키 저장 실패 : ${cacheKey}`, err);
     }
 
     return {

@@ -33,10 +33,16 @@ export class RolesService {
   }
 
   async getRolesArray() {
-    const cachedrolesArray = await this.redisClientService.get<Pick<Roles, 'id' | 'name'>[]>(ROLES_ARRAY_KEY);
+    const cacheKey = ROLES_ARRAY_KEY;
 
-    if (cachedrolesArray) {
-      return cachedrolesArray;
+    try {
+      const cachedrolesArray = await this.redisClientService.get<Pick<Roles, 'id' | 'name'>[]>(cacheKey);
+
+      if (cachedrolesArray) {
+        return cachedrolesArray;
+      }
+    } catch (err) {
+      console.error(`Redis 키 조회 실패 : ${cacheKey}`, err);
     }
 
     const roles = await this.rolesRepository.find({
@@ -51,8 +57,12 @@ export class RolesService {
       return array;
     }, []) as Pick<Roles, 'id' | 'name'>[];
 
-    if (roles) {
-      await this.redisClientService.set(ROLES_ARRAY_KEY, rolesArray, 0);
+    try {
+      if (roles) {
+        await this.redisClientService.set(cacheKey, rolesArray, 0);
+      }
+    } catch (err) {
+      console.error(`Redis 키 저장 실패 : ${cacheKey}`, err);
     }
 
     return rolesArray;
@@ -63,10 +73,15 @@ export class RolesService {
     SharedspaceId: string,
   ) {
     const cacheKey = `user:role:${UserId}:${SharedspaceId}`;
-    const cachedUserRole = await this.redisClientService.get<Pick<SpaceMembers, 'RoleId'> | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
-    if (cachedUserRole) {
-      return cachedUserRole === CACHE_EMPTY_SYMBOL ? null : cachedUserRole;
+    try {
+      const cachedUserRole = await this.redisClientService.get<Pick<SpaceMembers, 'RoleId'> | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
+
+      if (cachedUserRole) {
+        return cachedUserRole === CACHE_EMPTY_SYMBOL ? null : cachedUserRole;
+      }
+    } catch (err) {
+      console.error(`Redis 키 조회 실패 : ${cacheKey}`, err);
     }
 
     const userRole = await this.spaceMembersRepository.findOne({
@@ -81,12 +96,17 @@ export class RolesService {
 
     const minute = 60000;
 
-    if (!userRole) {
-      await this.redisClientService.set(cacheKey, CACHE_EMPTY_SYMBOL, 1 * minute);
-      return null;
+    try {
+      if (!userRole) {
+        await this.redisClientService.set(cacheKey, CACHE_EMPTY_SYMBOL, 1 * minute);
+        return null;
+      }
+
+      await this.redisClientService.set(cacheKey, userRole, 5 * minute);
+    } catch (err) {
+      console.error(`Redis 키 저장 실패 : ${cacheKey}`, err);
     }
 
-    await this.redisClientService.set(cacheKey, userRole, 5 * minute);
     return userRole;
   }
 
