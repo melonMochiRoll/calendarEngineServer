@@ -79,9 +79,9 @@ export class AuthController {
   @Get('login/oauth2/naver/callback')
   async loginOAuth2NaverCallback(
     @Res() res: Response,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    const { accessToken, refreshToken } = await this.authService.jwtLogin(user.id);
+    const { accessToken, refreshToken } = await this.authService.jwtLogin(UserId);
 
     res
       .status(201)

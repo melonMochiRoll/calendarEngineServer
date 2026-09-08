@@ -3,7 +3,6 @@ import { AuthGuard } from "@nestjs/passport";
 import { INTERNAL_SERVER_MESSAGE } from "src/common/constant/error.message";
 import { RedirectingException } from "src/common/exception/redirecting.exception";
 import { getOrigin } from "src/common/function/utilFunctions";
-import { Users } from "src/entities/Users";
 
 @Injectable()
 export class NaverAuthGuard extends AuthGuard('naver') {
@@ -11,12 +10,12 @@ export class NaverAuthGuard extends AuthGuard('naver') {
     return super.canActivate(context) as boolean;
   }
 
-  handleRequest<TUser = Users>(err: Error | null, user: TUser | false, info: never, ctx: ExecutionContext) {
-    if (err || !user) {
+  handleRequest<TUser = string>(err: Error | null, UserId: TUser | false, info: never, ctx: ExecutionContext) {
+    if (err || !UserId) {
       console.error(err);
       throw new RedirectingException(`${getOrigin()}/login?error=${INTERNAL_SERVER_MESSAGE}`);
     }
 
-    return user;
+    return UserId;
   }
 }

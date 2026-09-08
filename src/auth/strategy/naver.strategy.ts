@@ -38,14 +38,12 @@ export class NaverStrategy extends PassportStrategy(Strategy, 'naver') {
       return exUser;
     }
     
-    await this.usersRepository.save({
+    const newUser = await this.usersRepository.save({
       email: profile.emails[0].value,
       profileImage: profile._json.profile_image,
       provider: USER_PROVIDER.NAVER,
     });
 
-    const newUser = await this.usersFetcher.getUserByEmail(profile.emails[0].value);
-
-    return newUser;
+    return newUser.id;
   }
 }
