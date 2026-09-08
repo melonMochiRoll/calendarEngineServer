@@ -169,9 +169,20 @@ export class AuthService {
     }
 
     const refreshTokenData = await this.refreshTokensRepository.findOne({
+      select: {
+        id: true,
+        revokedAt: true,
+        UserId: true,
+        User: {
+          status: true,
+        },
+      },
       where: {
         jti: refreshTokenPayload.jti,
         UserId: refreshTokenPayload.UserId,
+      },
+      relations: {
+        User: true,
       },
     });
 
@@ -182,12 +193,12 @@ export class AuthService {
       throw new UnauthorizedException(TOKEN_EXPIRED);
     }
 
-    const user = await this.usersFetcher.getUserById(refreshTokenPayload.UserId);
+    const { User } = refreshTokenData;
 
-    if (!user || user.status !== USER_STATUS.ACTIVE) {
+    if (!User || User.status !== USER_STATUS.ACTIVE) {
       throw new BadRequestException(NOT_FOUND_USER);
     }
 
-    return await this.jwtLogin(user.id);
+    return await this.jwtLogin(refreshTokenData.UserId);
   }
 }
