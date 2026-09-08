@@ -36,14 +36,12 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google'){
       return exUser;
     }
 
-    await this.usersRepository.save({
+    const newUser = await this.usersRepository.save({
       email: profile.emails[0].value,
       profileImage: profile._json.picture,
       provider: USER_PROVIDER.GOOGLE,
     });
 
-    const newUser = await this.usersFetcher.getUserByEmail(profile.emails[0].value);
-
-    return newUser;
+    return newUser.id;
   }
 }
