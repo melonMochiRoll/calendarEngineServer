@@ -20,9 +20,9 @@ export class JoinRequestsController {
   getJoinRequests(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeJoinRequestId: string,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.joinRequestsService.getJoinRequests(SharedspaceId, beforeJoinRequestId, user.id);
+    return this.joinRequestsService.getJoinRequests(SharedspaceId, beforeJoinRequestId, UserId);
   }
   
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
@@ -31,13 +31,13 @@ export class JoinRequestsController {
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Param('id', UUIDv7ValidationPipe) joinRequestId: string,
     @Body() dto: ResolveJoinRequestDTO,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
     return this.joinRequestsService.resolveJoinRequest(
       SharedspaceId,
       joinRequestId,
       dto,
-      user.id
+      UserId
     );
   }
 
@@ -46,9 +46,9 @@ export class JoinRequestsController {
   createJoinRequest(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Body() dto: CreateJoinRequestDTO,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.joinRequestsService.createJoinRequest(SharedspaceId, dto, user.id);
+    return this.joinRequestsService.createJoinRequest(SharedspaceId, dto, UserId);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
@@ -56,8 +56,8 @@ export class JoinRequestsController {
   rejectJoinRequest(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Param('id', UUIDv7ValidationPipe) joinRequestId: string,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.joinRequestsService.rejectJoinRequest(SharedspaceId, joinRequestId, user.id);
+    return this.joinRequestsService.rejectJoinRequest(SharedspaceId, joinRequestId, UserId);
   }
 }

@@ -2,7 +2,6 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } f
 import { ChatRoomsService } from "./chatrooms.service";
 import { JwtAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { User } from "src/common/decorator/user.decorator";
-import { Users } from "src/entities/Users";
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
 import { CreateDmChatRoomDTO } from "./dto/create.dm.chatroom.dto";
 import { UUIDv7OrEmptyPipe } from "src/common/pipe/uuidv7OrEmpty.pipe";
@@ -22,9 +21,9 @@ export class ChatRoomsController {
   getChatRoomParticipants(
     @Param('ChatRoomId', UUIDv7ValidationPipe) ChatRoomId: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeParticipantId: string,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.chatRoomsService.getChatRoomParticipants(ChatRoomId, user.id, beforeParticipantId);
+    return this.chatRoomsService.getChatRoomParticipants(ChatRoomId, UserId, beforeParticipantId);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
@@ -32,18 +31,18 @@ export class ChatRoomsController {
   createSharedspaceChatRoom(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Body() dto: CreateSharedspaceChatRoomDTO,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.chatRoomsService.createSharedspaceChatRoom(SharedspaceId, dto, user.id);
+    return this.chatRoomsService.createSharedspaceChatRoom(SharedspaceId, dto, UserId);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post('dms/chatrooms')
   createDmChatRoom(
-    @User() user: Users,
+    @User() UserId: string,
     @Body() dto: CreateDmChatRoomDTO,
   ) {
-    return this.chatRoomsService.createDmChatRoom(user.id, dto);
+    return this.chatRoomsService.createDmChatRoom(UserId, dto);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
@@ -52,9 +51,9 @@ export class ChatRoomsController {
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Param('ChatRoomId', UUIDv7ValidationPipe) ChatRoomId: string,
     @Body() dto: UpdateSharedspaceChatRoomNameDTO,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.chatRoomsService.updateSharedspaceChatRoomName(SharedspaceId, ChatRoomId, dto, user.id);
+    return this.chatRoomsService.updateSharedspaceChatRoomName(SharedspaceId, ChatRoomId, dto, UserId);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
@@ -62,9 +61,9 @@ export class ChatRoomsController {
   deleteSharedspaceChatRoom(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Param('ChatRoomId', UUIDv7ValidationPipe) ChatRoomId: string,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.chatRoomsService.deleteSharedspaceChatRoom(SharedspaceId, ChatRoomId, user.id);
+    return this.chatRoomsService.deleteSharedspaceChatRoom(SharedspaceId, ChatRoomId, UserId);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
@@ -72,17 +71,17 @@ export class ChatRoomsController {
   inviteDmChatRoom(
     @Param('ChatRoomId', UUIDv7ValidationPipe) ChatRoomId: string,
     @Body() dto: InviteDmChatRoomDTO,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.chatRoomsService.inviteDmChatRoom(ChatRoomId, dto, user.id);
+    return this.chatRoomsService.inviteDmChatRoom(ChatRoomId, dto, UserId);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Delete('dms/chatrooms/:ChatRoomId/participants/me')
   leaveDmChatRoom(
     @Param('ChatRoomId', UUIDv7ValidationPipe) ChatRoomId: string,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.chatRoomsService.leaveDmChatRoom(ChatRoomId, user.id);
+    return this.chatRoomsService.leaveDmChatRoom(ChatRoomId, UserId);
   }
 }

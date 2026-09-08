@@ -4,7 +4,6 @@ import { JwtAuthGuard, PublicAuthGuard } from "src/auth/authGuard/jwt.auth.guard
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
 import { GeneratePresignedPutUrlDTO } from "./dto/generate.presigned.put.url.dto";
 import { User } from "src/common/decorator/user.decorator";
-import { Users } from "src/entities/Users";
 import { UUIDv7OrEmptyPipe } from "src/common/pipe/uuidv7OrEmpty.pipe";
 import { UUIDv7ValidationPipe } from "src/common/pipe/uuidv7.validation.pipe";
 
@@ -19,12 +18,12 @@ export class ChatsController {
   getSharedspaceChatRoomChats(
     @Param('ChatRoomId', UUIDv7ValidationPipe) ChatRoomId: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeChatId: string,
-    @User() user: Users,
+    @User() UserId: string | null,
   ) {
     return this.chatsService.getSharedspaceChatRoomChats(
       ChatRoomId,
       beforeChatId,
-      user?.id,
+      UserId,
     );
   }
 
@@ -33,9 +32,9 @@ export class ChatsController {
   getDmChatRoomChats(
     @Param('ChatRoomId', UUIDv7ValidationPipe) ChatRoomId: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeChatId: string,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.chatsService.getDmChatRoomChats(ChatRoomId, beforeChatId, user.id);
+    return this.chatsService.getDmChatRoomChats(ChatRoomId, beforeChatId, UserId);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)

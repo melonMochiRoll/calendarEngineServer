@@ -19,36 +19,36 @@ export class InvitesController {
   @Get()
   getInvites(
     @Query('before', UUIDv7OrEmptyPipe) beforeInviteId: string,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.invitesService.getInvites(beforeInviteId, user.id);
+    return this.invitesService.getInvites(beforeInviteId, UserId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post()
   sendInvite(
     @Body() dto: SendInviteDTO,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.invitesService.sendInvite(dto, user.id);
+    return this.invitesService.sendInvite(dto, UserId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('accept')
   acceptInvite(
     @Body() dto: AcceptInviteDTO,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.invitesService.acceptInvite(dto, user.id);
+    return this.invitesService.acceptInvite(dto, UserId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('decline')
   declineInvite(
     @Body() dto: DeclineInviteDTO,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.invitesService.declineInvite(dto, user.id);
+    return this.invitesService.declineInvite(dto, UserId);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -56,8 +56,8 @@ export class InvitesController {
   cancelInvite(
     @Param('id', UUIDv7ValidationPipe) targetInviteId: string,
     @Query('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.invitesService.cancelInvite(targetInviteId, SharedspaceId, user.id);
+    return this.invitesService.cancelInvite(targetInviteId, SharedspaceId, UserId);
   }
 }

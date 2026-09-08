@@ -22,9 +22,9 @@ export class SharedspacesController {
   @Get(':SharedspaceId/view')
   getSharedspace(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
-    @User() user: Users,
+    @User() UserId: string | null,
   ) {
-    return this.sharedspacesService.getSharedspace(SharedspaceId, user?.id);
+    return this.sharedspacesService.getSharedspace(SharedspaceId, UserId);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -32,15 +32,15 @@ export class SharedspacesController {
   getSubscribedspaces(
     @Query('sort') sort: TSubscribedspacesSort,
     @Query('page', ParseIntPipe) page: number,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.sharedspacesService.getSubscribedspaces(sort, user.id, page);
+    return this.sharedspacesService.getSubscribedspaces(sort, UserId, page);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post()
-  createSharedspace(@User() user: Users) {
-    return this.sharedspacesService.createSharedspace(user.id);
+  createSharedspace(@User() UserId: string) {
+    return this.sharedspacesService.createSharedspace(UserId);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
@@ -48,9 +48,9 @@ export class SharedspacesController {
   updateSharedspaceName(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Body() dto: UpdateSharedspaceNameDTO,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.sharedspacesService.updateSharedspaceName(SharedspaceId, dto, user.id);
+    return this.sharedspacesService.updateSharedspaceName(SharedspaceId, dto, UserId);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
@@ -58,9 +58,9 @@ export class SharedspacesController {
   updateSharedspaceOwner(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Body() dto: UpdateSharedspaceOwnerDTO,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.sharedspacesService.updateSharedspaceOwner(SharedspaceId, dto, user.id);
+    return this.sharedspacesService.updateSharedspaceOwner(SharedspaceId, dto, UserId);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
@@ -68,18 +68,18 @@ export class SharedspacesController {
   updateSharedspacePrivate(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Body() dto: UpdateSharedspacePrivateDTO,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.sharedspacesService.updateSharedspacePrivate(SharedspaceId, dto, user.id);
+    return this.sharedspacesService.updateSharedspacePrivate(SharedspaceId, dto, UserId);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Delete(':SharedspaceId')
   scheduleSharedspaceDeletion(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.sharedspacesService.scheduleSharedspaceDeletion(SharedspaceId, user.id);
+    return this.sharedspacesService.scheduleSharedspaceDeletion(SharedspaceId, UserId);
   }
 
   @UseGuards(PublicAuthGuard)
@@ -87,9 +87,9 @@ export class SharedspacesController {
   getSharedspaceMembers(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeUserId: string,
-    @User() user: Users,
+    @User() UserId: string | null,
   ) {
-    return this.sharedspacesService.getSharedspaceMembers(SharedspaceId, beforeUserId, user?.id)
+    return this.sharedspacesService.getSharedspaceMembers(SharedspaceId, beforeUserId, UserId)
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
@@ -97,18 +97,18 @@ export class SharedspacesController {
   updateSharedspaceMember(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Body() dto: UpdateSharedspaceMemberDTO,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.sharedspacesService.updateSharedspaceMember(SharedspaceId, dto, user.id);
+    return this.sharedspacesService.updateSharedspaceMember(SharedspaceId, dto, UserId);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Delete(':SharedspaceId/members/me')
   leaveSharedspace(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.sharedspacesService.leaveSharedspace(SharedspaceId, user.id);
+    return this.sharedspacesService.leaveSharedspace(SharedspaceId, UserId);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
@@ -116,9 +116,9 @@ export class SharedspacesController {
   kickSharedspace(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Param('id', UUIDv7ValidationPipe) targetUserId: string,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.sharedspacesService.kickSharedspace(SharedspaceId, targetUserId, user.id);
+    return this.sharedspacesService.kickSharedspace(SharedspaceId, targetUserId, UserId);
   }
 
   @UseGuards(JwtAuthGuard)

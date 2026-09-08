@@ -21,12 +21,12 @@ export class TodosController {
   getTodosByMonth(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Query('date', DateValidationPipe) date: string,
-    @User() user: Users,
+    @User() UserId: string | null,
   ) {
     return this.todosService.getTodosByMonth(
       SharedspaceId,
       date,
-      user?.id,
+      UserId,
     );
   }
 
@@ -35,9 +35,9 @@ export class TodosController {
   createTodo(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Body() dto: CreateTodoDTO,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.todosService.createTodo(SharedspaceId, dto, user.id);
+    return this.todosService.createTodo(SharedspaceId, dto, UserId);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
@@ -45,9 +45,9 @@ export class TodosController {
   updateTodo(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Body() dto: UpdateTodoDto,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.todosService.updateTodo(SharedspaceId, dto, user.id);
+    return this.todosService.updateTodo(SharedspaceId, dto, UserId);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
@@ -56,9 +56,9 @@ export class TodosController {
   deleteTodo(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Param('id', UUIDv7ValidationPipe) todoId: string,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.todosService.deleteTodo(SharedspaceId, todoId, user.id);
+    return this.todosService.deleteTodo(SharedspaceId, todoId, UserId);
   }
 
   @UseGuards(PublicAuthGuard)
@@ -67,13 +67,13 @@ export class TodosController {
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Query('query') query: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeTodoId: string,
-    @User() user: Users,
+    @User() UserId: string | null,
   ) {
     return this.todosService.searchTodos(
       SharedspaceId,
       query,
       beforeTodoId,
-      user?.id,
+      UserId,
     );
   }
 }

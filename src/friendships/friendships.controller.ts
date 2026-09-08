@@ -20,54 +20,54 @@ export class FriendshipsController {
   @Get()
   getFriendships(
     @Query('before', UUIDv7OrEmptyPipe) beforeFriendshipId: string,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.friendshipsService.getFriendships(beforeFriendshipId, user.id);
+    return this.friendshipsService.getFriendships(beforeFriendshipId, UserId);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Get('requests')
   getFriendshipRequests(
     @Query('before', UUIDv7OrEmptyPipe) beforeFriendshipRequestId: string,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.friendshipsService.getFriendshipRequests(beforeFriendshipRequestId, user.id);
+    return this.friendshipsService.getFriendshipRequests(beforeFriendshipRequestId, UserId);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post()
   sendFriendship(
     @Body() dto: SendFriendshipDTO,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.friendshipsService.sendFriendship(dto, user.id);
+    return this.friendshipsService.sendFriendship(dto, UserId);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post('accept')
   acceptFriendship(
     @Body() dto: AcceptFriendshipDTO,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.friendshipsService.acceptFriendship(dto, user.id);
+    return this.friendshipsService.acceptFriendship(dto, UserId);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post('reject')
   rejectFriendship(
     @Body() dto: RejectFriendshipDTO,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.friendshipsService.rejectFriendship(dto, user.id);
+    return this.friendshipsService.rejectFriendship(dto, UserId);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Delete()
   deleteFriendship(
     @Query('target', UUIDv7ValidationPipe) RequesterId: string,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.friendshipsService.deleteFriendship(RequesterId, user.id);
+    return this.friendshipsService.deleteFriendship(RequesterId, UserId);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
@@ -75,8 +75,8 @@ export class FriendshipsController {
   searchUser(
     @Query('query') query: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeUserId: string,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    return this.friendshipsService.searchUser(query, beforeUserId, user.id);
+    return this.friendshipsService.searchUser(query, beforeUserId, UserId);
   }
 }

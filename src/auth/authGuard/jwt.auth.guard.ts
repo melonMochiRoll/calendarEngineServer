@@ -17,12 +17,12 @@ export class PublicAuthGuard extends AuthGuard('jwt') {
     return super.canActivate(context) as boolean;
   }
 
-  handleRequest<TUser = Users>(err: any, user: TUser | null) {
+  handleRequest<TUser = string>(err: any, UserId: TUser | null) {
     if (err?.response?.metaData?.type === ERROR_TYPE.AUTH_TOKEN_EXPIRED) {
       throw err;
     }
 
-    return user;
+    return UserId;
   }
 }
 

@@ -1,20 +1,17 @@
-import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { PassportStrategy } from "@nestjs/passport";
 import { Request } from "express";
 import { Strategy } from "passport-custom";
 import { AUTHORIZATION_HEADER_NAME, ERROR_TYPE } from "src/common/constant/auth.constants";
-import { NOT_FOUND_USER, TOKEN_EXPIRED, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
+import { TOKEN_EXPIRED, UNAUTHORIZED_MESSAGE } from "src/common/constant/error.message";
 import { TAccessTokenPayload } from "src/typings/types";
 import dayjs from "dayjs";
-import { USER_STATUS } from "src/common/constant/constants";
-import { UsersFetcher } from "src/users/users.fetcher";
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor( 
     private jwtService: JwtService,
-    private usersFetcher: UsersFetcher,
   ) {
     super();
   }
@@ -44,12 +41,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       });
     }
 
-    const user = await this.usersFetcher.getUserById(accessTokenPayload.UserId);
-
-    if (!user || user.status !== USER_STATUS.ACTIVE) {
-      throw new BadRequestException(NOT_FOUND_USER);
-    }
-
-    return user;
+    return accessTokenPayload.UserId;
   }
 }

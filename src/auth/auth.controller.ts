@@ -101,8 +101,8 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Post('logout')
-  async logout(@Res() res: Response, @User() user: Users) {
-    const clearCookies = await this.authService.logout(user.id);
+  async logout(@Res() res: Response, @User() UserId: string) {
+    const clearCookies = await this.authService.logout(UserId);
 
     clearCookies.forEach(({name, option}) => {
       res.clearCookie(name, option);
