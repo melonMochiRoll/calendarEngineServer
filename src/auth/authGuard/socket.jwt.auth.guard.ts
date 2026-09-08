@@ -3,16 +3,13 @@ import { JwtService } from "@nestjs/jwt";
 import { WsException } from "@nestjs/websockets";
 import dayjs from "dayjs";
 import { AUTHORIZATION_HEADER_NAME, ERROR_TYPE } from "src/common/constant/auth.constants";
-import { USER_STATUS } from "src/common/constant/constants";
-import { NOT_FOUND_RESOURCE, TOKEN_EXPIRED } from "src/common/constant/error.message";
+import { TOKEN_EXPIRED } from "src/common/constant/error.message";
 import { TAccessTokenPayload } from "src/typings/types";
-import { UsersFetcher } from "src/users/users.fetcher";
 
 @Injectable()
 export class SocketJwtAuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
-    private usersFetcher: UsersFetcher,
   ) {}
 
   async canActivate(context: ExecutionContext) {
@@ -43,16 +40,7 @@ export class SocketJwtAuthGuard implements CanActivate {
       });
     }
 
-    const user = await this.usersFetcher.getUserById(accessTokenPayload.UserId);
-
-    if (!user || user.status !== USER_STATUS.ACTIVE) {
-      throw new WsException({
-        type: ERROR_TYPE.UNAUTHORIZED_ERROR,
-        message: NOT_FOUND_RESOURCE,
-      });
-    }
-
-    client.user = user;
+    client.user = accessTokenPayload.UserId;
 
     return true;
   }

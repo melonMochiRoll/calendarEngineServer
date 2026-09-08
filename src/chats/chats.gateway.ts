@@ -7,7 +7,6 @@ import { UseFilters, UseGuards } from "@nestjs/common";
 import { SocketJwtAuthGuard } from "src/auth/authGuard/socket.jwt.auth.guard";
 import { SocketCSRFAuthGuard } from "src/auth/authGuard/socket.csrf.auth.guard";
 import { User } from "src/common/decorator/socket.user.decorator";
-import { Users } from "src/entities/Users";
 import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
 import { DeleteSharedspaceChatDTO } from "./dto/delete.sharedspace.chat.dto";
 import { DeleteSharedspaceChatImageDTO } from "./dto/delete.sharedspace.chat.image.dto";
@@ -54,9 +53,9 @@ export class ChatsGateway {
   async sendSharedspaceChat(
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: SendSharedspacechatDTO,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    const chatWithUser = await this.chatsService.createSharedspaceChat(dto, user.id);
+    const chatWithUser = await this.chatsService.createSharedspaceChat(dto, UserId);
 
     socket
       .emit(ChatToClient.CHAT_CREATED, chatWithUser.sender);
@@ -72,9 +71,9 @@ export class ChatsGateway {
   async updateSharedspaceChat(
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: UpdateSharedspaceChatDTO,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    const updatedProperty = await this.chatsService.updateSharedspaceChat(dto, user.id);
+    const updatedProperty = await this.chatsService.updateSharedspaceChat(dto, UserId);
 
     this.server
       .to(dto.ChatRoomId)
@@ -87,9 +86,9 @@ export class ChatsGateway {
   async deleteSharedspaceChat(
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: DeleteSharedspaceChatDTO,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    const deletedChatId = await this.chatsService.deleteSharedspaceChat(dto, user.id);
+    const deletedChatId = await this.chatsService.deleteSharedspaceChat(dto, UserId);
 
     this.server
       .to(dto.ChatRoomId)
@@ -102,9 +101,9 @@ export class ChatsGateway {
   async deleteSharedspaceChatImage(
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: DeleteSharedspaceChatImageDTO,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    const { event, data } = await this.chatsService.deleteSharedspaceChatImage(dto, user.id);
+    const { event, data } = await this.chatsService.deleteSharedspaceChatImage(dto, UserId);
 
     this.server
       .to(dto.ChatRoomId)
