@@ -21,9 +21,9 @@ export class AuthController {
   @Post('login/jwt')
   async jwtLogin(
     @Res() res: Response,
-    @User() user: Users,
+    @User() UserId: string,
   ) {
-    const { accessToken, refreshToken } = await this.authService.jwtLogin(user.id);
+    const { accessToken, refreshToken } = await this.authService.jwtLogin(UserId);
 
     res
       .status(201)

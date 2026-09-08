@@ -21,16 +21,10 @@ export class JwtLocalStrategy extends PassportStrategy(Strategy, 'jwt-local') {
     email: string,
     password: string,
   ) {
-    const result = await this.usersRepository.findOne({
+    const user = await this.usersRepository.findOne({
       select: {
         id: true,
-        email: true,
-        nickname: true,
         password: true,
-        provider: true,
-        ProfileImage: {
-          path: true,
-        },
         status: true,
       },
       where: {
@@ -41,23 +35,16 @@ export class JwtLocalStrategy extends PassportStrategy(Strategy, 'jwt-local') {
       },
     });
 
-    const compare = await bcrypt.compare(password, result?.password);
+    const compare = await bcrypt.compare(password, user?.password);
 
-    if (!result || !compare) {
+    if (!user || !compare) {
       throw new UnauthorizedException(INCORRECT_CREDENTIALS_MESSAGE);
     }
 
-    if (result.status !== USER_STATUS.ACTIVE) {
+    if (user.status !== USER_STATUS.ACTIVE) {
       throw new BadRequestException(NOT_FOUND_USER);
     }
 
-    const { password: _, ProfileImage, ...rest } = result;
-
-    const user = {
-      ...rest,
-      ProfileImage: ProfileImage?.path,
-    };
-
-    return user;
+    return user.id;
   }
 }
