@@ -61,10 +61,7 @@ export class AuthController {
         refreshToken.token, 
         refreshToken.option,
       )
-      .send({
-        accessToken,
-        userData: user,
-      });
+      .send(accessToken);
   }
 
   @UseGuards(IsNotJwtAuthenicatedGuard)
@@ -93,10 +90,7 @@ export class AuthController {
         refreshToken.token, 
         refreshToken.option,
       )
-      .send({
-        accessToken,
-        userData: user,
-      });
+      .send(accessToken);
   }
 
   @UseGuards(JwtAuthGuard)
