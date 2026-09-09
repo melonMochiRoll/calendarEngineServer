@@ -262,35 +262,22 @@ export class ChatsService {
   ) {
     const { ChatRoomId, ChatId, content, imageIds, imageKeys, type } = dto;
 
-    if (type === CHATROOM_TYPE.SPACE) {
-      const room = await this.chatRoomsFetcher.getSharedspaceChatRoomById(ChatRoomId);
+    const room = await this.chatRoomsFetcher.getSharedspaceChatRoomById(ChatRoomId);
 
-      if (!room || !room?.SharedspaceId) {
-        throw new WsException({
-          type: ERROR_TYPE.BAD_REQUEST_ERROR,
-          message: BAD_REQUEST_MESSAGE,
-        });
-      }
-
-      const isParticipant = await this.rolesService.requireParticipant(UserId, room.SharedspaceId);
-
-      if (!isParticipant) {
-        throw new WsException({
-          type: ERROR_TYPE.UNAUTHORIZED_ERROR,
-          message: ACCESS_DENIED_MESSAGE,
-        });
-      }
+    if (!room || !room?.SharedspaceId) {
+      throw new WsException({
+        type: ERROR_TYPE.BAD_REQUEST_ERROR,
+        message: BAD_REQUEST_MESSAGE,
+      });
     }
 
-    if (type === CHATROOM_TYPE.DM) {
-      const isParticipant = await this.chatRoomsFetcher.isParticipant(UserId, ChatRoomId);
+    const isParticipant = await this.rolesService.requireParticipant(UserId, room.SharedspaceId);
 
-      if (!isParticipant) {
-        throw new WsException({
-          type: ERROR_TYPE.UNAUTHORIZED_ERROR,
-          message: ACCESS_DENIED_MESSAGE,
-        });
-      }
+    if (!isParticipant) {
+      throw new WsException({
+        type: ERROR_TYPE.UNAUTHORIZED_ERROR,
+        message: ACCESS_DENIED_MESSAGE,
+      });
     }
 
     const qr = this.dataSource.createQueryRunner();
@@ -314,13 +301,108 @@ export class ChatsService {
         await Promise.all(updatePromises);
       }
 
-      if (type === CHATROOM_TYPE.DM) {
-        await qr.manager.update(DmChatRooms, {
-          id: ChatRoomId,
-        }, {
-          lastMessageAt: dayjs().toDate(),
+      await qr.commitTransaction();
+
+      const result = await this.chatsRepository.findOne({
+        select: {
+          id: true,
+          content: true,
+          SenderId: true,
+          createdAt: true,
+          updatedAt: true,
+          Sender: {
+            email: true,
+            nickname: true,
+            ProfileImage: {
+              id: true,
+              path: true,
+            },
+          },
+          ChatImages: {
+            id: true,
+            path: true,
+          },
+        },
+        relations: {
+          Sender: {
+            ProfileImage: true,
+          },
+          ChatImages: true,
+        },
+        where: {
+          id: ChatId,
+        },
+      });
+
+      const chatWithUser = {
+        ...result,
+        Sender: {
+          ...result.Sender,
+          ProfileImage: result.Sender.ProfileImage?.path,
+        },
+      };
+
+      return {
+        sender: Object.assign({ ...chatWithUser }, { permission: { isSender: true } }),
+        receiver: Object.assign({ ...chatWithUser }, { permission: { isSender: false } }),
+      };
+    } catch (err) {
+      await qr.rollbackTransaction();
+
+      if (!(err instanceof WsException)) {
+        throw new WsException({
+          type: ERROR_TYPE.INTERNAL_SERVER_ERROR,
+          message: INTERNAL_SERVER_MESSAGE,
         });
       }
+
+      throw err;
+    } finally {
+      await qr.release();
+    }
+  }
+
+  async createDmChat(
+    dto: SendSharedspacechatDTO,
+    UserId: string,
+  ) {
+    const { ChatRoomId, ChatId, content, imageIds, imageKeys, type } = dto;
+
+    const isParticipant = await this.chatRoomsFetcher.isParticipant(UserId, ChatRoomId);
+
+    if (!isParticipant) {
+      throw new WsException({
+        type: ERROR_TYPE.UNAUTHORIZED_ERROR,
+        message: ACCESS_DENIED_MESSAGE,
+      });
+    }
+
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+
+    try {
+      await qr.manager.insert(Chats, {
+        id: ChatId,
+        content,
+        SenderId: UserId,
+        RoomId: ChatRoomId,
+      });
+
+      if (imageIds.length) {
+        const updatePromises = imageIds.map(async (imageId, i) => {
+          await qr.manager.update(Images, { id: imageId }, { status: IMAGE_STATUS.ACTIVE });
+          await qr.manager.insert(ChatImages, { id: imageId, path: imageKeys[i], ChatId, });
+        });
+
+        await Promise.all(updatePromises);
+      }
+
+      await qr.manager.update(DmChatRooms, {
+        id: ChatRoomId,
+      }, {
+        lastMessageAt: dayjs().toDate(),
+      });
 
       await qr.commitTransaction();
 

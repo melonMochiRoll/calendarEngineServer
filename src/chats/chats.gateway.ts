@@ -2,7 +2,7 @@ import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect,
 import { Server, Socket } from "socket.io";
 import { ChatsService } from "src/chats/chats.service";
 import { SendSharedspacechatDTO } from "./dto/send.sharedspace.chat.dto";
-import { ChatToClient, ChatToServer } from "src/common/constant/constants";
+import { CHATROOM_TYPE, ChatToClient, ChatToServer } from "src/common/constant/constants";
 import { UseFilters, UseGuards } from "@nestjs/common";
 import { SocketJwtAuthGuard } from "src/auth/authGuard/socket.jwt.auth.guard";
 import { SocketCSRFAuthGuard } from "src/auth/authGuard/socket.csrf.auth.guard";
@@ -55,7 +55,15 @@ export class ChatsGateway {
     @MessageBody() dto: SendSharedspacechatDTO,
     @UserId() UserId: string,
   ) {
-    const chatWithUser = await this.chatsService.createSharedspaceChat(dto, UserId);
+    let chatWithUser;
+
+    if (dto.type === CHATROOM_TYPE.SPACE) {
+      chatWithUser = await this.chatsService.createSharedspaceChat(dto, UserId);
+    }
+
+    if (dto.type === CHATROOM_TYPE.DM) {
+      chatWithUser = await this.chatsService.createDmChat(dto, UserId);
+    }
 
     socket
       .emit(ChatToClient.CHAT_CREATED, chatWithUser.sender);
