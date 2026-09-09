@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Redirect, Req, Res, UseGuards } from "@nestjs/common";
-import { User } from "src/common/decorator/user.decorator";
+import { UserId } from "src/common/decorator/userId.decorator";
 import { Users } from "src/entities/Users";
 import { Request, Response } from "express";
 import { NaverAuthGuard } from "./authGuard/naver.auth.guard";
@@ -21,7 +21,7 @@ export class AuthController {
   @Post('login/jwt')
   async jwtLogin(
     @Res() res: Response,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     const { accessToken, refreshToken } = await this.authService.jwtLogin(UserId);
 
@@ -50,7 +50,7 @@ export class AuthController {
   @Get('login/oauth2/google/callback')
   async loginOAuth2GoogleCallback(
     @Res() res: Response,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     const { accessToken, refreshToken } = await this.authService.jwtLogin(UserId);
 
@@ -79,7 +79,7 @@ export class AuthController {
   @Get('login/oauth2/naver/callback')
   async loginOAuth2NaverCallback(
     @Res() res: Response,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     const { accessToken, refreshToken } = await this.authService.jwtLogin(UserId);
 
@@ -95,7 +95,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Post('logout')
-  async logout(@Res() res: Response, @User() UserId: string) {
+  async logout(@Res() res: Response, @UserId() UserId: string) {
     const clearCookies = await this.authService.logout(UserId);
 
     clearCookies.forEach(({name, option}) => {

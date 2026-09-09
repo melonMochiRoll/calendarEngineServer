@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Post, Query, UseGuards } from "@nestjs/common";
 import { UsersService } from "./users.service";
-import { User } from "src/common/decorator/user.decorator";
+import { UserId } from "src/common/decorator/userId.decorator";
 import { CreateUserDTO } from "./dto/create.user.dto";
 import { IsNotJwtAuthenicatedGuard, JwtAuthGuard, PublicAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
@@ -17,7 +17,7 @@ export class UsersController {
 
   @UseGuards(PublicAuthGuard)
   @Get()
-  getUser(@User() UserId: string | null) {
+  getUser(@UserId() UserId: string | null) {
     return UserId ? this.usersFetcher.getUserById(UserId) : null;
   }
 
@@ -39,7 +39,7 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Delete()
-  scheduleUserDeletion(@User() UserId: string) {
+  scheduleUserDeletion(@UserId() UserId: string) {
     return this.usersService.scheduleUserDeletion(UserId);
   }
 
@@ -47,7 +47,7 @@ export class UsersController {
   @Post('profileimages/presigned-url')
   generateProfileImagePresignedPutUrl(
     @Body() dto: GenerateProfileImagePresignedPutUrlDTO,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.usersService.generateProfileImagePresignedPutUrl(dto, UserId);
   }
@@ -56,7 +56,7 @@ export class UsersController {
   @Post('profileimages')
   updateProfileImage(
     @Body() dto: UpdateProfileImageDTO,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.usersService.updateProfileImage(dto, UserId);
   }

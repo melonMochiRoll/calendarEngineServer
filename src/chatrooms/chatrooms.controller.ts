@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { ChatRoomsService } from "./chatrooms.service";
 import { JwtAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
-import { User } from "src/common/decorator/user.decorator";
+import { UserId } from "src/common/decorator/userId.decorator";
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
 import { CreateDmChatRoomDTO } from "./dto/create.dm.chatroom.dto";
 import { UUIDv7OrEmptyPipe } from "src/common/pipe/uuidv7OrEmpty.pipe";
@@ -21,7 +21,7 @@ export class ChatRoomsController {
   getChatRoomParticipants(
     @Param('ChatRoomId', UUIDv7ValidationPipe) ChatRoomId: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeParticipantId: string,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.chatRoomsService.getChatRoomParticipants(ChatRoomId, UserId, beforeParticipantId);
   }
@@ -31,7 +31,7 @@ export class ChatRoomsController {
   createSharedspaceChatRoom(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Body() dto: CreateSharedspaceChatRoomDTO,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.chatRoomsService.createSharedspaceChatRoom(SharedspaceId, dto, UserId);
   }
@@ -39,7 +39,7 @@ export class ChatRoomsController {
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post('dms/chatrooms')
   createDmChatRoom(
-    @User() UserId: string,
+    @UserId() UserId: string,
     @Body() dto: CreateDmChatRoomDTO,
   ) {
     return this.chatRoomsService.createDmChatRoom(UserId, dto);
@@ -51,7 +51,7 @@ export class ChatRoomsController {
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Param('ChatRoomId', UUIDv7ValidationPipe) ChatRoomId: string,
     @Body() dto: UpdateSharedspaceChatRoomNameDTO,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.chatRoomsService.updateSharedspaceChatRoomName(SharedspaceId, ChatRoomId, dto, UserId);
   }
@@ -61,7 +61,7 @@ export class ChatRoomsController {
   deleteSharedspaceChatRoom(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Param('ChatRoomId', UUIDv7ValidationPipe) ChatRoomId: string,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.chatRoomsService.deleteSharedspaceChatRoom(SharedspaceId, ChatRoomId, UserId);
   }
@@ -71,7 +71,7 @@ export class ChatRoomsController {
   inviteDmChatRoom(
     @Param('ChatRoomId', UUIDv7ValidationPipe) ChatRoomId: string,
     @Body() dto: InviteDmChatRoomDTO,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.chatRoomsService.inviteDmChatRoom(ChatRoomId, dto, UserId);
   }
@@ -80,7 +80,7 @@ export class ChatRoomsController {
   @Delete('dms/chatrooms/:ChatRoomId/participants/me')
   leaveDmChatRoom(
     @Param('ChatRoomId', UUIDv7ValidationPipe) ChatRoomId: string,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.chatRoomsService.leaveDmChatRoom(ChatRoomId, UserId);
   }

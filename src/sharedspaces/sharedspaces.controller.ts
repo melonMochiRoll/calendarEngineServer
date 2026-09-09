@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, Param, ParseIntPipe, Patch, Po
 import { SharedspacesService } from "./sharedspaces.service";
 import { UpdateSharedspaceNameDTO } from "./dto/update.sharedspace.name.dto";
 import { UpdateSharedspaceOwnerDTO } from "./dto/update.sharedspace.owner.dto";
-import { User } from "src/common/decorator/user.decorator";
+import { UserId } from "src/common/decorator/userId.decorator";
 import { Users } from "src/entities/Users";
 import { UpdateSharedspaceMemberDTO } from "./dto/update.sharedspace.member.dto";
 import { UpdateSharedspacePrivateDTO } from "./dto/update.sharedspace.private.dto";
@@ -22,7 +22,7 @@ export class SharedspacesController {
   @Get(':SharedspaceId/view')
   getSharedspace(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
-    @User() UserId: string | null,
+    @UserId() UserId: string | null,
   ) {
     return this.sharedspacesService.getSharedspace(SharedspaceId, UserId);
   }
@@ -32,14 +32,14 @@ export class SharedspacesController {
   getSubscribedspaces(
     @Query('sort') sort: TSubscribedspacesSort,
     @Query('page', ParseIntPipe) page: number,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.sharedspacesService.getSubscribedspaces(sort, UserId, page);
   }
 
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post()
-  createSharedspace(@User() UserId: string) {
+  createSharedspace(@UserId() UserId: string) {
     return this.sharedspacesService.createSharedspace(UserId);
   }
 
@@ -48,7 +48,7 @@ export class SharedspacesController {
   updateSharedspaceName(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Body() dto: UpdateSharedspaceNameDTO,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.sharedspacesService.updateSharedspaceName(SharedspaceId, dto, UserId);
   }
@@ -58,7 +58,7 @@ export class SharedspacesController {
   updateSharedspaceOwner(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Body() dto: UpdateSharedspaceOwnerDTO,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.sharedspacesService.updateSharedspaceOwner(SharedspaceId, dto, UserId);
   }
@@ -68,7 +68,7 @@ export class SharedspacesController {
   updateSharedspacePrivate(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Body() dto: UpdateSharedspacePrivateDTO,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.sharedspacesService.updateSharedspacePrivate(SharedspaceId, dto, UserId);
   }
@@ -77,7 +77,7 @@ export class SharedspacesController {
   @Delete(':SharedspaceId')
   scheduleSharedspaceDeletion(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.sharedspacesService.scheduleSharedspaceDeletion(SharedspaceId, UserId);
   }
@@ -87,7 +87,7 @@ export class SharedspacesController {
   getSharedspaceMembers(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeUserId: string,
-    @User() UserId: string | null,
+    @UserId() UserId: string | null,
   ) {
     return this.sharedspacesService.getSharedspaceMembers(SharedspaceId, beforeUserId, UserId)
   }
@@ -97,7 +97,7 @@ export class SharedspacesController {
   updateSharedspaceMember(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Body() dto: UpdateSharedspaceMemberDTO,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.sharedspacesService.updateSharedspaceMember(SharedspaceId, dto, UserId);
   }
@@ -106,7 +106,7 @@ export class SharedspacesController {
   @Delete(':SharedspaceId/members/me')
   leaveSharedspace(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.sharedspacesService.leaveSharedspace(SharedspaceId, UserId);
   }
@@ -116,7 +116,7 @@ export class SharedspacesController {
   kickSharedspace(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Param('id', UUIDv7ValidationPipe) targetUserId: string,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.sharedspacesService.kickSharedspace(SharedspaceId, targetUserId, UserId);
   }

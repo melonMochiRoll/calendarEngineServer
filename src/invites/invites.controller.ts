@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from "@n
 import { InvitesService } from "./invites.service";
 import { JwtAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { Users } from "src/entities/Users";
-import { User } from "src/common/decorator/user.decorator";
+import { UserId } from "src/common/decorator/userId.decorator";
 import { SendInviteDTO } from "./dto/send.invite.dto";
 import { AcceptInviteDTO } from "./dto/accept.invite.dto";
 import { DeclineInviteDTO } from "./dto/decline.invite.dto";
@@ -19,7 +19,7 @@ export class InvitesController {
   @Get()
   getInvites(
     @Query('before', UUIDv7OrEmptyPipe) beforeInviteId: string,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.invitesService.getInvites(beforeInviteId, UserId);
   }
@@ -28,7 +28,7 @@ export class InvitesController {
   @Post()
   sendInvite(
     @Body() dto: SendInviteDTO,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.invitesService.sendInvite(dto, UserId);
   }
@@ -37,7 +37,7 @@ export class InvitesController {
   @Post('accept')
   acceptInvite(
     @Body() dto: AcceptInviteDTO,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.invitesService.acceptInvite(dto, UserId);
   }
@@ -46,7 +46,7 @@ export class InvitesController {
   @Post('decline')
   declineInvite(
     @Body() dto: DeclineInviteDTO,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.invitesService.declineInvite(dto, UserId);
   }
@@ -56,7 +56,7 @@ export class InvitesController {
   cancelInvite(
     @Param('id', UUIDv7ValidationPipe) targetInviteId: string,
     @Query('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.invitesService.cancelInvite(targetInviteId, SharedspaceId, UserId);
   }

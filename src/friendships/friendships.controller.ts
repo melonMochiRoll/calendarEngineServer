@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Post, Query, UseGuards } from "@nestjs/c
 import { FriendshipsService } from "./friendships.service";
 import { JwtAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
-import { User } from "src/common/decorator/user.decorator";
+import { UserId } from "src/common/decorator/userId.decorator";
 import { SendFriendshipDTO } from "./dto/send.friendship.dto";
 import { Users } from "src/entities/Users";
 import { RejectFriendshipDTO } from "./dto/reject.friendship.dto";
@@ -20,7 +20,7 @@ export class FriendshipsController {
   @Get()
   getFriendships(
     @Query('before', UUIDv7OrEmptyPipe) beforeFriendshipId: string,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.friendshipsService.getFriendships(beforeFriendshipId, UserId);
   }
@@ -29,7 +29,7 @@ export class FriendshipsController {
   @Get('requests')
   getFriendshipRequests(
     @Query('before', UUIDv7OrEmptyPipe) beforeFriendshipRequestId: string,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.friendshipsService.getFriendshipRequests(beforeFriendshipRequestId, UserId);
   }
@@ -38,7 +38,7 @@ export class FriendshipsController {
   @Post()
   sendFriendship(
     @Body() dto: SendFriendshipDTO,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.friendshipsService.sendFriendship(dto, UserId);
   }
@@ -47,7 +47,7 @@ export class FriendshipsController {
   @Post('accept')
   acceptFriendship(
     @Body() dto: AcceptFriendshipDTO,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.friendshipsService.acceptFriendship(dto, UserId);
   }
@@ -56,7 +56,7 @@ export class FriendshipsController {
   @Post('reject')
   rejectFriendship(
     @Body() dto: RejectFriendshipDTO,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.friendshipsService.rejectFriendship(dto, UserId);
   }
@@ -65,7 +65,7 @@ export class FriendshipsController {
   @Delete()
   deleteFriendship(
     @Query('target', UUIDv7ValidationPipe) RequesterId: string,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.friendshipsService.deleteFriendship(RequesterId, UserId);
   }
@@ -75,7 +75,7 @@ export class FriendshipsController {
   searchUser(
     @Query('query') query: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeUserId: string,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.friendshipsService.searchUser(query, beforeUserId, UserId);
   }

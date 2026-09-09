@@ -6,7 +6,7 @@ import { DateValidationPipe } from 'src/common/pipe/date.validation.pipe';
 import { JwtAuthGuard, PublicAuthGuard } from 'src/auth/authGuard/jwt.auth.guard';
 import { CSRFAuthGuard } from 'src/auth/authGuard/csrf.auth.guard';
 import { Users } from 'src/entities/Users';
-import { User } from 'src/common/decorator/user.decorator';
+import { UserId } from "src/common/decorator/userId.decorator";
 import { UUIDv7ValidationPipe } from 'src/common/pipe/uuidv7.validation.pipe';
 import { UUIDv7OrEmptyPipe } from 'src/common/pipe/uuidv7OrEmpty.pipe';
 
@@ -21,7 +21,7 @@ export class TodosController {
   getTodosByMonth(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Query('date', DateValidationPipe) date: string,
-    @User() UserId: string | null,
+    @UserId() UserId: string | null,
   ) {
     return this.todosService.getTodosByMonth(
       SharedspaceId,
@@ -35,7 +35,7 @@ export class TodosController {
   createTodo(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Body() dto: CreateTodoDTO,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.todosService.createTodo(SharedspaceId, dto, UserId);
   }
@@ -45,7 +45,7 @@ export class TodosController {
   updateTodo(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Body() dto: UpdateTodoDto,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.todosService.updateTodo(SharedspaceId, dto, UserId);
   }
@@ -56,7 +56,7 @@ export class TodosController {
   deleteTodo(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Param('id', UUIDv7ValidationPipe) todoId: string,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.todosService.deleteTodo(SharedspaceId, todoId, UserId);
   }
@@ -67,7 +67,7 @@ export class TodosController {
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Query('query') query: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeTodoId: string,
-    @User() UserId: string | null,
+    @UserId() UserId: string | null,
   ) {
     return this.todosService.searchTodos(
       SharedspaceId,

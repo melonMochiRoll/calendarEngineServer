@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
 import { JoinRequestsService } from "./joinRequests.service";
-import { User } from "src/common/decorator/user.decorator";
+import { UserId } from "src/common/decorator/userId.decorator";
 import { Users } from "src/entities/Users";
 import { CreateJoinRequestDTO } from "./dto/create.joinRequest.dto";
 import { ResolveJoinRequestDTO } from "./dto/resolve.joinRequest.dto";
@@ -20,7 +20,7 @@ export class JoinRequestsController {
   getJoinRequests(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeJoinRequestId: string,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.joinRequestsService.getJoinRequests(SharedspaceId, beforeJoinRequestId, UserId);
   }
@@ -31,7 +31,7 @@ export class JoinRequestsController {
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Param('id', UUIDv7ValidationPipe) joinRequestId: string,
     @Body() dto: ResolveJoinRequestDTO,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.joinRequestsService.resolveJoinRequest(
       SharedspaceId,
@@ -46,7 +46,7 @@ export class JoinRequestsController {
   createJoinRequest(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Body() dto: CreateJoinRequestDTO,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.joinRequestsService.createJoinRequest(SharedspaceId, dto, UserId);
   }
@@ -56,7 +56,7 @@ export class JoinRequestsController {
   rejectJoinRequest(
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Param('id', UUIDv7ValidationPipe) joinRequestId: string,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     return this.joinRequestsService.rejectJoinRequest(SharedspaceId, joinRequestId, UserId);
   }
