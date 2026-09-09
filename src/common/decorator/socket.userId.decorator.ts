@@ -1,6 +1,6 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
-export const User = createParamDecorator(
+export const UserId = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
     const client = ctx.switchToWs().getClient();
     return client.user;

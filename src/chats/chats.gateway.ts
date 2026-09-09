@@ -6,7 +6,7 @@ import { ChatToClient, ChatToServer } from "src/common/constant/constants";
 import { UseFilters, UseGuards } from "@nestjs/common";
 import { SocketJwtAuthGuard } from "src/auth/authGuard/socket.jwt.auth.guard";
 import { SocketCSRFAuthGuard } from "src/auth/authGuard/socket.csrf.auth.guard";
-import { User } from "src/common/decorator/socket.user.decorator";
+import { UserId } from "src/common/decorator/socket.userId.decorator";
 import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
 import { DeleteSharedspaceChatDTO } from "./dto/delete.sharedspace.chat.dto";
 import { DeleteSharedspaceChatImageDTO } from "./dto/delete.sharedspace.chat.image.dto";
@@ -53,7 +53,7 @@ export class ChatsGateway {
   async sendSharedspaceChat(
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: SendSharedspacechatDTO,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     const chatWithUser = await this.chatsService.createSharedspaceChat(dto, UserId);
 
@@ -71,7 +71,7 @@ export class ChatsGateway {
   async updateSharedspaceChat(
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: UpdateSharedspaceChatDTO,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     const updatedProperty = await this.chatsService.updateSharedspaceChat(dto, UserId);
 
@@ -86,7 +86,7 @@ export class ChatsGateway {
   async deleteSharedspaceChat(
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: DeleteSharedspaceChatDTO,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     const deletedChatId = await this.chatsService.deleteSharedspaceChat(dto, UserId);
 
@@ -101,7 +101,7 @@ export class ChatsGateway {
   async deleteSharedspaceChatImage(
     @ConnectedSocket() socket: Socket,
     @MessageBody() dto: DeleteSharedspaceChatImageDTO,
-    @User() UserId: string,
+    @UserId() UserId: string,
   ) {
     const { event, data } = await this.chatsService.deleteSharedspaceChatImage(dto, UserId);
 
