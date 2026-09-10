@@ -7,11 +7,6 @@ export const USER_PROVIDER = {
   GOOGLE: 'google',
 } as const;
 
-export const SPACE_TYPE = {
-  SHARED: 'shared',
-  CHAT: 'chat',
-};
-
 export const CHATROOM_TYPE = {
   DM: 'dm',
   SPACE: 'space',
