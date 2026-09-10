@@ -12,6 +12,7 @@ import { ChatImages } from "src/entities/ChatImages";
 import { ChatsGateway } from "./chats.gateway";
 import { UsersModule } from "src/users/users.module";
 import { ChatRoomsModule } from "src/chatrooms/chatrooms.module";
+import { RedisClientModule } from "src/redisClient/redisClient.module";
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ChatRoomsModule } from "src/chatrooms/chatrooms.module";
     UsersModule,
     RolesModule,
     ChatRoomsModule,
+    RedisClientModule,
   ],
   controllers: [ ChatsController ],
   providers: [
