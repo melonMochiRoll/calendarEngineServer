@@ -164,7 +164,7 @@ export class AuthService {
       ignoreExpiration: true,
     });
 
-    if (now.isSameOrAfter(dayjs(refreshTokenPayload.exp, 'X'))) {
+    if (now.isSameOrAfter(dayjs.unix(refreshTokenPayload.exp))) {
       throw new UnauthorizedException(TOKEN_EXPIRED);
     }
 

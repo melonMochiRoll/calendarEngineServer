@@ -33,7 +33,7 @@ export class SocketJwtAuthGuard implements CanActivate {
       ignoreExpiration: true,
     });
 
-    if (now.isSameOrAfter(dayjs(accessTokenPayload.exp, 'X'))) {
+    if (now.isSameOrAfter(dayjs.unix(accessTokenPayload.exp))) {
       throw new WsException({
         type: ERROR_TYPE.AUTH_TOKEN_EXPIRED,
         message: TOKEN_EXPIRED,

@@ -32,7 +32,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       ignoreExpiration: true,
     });
 
-    if (now.isSameOrAfter(dayjs(accessTokenPayload.exp, 'X'))) {
+    if (now.isSameOrAfter(dayjs.unix(accessTokenPayload.exp))) {
       throw new UnauthorizedException({
         message: TOKEN_EXPIRED,
         metaData: {
