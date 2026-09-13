@@ -329,6 +329,7 @@ export class ChatRoomsService {
     });
 
     await this.roomParticipantsRepository.insert(entities);
+    await this.redisClientService.del(`roomParticipantIds:${ChatRoomId}`);
   }
 
   async leaveDmChatRoom(
@@ -339,5 +340,43 @@ export class ChatRoomsService {
       UserId,
       RoomId: ChatRoomId,
     });
+    await this.redisClientService.del(`roomParticipantIds:${ChatRoomId}`);
+  }
+
+  async getParticipantIds(ChatRoomId: string) {
+    const cacheKey = `room_participants:${ChatRoomId}:ids`;
+
+    try {
+      const cachedItem = await this.redisClientService.get<string[]>(cacheKey);
+
+      if (cachedItem) {
+        return cachedItem;
+      }
+    } catch (err) {
+      console.error(`Redis 키 조회 실패 : ${cacheKey}`, err);
+    }
+
+    const roomParticipantRecords = await this.roomParticipantsRepository.find({
+      select: {
+        UserId: true,
+      },
+      where: {
+        RoomId: ChatRoomId,
+      },
+    });
+
+    const ids = roomParticipantRecords.map(roomParticipant => {
+      return roomParticipant.UserId;
+    });
+
+    const minute = 60000;
+
+    try {
+      await this.redisClientService.set(cacheKey, ids, 5 * minute);
+    } catch (err) {
+      console.error(`Redis 키 저장 실패 : ${cacheKey}`, err);
+    }
+
+    return ids;
   }
 }
