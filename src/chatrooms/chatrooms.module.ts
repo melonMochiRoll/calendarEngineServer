@@ -31,6 +31,7 @@ import { RedisClientModule } from "src/redisClient/redisClient.module";
     ChatRoomsFetcher,
   ],
   exports: [
+    ChatRoomsService,
     ChatRoomsFetcher,
   ],
 })
