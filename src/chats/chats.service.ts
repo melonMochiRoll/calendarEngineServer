@@ -19,6 +19,7 @@ import { WsException } from "@nestjs/websockets";
 import { ERROR_TYPE } from "src/common/constant/auth.constants";
 import { ChatRoomsFetcher } from "src/chatrooms/chatrooms.fetcher";
 import { DmChatRooms } from "src/entities/DmChatRooms";
+import { ChatRoomsService } from "src/chatrooms/chatrooms.service";
 
 @Injectable()
 export class ChatsService {
@@ -33,6 +34,7 @@ export class ChatsService {
     private rolesService: RolesService,
     private storageR2Service: StorageR2Service,
     private chatRoomsFetcher: ChatRoomsFetcher,
+    private chatRoomsService: ChatRoomsService,
   ) {}
 
   async getSharedspaceChatRoomChats(
@@ -405,6 +407,8 @@ export class ChatsService {
       });
 
       await qr.commitTransaction();
+
+      this.chatRoomsService.bufferLastMessageAt(ChatRoomId, Date.now());
 
       const result = await this.chatsRepository.findOne({
         select: {
