@@ -19,10 +19,14 @@ import dayjs from "dayjs";
 import { InviteDmChatRoomDTO } from "./dto/invite.dm.chatroom";
 import { stringToUUID, uuidToString } from "src/common/function/utilFunctions";
 import { RedisClientService } from "src/redisClient/redisClient.service";
+import { InjectRedis } from "@nestjs-modules/ioredis";
+import Redis from "ioredis";
 
 @Injectable()
 export class ChatRoomsService {
   constructor(
+    @InjectRedis()
+    private redis: Redis,
     private dataSource: DataSource,
     @InjectRepository(ChatRooms)
     private chatRoomsRepository: Repository<ChatRooms>,
@@ -34,7 +38,12 @@ export class ChatRoomsService {
     private redisClientService: RedisClientService,
     private chatRoomsFetcher: ChatRoomsFetcher,
     private sharedspaceFetcher: SharedspaceFetcher,
-  ) {}
+  ) {
+    this.flushBufferInterval = setInterval(() => this.flushBuffer(this.lastMessageAtBuffer), 1000);
+  }
+
+  private lastMessageAtBuffer: Map<string, number> = new Map();
+  private flushBufferInterval: NodeJS.Timeout;
 
   async getChatRoomParticipants(
     RoomId: string,
@@ -378,5 +387,29 @@ export class ChatRoomsService {
     }
 
     return ids;
+  }
+
+  bufferLastMessageAt(ChatRoomId: string, timestamp: number) {
+    this.lastMessageAtBuffer.set(ChatRoomId, timestamp);
+  }
+
+  async flushBuffer(buffer: typeof this.lastMessageAtBuffer) {
+    if (buffer.size === 0) return;
+
+    const currentBatch = new Map(buffer);
+    this.lastMessageAtBuffer.clear();
+
+    const pipeline = this.redis.pipeline();
+
+    for (const [ChatRoomId, timestamp] of currentBatch.entries()) {
+      const participantIds = await this.getParticipantIds(ChatRoomId);
+
+      for (const UserId of participantIds) {
+        pipeline.zadd(`user:${UserId}:dm_chatrooms`, timestamp, ChatRoomId);
+        pipeline.zremrangebyrank(`user:${UserId}:dm_chatrooms`, 0, -101);
+      }
+    }
+
+    await pipeline.exec();
   }
 }
