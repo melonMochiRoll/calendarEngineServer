@@ -39,11 +39,11 @@ export class ChatRoomsService {
     private chatRoomsFetcher: ChatRoomsFetcher,
     private sharedspaceFetcher: SharedspaceFetcher,
   ) {
-    this.flushBufferInterval = setInterval(() => this.flushBuffer(this.lastMessageAtBuffer), 1000);
+    this.redisFlushBufferInterval = setInterval(() => this.redisFlushBuffer(this.redisLastMessageAtBuffer), 1000);
   }
 
-  private lastMessageAtBuffer: Map<string, number> = new Map();
-  private flushBufferInterval: NodeJS.Timeout;
+  private redisLastMessageAtBuffer: Map<string, number> = new Map();
+  private redisFlushBufferInterval: NodeJS.Timeout;
 
   async getChatRoomParticipants(
     RoomId: string,
@@ -389,15 +389,15 @@ export class ChatRoomsService {
     return ids;
   }
 
-  bufferLastMessageAt(ChatRoomId: string, timestamp: number) {
-    this.lastMessageAtBuffer.set(ChatRoomId, timestamp);
+  redisBufferLastMessageAt(ChatRoomId: string, timestamp: number) {
+    this.redisLastMessageAtBuffer.set(ChatRoomId, timestamp);
   }
 
-  async flushBuffer(buffer: typeof this.lastMessageAtBuffer) {
+  async redisFlushBuffer(buffer: typeof this.redisLastMessageAtBuffer) {
     if (buffer.size === 0) return;
 
     const currentBatch = new Map(buffer);
-    this.lastMessageAtBuffer.clear();
+    this.redisLastMessageAtBuffer.clear();
 
     const pipeline = this.redis.pipeline();
 

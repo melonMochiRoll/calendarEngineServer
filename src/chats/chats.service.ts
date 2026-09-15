@@ -408,7 +408,7 @@ export class ChatsService {
 
       await qr.commitTransaction();
 
-      this.chatRoomsService.bufferLastMessageAt(ChatRoomId, Date.now());
+      this.chatRoomsService.redisBufferLastMessageAt(ChatRoomId, Date.now());
 
       const result = await this.chatsRepository.findOne({
         select: {
