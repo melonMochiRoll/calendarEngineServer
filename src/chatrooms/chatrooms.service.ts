@@ -4,7 +4,7 @@ import { nanoid } from "nanoid";
 import { CACHE_EMPTY_SYMBOL, CHATROOM_TYPE, USER_STATUS } from "src/common/constant/constants";
 import { ACCESS_DENIED_MESSAGE } from "src/common/constant/error.message";
 import { ChatRooms } from "src/entities/ChatRooms";
-import { DataSource, IsNull, LessThan, Repository } from "typeorm";
+import { DataSource, In, IsNull, LessThan, Repository } from "typeorm";
 import { uuidv7 } from "uuidv7";
 import { CreateDmChatRoomDTO } from "./dto/create.dm.chatroom.dto";
 import { RoomParticipants } from "src/entities/RoomParticipants";
@@ -32,6 +32,8 @@ export class ChatRoomsService {
     private chatRoomsRepository: Repository<ChatRooms>,
     @InjectRepository(SharedspaceChatRooms)
     private sharedspaceChatRoomsRepository: Repository<SharedspaceChatRooms>,
+    @InjectRepository(DmChatRooms)
+    private dmChatRoomsRepository: Repository<DmChatRooms>,
     @InjectRepository(RoomParticipants)
     private roomParticipantsRepository: Repository<RoomParticipants>,
     private rolesService: RolesService,
@@ -44,6 +46,134 @@ export class ChatRoomsService {
 
   private redisLastMessageAtBuffer: Map<string, number> = new Map();
   private redisFlushBufferInterval: NodeJS.Timeout;
+
+ async getDmChatRooms(
+    UserId: string,
+    page = 1,
+    limit = 20,
+  ) {
+    const key = `user:${UserId}:dm_chatrooms`;
+    const dmChatRoomResponse = await this.getDmChatRoomsWithRedis(key, page, limit);
+
+    if (!dmChatRoomResponse || !dmChatRoomResponse.chatRooms.length) {
+      return await this.getDmChatRoomsFromDB(UserId, page, limit);
+    }
+    
+    return dmChatRoomResponse;
+  }
+
+  async getDmChatRoomsWithRedis(
+    key: string,
+    page: number,
+    limit: number,
+  ) {
+    const start = (page - 1) * limit;
+    const stop = start + limit - 1;
+
+    const chatRoomIds = await this.redis.zrange(
+      key,
+      start,
+      stop,
+      'REV'
+    )
+      .catch(err => console.error(`Redis 키 조회 실패 : ${key}`, err));
+
+    if (!chatRoomIds) {
+      return {
+        chatRooms: [],
+        hasMoreData: false,
+      };
+    }
+
+    const chatRoomRecords = await this.dmChatRoomsRepository.find({
+      select: {
+        id: true,
+        name: true,
+        lastMessageAt: true,
+      },
+      where: {
+        id: In(chatRoomIds),
+      },
+      order: {
+        lastMessageAt: 'DESC',
+      },
+    });
+
+    return {
+      chatRooms: chatRoomRecords,
+      hasMoreData: true,
+    };
+  }
+
+  async getDmChatRoomsFromDB(
+    UserId: string,
+    page: number,
+    limit: number,
+  ) {
+    const chatRoomRecords = await this.roomParticipantsRepository.find({
+      select: {
+        id: true,
+        ChatRoom: {
+          id: true,
+          DmChatRoom: {
+            id: true,
+            name: true,
+            lastMessageAt: true,
+          },
+        },
+      },
+      where: {
+        UserId,
+        removedAt: IsNull(),
+        ChatRoom: {
+          type: CHATROOM_TYPE.DM,
+          removedAt: IsNull(),
+        },
+      },
+      relations: {
+        ChatRoom: {
+          DmChatRoom: true,
+        },
+      },
+      order: {
+        ChatRoom: {
+          DmChatRoom: {
+            lastMessageAt: 'DESC',
+          },
+        },
+      },
+      skip: (page - 1) * limit,
+      take: limit + 1,
+    });
+
+    if (!chatRoomRecords.length) {
+      return {
+        chatRooms: [],
+        hasMoreData: false,
+      };
+    }
+
+    const hasMoreData = chatRoomRecords.length > limit;
+
+    if (hasMoreData) {
+      chatRoomRecords.pop();
+    }
+
+    const chatRooms = chatRoomRecords.map(roomParticipant => {
+      const { id, ChatRoom } = roomParticipant;
+
+      return {
+        id,
+        name: ChatRoom.DmChatRoom.name,
+        lastMessageAt: ChatRoom.DmChatRoom.lastMessageAt,
+      };
+    });
+
+    return {
+      chatRooms,
+      hasMoreData,
+    };
+  }
 
   async getChatRoomParticipants(
     RoomId: string,
