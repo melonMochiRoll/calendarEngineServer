@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { ChatRoomsService } from "./chatrooms.service";
 import { JwtAuthGuard } from "src/auth/authGuard/jwt.auth.guard";
 import { UserId } from "src/common/decorator/userId.decorator";
@@ -15,6 +15,15 @@ export class ChatRoomsController {
   constructor(
     private chatRoomsService: ChatRoomsService,
   ) {}
+
+  @UseGuards(JwtAuthGuard)
+  @Get('dms/chatrooms')
+  getDmChatRooms(
+    @Query('page', ParseIntPipe) page: number,
+    @UserId() UserId: string,
+  ) {
+    return this.chatRoomsService.getDmChatRooms(UserId, page);
+  }
 
   @UseGuards(JwtAuthGuard)
   @Get('chatrooms/:ChatRoomId/members')
