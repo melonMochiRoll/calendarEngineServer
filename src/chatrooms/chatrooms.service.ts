@@ -534,7 +534,12 @@ export class ChatRoomsService {
     for (const [ChatRoomId, timestamp] of currentBatch.entries()) {
       const participantIds = await this.getParticipantIds(ChatRoomId);
 
-      for (const UserId of participantIds) {
+      const lastSeenPromises = participantIds.map(UserId => this.redisClientService.get(`user:${UserId}:last_seen`));
+      const lastSeens = await Promise.all(lastSeenPromises);
+
+      const recentlyActiveUserIds = participantIds.filter((_, idx) => lastSeens[idx]);
+
+      for (const UserId of recentlyActiveUserIds) {
         pipeline.zadd(`user:${UserId}:dm_chatrooms`, timestamp, ChatRoomId);
         pipeline.zremrangebyrank(`user:${UserId}:dm_chatrooms`, 0, -101);
       }
