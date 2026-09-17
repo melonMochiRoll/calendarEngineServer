@@ -523,7 +523,10 @@ export class ChatRoomsService {
     this.redisLastMessageAtBuffer.set(ChatRoomId, timestamp);
   }
 
-  async redisFlushBuffer(buffer: typeof this.redisLastMessageAtBuffer) {
+  async redisFlushBuffer(
+    buffer: typeof this.redisLastMessageAtBuffer,
+    day = 7,
+  ) {
     if (buffer.size === 0) return;
 
     const currentBatch = new Map(buffer);
@@ -540,8 +543,12 @@ export class ChatRoomsService {
       const recentlyActiveUserIds = participantIds.filter((_, idx) => lastSeens[idx]);
 
       for (const UserId of recentlyActiveUserIds) {
-        pipeline.zadd(`user:${UserId}:dm_chatrooms`, timestamp, ChatRoomId);
-        pipeline.zremrangebyrank(`user:${UserId}:dm_chatrooms`, 0, -101);
+        const key = `user:${UserId}:dm_chatrooms`;
+        const ONE_DAY_MS = 1000 * 60 * 60 * 24;
+
+        pipeline.zadd(key, timestamp, ChatRoomId);
+        pipeline.pexpire(key, ONE_DAY_MS * day);
+        pipeline.zremrangebyrank(key, 0, -101);
       }
     }
 
