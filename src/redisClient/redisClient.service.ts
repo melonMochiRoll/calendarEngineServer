@@ -36,4 +36,19 @@ export class RedisClientService {
   async del(key: string) {
     await this.redis.del(key);
   }
+
+  async recordLastSeen(
+    UserId: string,
+    timestamp = Date.now(),
+    day = 7,
+  ) {
+    const key = `user:${UserId}:last_seen`;
+    const ONE_DAY_MS = 1000 * 60 * 60 * 24;
+
+    try {
+      await this.set(key, timestamp, ONE_DAY_MS * day);
+    } catch (err) {
+      console.error(`Redis 키 저장 실패 : ${key}`, err);
+    }
+  }
 }
