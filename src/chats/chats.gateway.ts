@@ -11,6 +11,7 @@ import { UpdateSharedspaceChatDTO } from "./dto/update.sharedspace.chat.dto";
 import { DeleteSharedspaceChatDTO } from "./dto/delete.sharedspace.chat.dto";
 import { DeleteSharedspaceChatImageDTO } from "./dto/delete.sharedspace.chat.image.dto";
 import { WsExceptionFilter } from "src/common/exception/ws-exception.filter";
+import { RedisClientService } from "src/redisClient/redisClient.service";
 
 @WebSocketGateway({
   cors: process.env.NODE_ENV === 'development' && {
@@ -24,6 +25,7 @@ import { WsExceptionFilter } from "src/common/exception/ws-exception.filter";
 export class ChatsGateway {
   constructor(
     private chatsService: ChatsService,
+    private redisClientService: RedisClientService,
   ) {}
 
   @WebSocketServer()
@@ -34,9 +36,11 @@ export class ChatsGateway {
   joinRoom(
     @ConnectedSocket() socket: Socket,
     @MessageBody() id: string,
+    @UserId() UserId: string,
   ) {
     socket.join(id);
     socket.emit(ChatToClient.READY, 'ok');
+    this.redisClientService.recordLastSeen(UserId);
   }
 
   @SubscribeMessage(ChatToServer.LEAVE_ROOM)
