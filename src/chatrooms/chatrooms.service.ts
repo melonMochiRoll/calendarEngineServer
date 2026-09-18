@@ -290,7 +290,8 @@ export class ChatRoomsService {
   ) {
     const { targetUserId } = dto;
 
-    const cacheKey = `roomParticipants:oneOnOne:${UserId}:${targetUserId}`;
+    const [ UserId1, UserId2 ] = [UserId, targetUserId].sort();
+    const cacheKey = `roomParticipants:oneOnOne:${UserId1}:${UserId2}`;
 
     try {
       const cachedItem = await this.redisClientService.get<{ ChatRoomId: string }>(cacheKey);
