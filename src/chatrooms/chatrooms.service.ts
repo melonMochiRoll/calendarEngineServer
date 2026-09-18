@@ -344,6 +344,7 @@ export class ChatRoomsService {
       await qr.manager.upsert(DmChatRooms, {
         id: RoomId,
         lastMessageAt: dayjs().toDate(),
+        previewUserIds: [ UserId1, UserId2 ],
       }, ['id']);
 
       await qr.manager.upsert(RoomParticipants, {
@@ -534,6 +535,36 @@ export class ChatRoomsService {
     }
 
     return ids;
+  }
+
+  async getParticipantCount(ChatRoomId: string) {
+    const cacheKey = `room_participants:${ChatRoomId}:count`;
+
+    try {
+      const cachedItem = await this.redisClientService.get<number>(cacheKey);
+
+      if (cachedItem) {
+        return cachedItem;
+      }
+    } catch (err) {
+      console.error(`Redis 키 조회 실패 : ${cacheKey}`, err);
+    }
+
+    const participantCount = await this.roomParticipantsRepository.count({
+      where: {
+        RoomId: ChatRoomId,
+      },
+    });
+
+    const minute = 60000;
+
+    try {
+      await this.redisClientService.set(cacheKey, participantCount, 5 * minute);
+    } catch (err) {
+      console.error(`Redis 키 저장 실패 : ${cacheKey}`, err);
+    }
+
+    return participantCount;
   }
 
   redisBufferLastMessageAt(ChatRoomId: string, timestamp: number) {
