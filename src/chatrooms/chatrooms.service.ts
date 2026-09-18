@@ -524,10 +524,38 @@ export class ChatRoomsService {
     ChatRoomId: string,
     UserId: string,
   ) {
-    await this.roomParticipantsRepository.delete({
-      UserId,
-      RoomId: ChatRoomId,
-    });
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+
+    const { previewUserIds } = await this.chatRoomsFetcher.getDmChatRoomById(ChatRoomId);
+
+    try {
+      const newPreviewUserIds = previewUserIds.filter(id => UserId !== id);
+      
+      if (previewUserIds.length !== newPreviewUserIds.length) {
+        await qr.manager.update(DmChatRooms,
+          { id: ChatRoomId },
+          {
+            previewUserIds: newPreviewUserIds,
+          },
+        );
+      }
+
+      await qr.manager.delete(RoomParticipants, {
+        UserId,
+        RoomId: ChatRoomId,
+      });
+
+      await qr.commitTransaction();
+    } catch (err) {
+      await qr.rollbackTransaction();
+
+      throw err;
+    } finally {
+      await qr.release();
+    }
+
     await this.redisClientService.del(`room_participants:${ChatRoomId}:ids`);
     await this.redisClientService.del(`room_participants:${ChatRoomId}:count`);
   }
