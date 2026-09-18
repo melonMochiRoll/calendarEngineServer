@@ -478,15 +478,46 @@ export class ChatRoomsService {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
     }
 
-    const entities = targetUserIds.map(targetUserId => {
-      return {
-        UserId: targetUserId,
-        RoomId: ChatRoomId,
-      };
-    });
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
 
-    await this.roomParticipantsRepository.insert(entities);
-    await this.redisClientService.del(`roomParticipantIds:${ChatRoomId}`);
+    const participantCount = await this.getParticipantCount(ChatRoomId);
+
+    try {
+      if (participantCount > 4) {
+        const getDmChatRoomById = await this.chatRoomsFetcher.getDmChatRoomById(ChatRoomId);
+        const newPreviewUserIds = [ ...getDmChatRoomById.previewUserIds, ...targetUserIds ].slice(0, 4);
+        
+        await qr.manager.update(DmChatRooms,
+          { id: ChatRoomId },
+          {
+            previewUserIds: newPreviewUserIds,
+          },
+        );
+      }
+
+      const entities = targetUserIds.map(targetUserId => {
+        return {
+          UserId: targetUserId,
+          RoomId: ChatRoomId,
+        };
+      });
+
+      await qr.manager.insert(RoomParticipants, entities);
+
+      await qr.commitTransaction();
+    } catch (err) {
+      await qr.rollbackTransaction();
+
+      throw err;
+    } finally {
+      await qr.release();
+    }
+
+    await this.redisClientService.del(`chatRoom:${ChatRoomId}`);
+    await this.redisClientService.del(`room_participants:${ChatRoomId}:ids`);
+    await this.redisClientService.del(`room_participants:${ChatRoomId}:count`);
   }
 
   async leaveDmChatRoom(
