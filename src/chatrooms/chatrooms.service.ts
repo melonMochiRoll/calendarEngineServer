@@ -348,13 +348,13 @@ export class ChatRoomsService {
 
       await qr.manager.upsert(RoomParticipants, {
         id: uuidv7(),
-        UserId,
+        UserId: UserId1,
         RoomId,
       }, ['UserId', 'RoomId']);
 
       await qr.manager.upsert(RoomParticipants, {
         id: uuidv7(),
-        UserId: targetUserId,
+        UserId: UserId2,
         RoomId,
       }, ['UserId', 'RoomId']);
 
