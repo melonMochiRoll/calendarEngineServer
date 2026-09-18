@@ -528,7 +528,8 @@ export class ChatRoomsService {
       UserId,
       RoomId: ChatRoomId,
     });
-    await this.redisClientService.del(`roomParticipantIds:${ChatRoomId}`);
+    await this.redisClientService.del(`room_participants:${ChatRoomId}:ids`);
+    await this.redisClientService.del(`room_participants:${ChatRoomId}:count`);
   }
 
   async getParticipantIds(ChatRoomId: string) {
