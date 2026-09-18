@@ -83,6 +83,8 @@ export class ChatRoomsFetcher {
       select: {
         id: true,
         name: true,
+        lastMessageAt: true,
+        previewUserIds: true,
       },
       where: {
         id,

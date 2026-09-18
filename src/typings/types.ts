@@ -85,7 +85,7 @@ export type TSharedspaceChatRoomDefault = Pick<SharedspaceChatRooms, 'id' | 'nam
     Sharedspace: Pick<Sharedspaces, 'private'>
   };
 
-export type TDmChatRoomDefault = Pick<DmChatRooms, 'id' | 'name'>;
+export type TDmChatRoomDefault = Pick<DmChatRooms, 'id' | 'name' | 'lastMessageAt' | 'previewUserIds'>;
 
 export type CacheItem<T> = {
   value: T,
