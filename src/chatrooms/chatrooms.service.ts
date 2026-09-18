@@ -51,12 +51,28 @@ export class ChatRoomsService {
     UserId: string,
     page = 1,
     limit = 20,
+    day = 7,
   ) {
     const key = `user:${UserId}:dm_chatrooms`;
     const dmChatRoomResponse = await this.getDmChatRoomsWithRedis(key, page, limit);
 
     if (!dmChatRoomResponse || !dmChatRoomResponse.chatRooms.length) {
-      return await this.getDmChatRoomsFromDB(UserId, page, limit);
+      const dmChatRoomResponse = await this.getDmChatRoomsFromDB(UserId, page, limit);
+
+      if (page === 1) {
+        const pipeline = this.redis.pipeline();
+        const key = `user:${UserId}:dm_chatrooms`;
+        const ONE_DAY_MS = 1000 * 60 * 60 * 24;
+
+        for (const { id: ChatRoomId, lastMessageAt } of dmChatRoomResponse.chatRooms) {
+          pipeline.zadd(key, dayjs(lastMessageAt).valueOf(), ChatRoomId);
+        }
+        pipeline.pexpire(key, ONE_DAY_MS * day);
+
+        await pipeline.exec();
+      }
+
+      return dmChatRoomResponse;
     }
     
     return dmChatRoomResponse;
