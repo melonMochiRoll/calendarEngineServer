@@ -21,6 +21,7 @@ import { stringToUUID, uuidToString } from "src/common/function/utilFunctions";
 import { RedisClientService } from "src/redisClient/redisClient.service";
 import { InjectRedis } from "@nestjs-modules/ioredis";
 import Redis from "ioredis";
+import { Users } from "src/entities/Users";
 
 @Injectable()
 export class ChatRoomsService {
@@ -28,6 +29,8 @@ export class ChatRoomsService {
     @InjectRedis()
     private redis: Redis,
     private dataSource: DataSource,
+    @InjectRepository(Users)
+    private usersRepository: Repository<Users>,
     @InjectRepository(ChatRooms)
     private chatRoomsRepository: Repository<ChatRooms>,
     @InjectRepository(SharedspaceChatRooms)
@@ -106,6 +109,7 @@ export class ChatRoomsService {
         id: true,
         name: true,
         lastMessageAt: true,
+        previewUserIds: true,
       },
       where: {
         id: In(chatRoomIds),
@@ -115,8 +119,52 @@ export class ChatRoomsService {
       },
     });
 
+    const previewUserIdsArray = chatRoomRecords.reduce((acc, chatRecord) => {
+      return [ ...acc, ...chatRecord.ChatRoom.DmChatRoom.previewUserIds ];
+    }, []);
+
+    const previewUserIdRecords = await this.usersRepository.find({
+      select: {
+        id: true,
+        email: true,
+        nickname: true,
+        ProfileImage: {
+          path: true,
+        },
+      },
+      where: {
+        id: In(previewUserIdsArray),
+        removedAt: IsNull(),
+      },
+      relations: {
+        ProfileImage: true,
+      },
+    });
+
+    const previewUserIdsMap = previewUserIdRecords.reduce((acc, user) => {
+      const { ProfileImage, ...rest } = user;
+
+      acc.set(user.id, {
+        ...rest,
+        ProfileImage: ProfileImage.path,
+      });
+      return acc;
+    }, new Map());
+
+    const chatRooms = chatRoomRecords.map(roomParticipant => {
+      const { id, ChatRoom } = roomParticipant;
+      const previewUsers = ChatRoom.DmChatRoom.previewUserIds.map(id => previewUserIdsMap.get(id));
+
+      return {
+        id,
+        name: ChatRoom.DmChatRoom.name,
+        lastMessageAt: ChatRoom.DmChatRoom.lastMessageAt,
+        previewUsers,
+      };
+    });
+
     return {
-      chatRooms: chatRoomRecords,
+      chatRooms,
       hasMoreData: true,
     };
   }
@@ -135,6 +183,7 @@ export class ChatRoomsService {
             id: true,
             name: true,
             lastMessageAt: true,
+            previewUserIds: true,
           },
         },
       },
@@ -175,13 +224,47 @@ export class ChatRoomsService {
       chatRoomRecords.pop();
     }
 
+    const previewUserIdsArray = chatRoomRecords.reduce((acc, chatRecord) => {
+      return [ ...acc, ...chatRecord.ChatRoom.DmChatRoom.previewUserIds ];
+    }, []);
+
+    const previewUserIdRecords = await this.usersRepository.find({
+      select: {
+        id: true,
+        email: true,
+        nickname: true,
+        ProfileImage: {
+          path: true,
+        },
+      },
+      where: {
+        id: In(previewUserIdsArray),
+        removedAt: IsNull(),
+      },
+      relations: {
+        ProfileImage: true,
+      },
+    });
+
+    const previewUserIdsMap = previewUserIdRecords.reduce((acc, user) => {
+      const { ProfileImage, ...rest } = user;
+
+      acc.set(user.id, {
+        ...rest,
+        ProfileImage: ProfileImage.path,
+      });
+      return acc;
+    }, new Map());
+
     const chatRooms = chatRoomRecords.map(roomParticipant => {
       const { id, ChatRoom } = roomParticipant;
+      const previewUsers = ChatRoom.DmChatRoom.previewUserIds.map(id => previewUserIdsMap.get(id));
 
       return {
         id,
         name: ChatRoom.DmChatRoom.name,
         lastMessageAt: ChatRoom.DmChatRoom.lastMessageAt,
+        previewUsers,
       };
     });
 
