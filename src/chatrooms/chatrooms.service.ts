@@ -615,6 +615,14 @@ export class ChatRoomsService {
 
     try {
       const newPreviewUserIds = previewUserIds.filter(id => UserId !== id);
+      const now = dayjs().toDate();
+
+      if (!newPreviewUserIds.length) {
+        await qr.manager.update(ChatRooms,
+          { id: ChatRoomId },
+          { removedAt: now },
+        );
+      } 
       
       if (previewUserIds.length !== newPreviewUserIds.length) {
         await qr.manager.update(DmChatRooms,
@@ -631,7 +639,7 @@ export class ChatRoomsService {
           RoomId: ChatRoomId,
         },
         {
-          removedAt: dayjs().toDate(),
+          removedAt: now,
         }
       );
 
