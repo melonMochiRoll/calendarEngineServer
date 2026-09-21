@@ -113,6 +113,9 @@ export class ChatRoomsService {
       },
       where: {
         id: In(chatRoomIds),
+        ChatRoom: {
+          removedAt: IsNull(),
+        },
       },
       order: {
         lastMessageAt: 'DESC',
