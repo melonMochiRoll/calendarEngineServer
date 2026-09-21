@@ -625,10 +625,15 @@ export class ChatRoomsService {
         );
       }
 
-      await qr.manager.delete(RoomParticipants, {
-        UserId,
-        RoomId: ChatRoomId,
-      });
+      await qr.manager.update(RoomParticipants,
+        {
+          UserId,
+          RoomId: ChatRoomId,
+        },
+        {
+          removedAt: dayjs().toDate(),
+        }
+      );
 
       await qr.commitTransaction();
     } catch (err) {
