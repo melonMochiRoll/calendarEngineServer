@@ -647,6 +647,8 @@ export class ChatRoomsService {
       );
 
       await qr.commitTransaction();
+
+      await this.redis.zrem(`user:${UserId}:dm_chatrooms`, ChatRoomId);
     } catch (err) {
       await qr.rollbackTransaction();
 
