@@ -123,7 +123,7 @@ export class ChatRoomsService {
     });
 
     const previewUserIdsArray = chatRoomRecords.reduce((acc, chatRecord) => {
-      return [ ...acc, ...chatRecord.ChatRoom.DmChatRoom.previewUserIds ];
+      return [ ...acc, ...chatRecord.previewUserIds ];
     }, []);
 
     const previewUserIdRecords = await this.usersRepository.find({
@@ -154,14 +154,12 @@ export class ChatRoomsService {
       return acc;
     }, new Map());
 
-    const chatRooms = chatRoomRecords.map(roomParticipant => {
-      const { id, ChatRoom } = roomParticipant;
-      const previewUsers = ChatRoom.DmChatRoom.previewUserIds.map(id => previewUserIdsMap.get(id));
+    const chatRooms = chatRoomRecords.map(dmChatRoom => {
+      const { previewUserIds, ...rest } = dmChatRoom;
+      const previewUsers = previewUserIds.map(id => previewUserIdsMap.get(id));
 
       return {
-        id,
-        name: ChatRoom.DmChatRoom.name,
-        lastMessageAt: ChatRoom.DmChatRoom.lastMessageAt,
+        ...rest,
         previewUsers,
       };
     });
