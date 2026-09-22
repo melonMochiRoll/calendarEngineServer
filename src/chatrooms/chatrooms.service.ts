@@ -260,11 +260,11 @@ export class ChatRoomsService {
     }, new Map());
 
     const chatRooms = chatRoomRecords.map(roomParticipant => {
-      const { id, ChatRoom } = roomParticipant;
+      const { ChatRoom } = roomParticipant;
       const previewUsers = ChatRoom.DmChatRoom.previewUserIds.map(id => previewUserIdsMap.get(id));
 
       return {
-        id,
+        id: ChatRoom.id,
         name: ChatRoom.DmChatRoom.name,
         lastMessageAt: ChatRoom.DmChatRoom.lastMessageAt,
         previewUsers,
