@@ -279,7 +279,7 @@ export class ChatRoomsService {
     RoomId: string,
     UserId: string,
     beforeParticipantId?: string,
-    limit = 10,
+    limit = 30,
   ) {
     const isParticipant = await this.chatRoomsFetcher.isParticipant(UserId, RoomId);
 
