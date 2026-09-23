@@ -35,7 +35,7 @@ export class JwtLocalStrategy extends PassportStrategy(Strategy, 'jwt-local') {
       },
     });
 
-    const compare = await bcrypt.compare(password, user?.password);
+    const compare = await bcrypt.compare(password || '', user?.password || '');
 
     if (!user || !compare) {
       throw new UnauthorizedException(INCORRECT_CREDENTIALS_MESSAGE);
