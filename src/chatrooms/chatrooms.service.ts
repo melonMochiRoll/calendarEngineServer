@@ -333,7 +333,7 @@ export class ChatRoomsService {
       participantRecords.pop();
     }
 
-    const members = participantRecords.map((member) => {
+    const participants = participantRecords.map((member) => {
       const { User, ...rest } = member;
       return {
         ...rest,
@@ -345,13 +345,13 @@ export class ChatRoomsService {
 
     if (beforeParticipantId) {
       return {
-        members,
-        memberCount: null,
+        participants,
+        participantCount: null,
         hasMoreData,
       };
     }
 
-    const memberCount = await this.roomParticipantsRepository.count({
+    const participantCount = await this.roomParticipantsRepository.count({
       where: {
         RoomId,
         removedAt: IsNull(),
@@ -362,8 +362,8 @@ export class ChatRoomsService {
     });
 
     return {
-      members,
-      memberCount,
+      participants,
+      participantCount,
       hasMoreData,
     };
   }
