@@ -114,6 +114,7 @@ export class ChatRoomsService {
       where: {
         id: In(chatRoomIds),
         ChatRoom: {
+          type: CHATROOM_TYPE.DM,
           removedAt: IsNull(),
         },
       },
