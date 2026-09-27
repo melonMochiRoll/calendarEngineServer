@@ -22,6 +22,7 @@ import { RedisClientService } from "src/redisClient/redisClient.service";
 import { InjectRedis } from "@nestjs-modules/ioredis";
 import Redis from "ioredis";
 import { Users } from "src/entities/Users";
+import { TChatRoomParticipantsDefault } from "src/typings/types";
 
 @Injectable()
 export class ChatRoomsService {
@@ -281,11 +282,25 @@ export class ChatRoomsService {
     UserId: string,
     beforeParticipantId?: string,
     limit = 30,
-  ) {
+  ): Promise<TChatRoomParticipantsDefault> {
     const isParticipant = await this.chatRoomsFetcher.isParticipant(UserId, RoomId);
 
     if (!isParticipant) {
       throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+    }
+
+    const cacheKey = `room_participants:${RoomId}`;
+
+    try {
+      if (!beforeParticipantId) {
+        const cachedItem = await this.redisClientService.get<TChatRoomParticipantsDefault>(cacheKey);
+
+        if (cachedItem) {
+          return cachedItem;
+        }
+      }
+    } catch (err) {
+      console.error(`Redis 키 조회 실패 : ${cacheKey}`, err);
     }
 
     const participantRecords = await this.roomParticipantsRepository.find({
@@ -362,11 +377,21 @@ export class ChatRoomsService {
       },
     });
 
-    return {
+    const response = {
       participants,
       participantCount,
       hasMoreData,
     };
+
+    const minute = 60000;
+
+    try {
+      await this.redisClientService.set(cacheKey, response, 5 * minute);
+    } catch (err) {
+      console.error(`Redis 키 저장 실패 : ${cacheKey}`, err);
+    }
+
+    return response;
   }
 
   async createDmChatRoom(
@@ -601,6 +626,7 @@ export class ChatRoomsService {
     }
 
     await this.redisClientService.del(`chatRoom:${ChatRoomId}`);
+    await this.redisClientService.del(`room_participants:${ChatRoomId}`);
     await this.redisClientService.del(`room_participants:${ChatRoomId}:ids`);
     await this.redisClientService.del(`room_participants:${ChatRoomId}:count`);
   }
@@ -656,6 +682,7 @@ export class ChatRoomsService {
       await qr.release();
     }
 
+    await this.redisClientService.del(`room_participants:${ChatRoomId}`);
     await this.redisClientService.del(`room_participants:${ChatRoomId}:ids`);
     await this.redisClientService.del(`room_participants:${ChatRoomId}:count`);
   }
