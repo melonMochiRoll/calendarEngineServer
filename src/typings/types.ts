@@ -5,6 +5,7 @@ import { Chats } from "src/entities/Chats";
 import { DmChatRooms } from "src/entities/DmChatRooms";
 import { Images } from "src/entities/Images";
 import { ProfileImages } from "src/entities/ProfileImages";
+import { RoomParticipants } from "src/entities/RoomParticipants";
 import { SharedspaceChatRooms } from "src/entities/SharedspaceChatRooms";
 import { Sharedspaces } from "src/entities/Sharedspaces";
 import { Users } from "src/entities/Users";
@@ -109,3 +110,17 @@ export type TChatPayload = Pick<Chats,
 export type TSubscribedspacesSort = typeof SUBSCRIBEDSPACES_SORT[keyof typeof SUBSCRIBEDSPACES_SORT];
 
 export type TCacheTarget = string | number | boolean | object | null;
+
+export type TChatRoomParticipantsDefault = {
+  participants: {
+    id: string,
+    UserId: string,
+    RoomId: string,
+    createdAt: Date,
+    email: string,
+    nickname: string,
+    ProfileImage: string,
+  }[],
+  participantCount: number,
+  hasMoreData: boolean,
+};
