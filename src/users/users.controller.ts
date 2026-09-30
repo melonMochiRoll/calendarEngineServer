@@ -7,10 +7,12 @@ import { CSRFAuthGuard } from "src/auth/authGuard/csrf.auth.guard";
 import { GenerateProfileImagePresignedPutUrlDTO } from "./dto/generate.profileImage.presigned.put.url.dto";
 import { UpdateProfileImageDTO } from "./dto/update.profile.image.dto";
 import { UsersFetcher } from "./users.fetcher";
+import { RedisClientService } from "src/redisClient/redisClient.service";
 
 @Controller('api/users')
 export class UsersController {
   constructor(
+    private redisClientService: RedisClientService,
     private usersService: UsersService,
     private usersFetcher: UsersFetcher,
   ) {}
@@ -18,7 +20,12 @@ export class UsersController {
   @UseGuards(PublicAuthGuard)
   @Get()
   getUser(@UserId() UserId: string | null) {
-    return UserId ? this.usersFetcher.getUserById(UserId) : null;
+    if (!UserId) {
+      return null;
+    }
+    
+    this.redisClientService.recordLastSeen(UserId);
+    return this.usersFetcher.getUserById(UserId);
   }
 
   @Get('email')
