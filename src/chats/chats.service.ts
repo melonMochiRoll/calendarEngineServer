@@ -400,15 +400,17 @@ export class ChatsService {
         await Promise.all(updatePromises);
       }
 
+      const now = dayjs();
+
       await qr.manager.update(DmChatRooms, {
         id: ChatRoomId,
       }, {
-        lastMessageAt: dayjs().toDate(),
+        lastMessageAt: now.toDate(),
       });
 
       await qr.commitTransaction();
 
-      this.chatRoomsService.redisBufferLastMessageAt(ChatRoomId, Date.now());
+      this.chatRoomsService.redisBufferLastMessageAt(ChatRoomId, now.valueOf());
 
       const result = await this.chatsRepository.findOne({
         select: {
