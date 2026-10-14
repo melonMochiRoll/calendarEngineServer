@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { nanoid } from "nanoid";
-import { CACHE_EMPTY_SYMBOL, CHATROOM_TYPE, USER_STATUS } from "src/common/constant/constants";
+import { CACHE_EMPTY_SYMBOL, CHATROOM_TYPE, REDIS_CHATROOM_LIST_MAX, USER_STATUS } from "src/common/constant/constants";
 import { ACCESS_DENIED_MESSAGE } from "src/common/constant/error.message";
 import { ChatRooms } from "src/entities/ChatRooms";
 import { DataSource, In, IsNull, LessThan, Repository } from "typeorm";
@@ -783,7 +783,7 @@ export class ChatRoomsService {
 
         pipeline.zadd(key, timestamp, ChatRoomId);
         pipeline.pexpire(key, ONE_DAY_MS * day);
-        pipeline.zremrangebyrank(key, 0, -101);
+        pipeline.zremrangebyrank(key, 0, -(REDIS_CHATROOM_LIST_MAX + 1));
       }
     }
 
