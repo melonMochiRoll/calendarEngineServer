@@ -1,6 +1,8 @@
 
 export const REFRESH_TOKEN_JTI_LENGTH = 20;
 
+export const REDIS_CHATROOM_LIST_MAX = 100;
+
 export const USER_PROVIDER = {
   LOCAL: 'local',
   NAVER: 'naver',
