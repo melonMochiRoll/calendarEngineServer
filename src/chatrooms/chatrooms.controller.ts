@@ -9,6 +9,8 @@ import { CreateSharedspaceChatRoomDTO } from "./dto/create.sharedspace.chatroom.
 import { UpdateSharedspaceChatRoomNameDTO } from "./dto/update.sharedspace.chatroom.name.dto";
 import { InviteDmChatRoomDTO } from "./dto/invite.dm.chatroom";
 import { UUIDv7ValidationPipe } from "src/common/pipe/uuidv7.validation.pipe";
+import { Dayjs } from "dayjs";
+import { ParseDayjsPipe } from "src/common/pipe/parse.date.pipe";
 
 @Controller('api')
 export class ChatRoomsController {
@@ -19,10 +21,10 @@ export class ChatRoomsController {
   @UseGuards(JwtAuthGuard)
   @Get('dms/chatrooms')
   getDmChatRooms(
-    @Query('page', ParseIntPipe) page: number,
+    @Query('before', ParseDayjsPipe) beforelastMessageAt: Dayjs | null,
     @UserId() UserId: string,
   ) {
-    return this.chatRoomsService.getDmChatRooms(UserId, page);
+    return this.chatRoomsService.getDmChatRooms(UserId, beforelastMessageAt);
   }
 
   @UseGuards(JwtAuthGuard)

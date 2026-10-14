@@ -15,7 +15,7 @@ import { CreateSharedspaceChatRoomDTO } from "./dto/create.sharedspace.chatroom.
 import { RolesService } from "src/roles/roles.service";
 import { SharedspaceFetcher } from "src/sharedspaces/sharedspaces.fetcher";
 import { UpdateSharedspaceChatRoomNameDTO } from "./dto/update.sharedspace.chatroom.name.dto";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import { InviteDmChatRoomDTO } from "./dto/invite.dm.chatroom";
 import { stringToUUID, uuidToString } from "src/common/function/utilFunctions";
 import { RedisClientService } from "src/redisClient/redisClient.service";
@@ -53,17 +53,17 @@ export class ChatRoomsService {
 
  async getDmChatRooms(
     UserId: string,
-    page = 1,
+    beforelastMessageAt?: Dayjs,
     limit = 20,
     day = 7,
   ) {
     const key = `user:${UserId}:dm_chatrooms`;
-    const dmChatRoomResponse = await this.getDmChatRoomsWithRedis(key, page, limit);
+    const dmChatRoomResponse = await this.getDmChatRoomsWithRedis(key, limit, beforelastMessageAt);
 
     if (!dmChatRoomResponse || !dmChatRoomResponse.chatRooms.length) {
-      const dmChatRoomResponseFromDB = await this.getDmChatRoomsFromDB(UserId, page, limit);
+      const dmChatRoomResponseFromDB = await this.getDmChatRoomsFromDB(UserId, limit, beforelastMessageAt);
 
-      if (page === 1) {
+      if (!beforelastMessageAt) {
         const pipeline = this.redis.pipeline();
         const key = `user:${UserId}:dm_chatrooms`;
         const ONE_DAY_MS = 1000 * 60 * 60 * 24;
@@ -84,17 +84,20 @@ export class ChatRoomsService {
 
   async getDmChatRoomsWithRedis(
     key: string,
-    page: number,
     limit: number,
+    beforelastMessageAt?: Dayjs,
   ) {
-    const start = (page - 1) * limit;
-    const stop = start + limit - 1;
+    const max = beforelastMessageAt ? `(${beforelastMessageAt.valueOf()}` : '+inf';
 
     const chatRoomIds = await this.redis.zrange(
       key,
-      start,
-      stop,
-      'REV'
+      max,
+      '-inf',
+      'BYSCORE',
+      'REV',
+      'LIMIT',
+      0,
+      limit + 1,
     )
       .catch(err => console.error(`Redis 키 조회 실패 : ${key}`, err));
 
@@ -103,6 +106,12 @@ export class ChatRoomsService {
         chatRooms: [],
         hasMoreData: false,
       };
+    }
+
+    const hasMoreData = chatRoomIds.length > limit;
+
+    if (hasMoreData) {
+      chatRoomIds.pop();
     }
 
     const chatRoomRecords = await this.dmChatRoomsRepository.find({
@@ -168,14 +177,14 @@ export class ChatRoomsService {
 
     return {
       chatRooms,
-      hasMoreData: true,
+      hasMoreData,
     };
   }
 
   async getDmChatRoomsFromDB(
     UserId: string,
-    page: number,
     limit: number,
+    beforelastMessageAt?: Dayjs,
   ) {
     const chatRoomRecords = await this.roomParticipantsRepository.find({
       select: {
@@ -190,7 +199,17 @@ export class ChatRoomsService {
           },
         },
       },
-      where: {
+      where: beforelastMessageAt ? {
+        UserId,
+        removedAt: IsNull(),
+        ChatRoom: {
+          type: CHATROOM_TYPE.DM,
+          removedAt: IsNull(),
+          DmChatRoom: {
+            lastMessageAt: LessThan(beforelastMessageAt.toDate()),
+          },
+        },
+      } : {
         UserId,
         removedAt: IsNull(),
         ChatRoom: {
@@ -210,7 +229,6 @@ export class ChatRoomsService {
           },
         },
       },
-      skip: (page - 1) * limit,
       take: limit + 1,
     });
 
