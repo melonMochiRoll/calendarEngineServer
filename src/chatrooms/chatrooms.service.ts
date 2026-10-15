@@ -67,11 +67,19 @@ export class ChatRoomsService {
         const pipeline = this.redis.pipeline();
         const key = `user:${UserId}:dm_chatrooms`;
         const ONE_DAY_MS = 1000 * 60 * 60 * 24;
+        const ttl = ONE_DAY_MS * day;
 
+        const batchLength = dmChatRoomResponseFromDB.chatRooms.length
+
+        const end = await this.redis.incrby(`seq:dm_chatrooms:last_message_at`, batchLength);
+        const start = end - batchLength + 1;
+
+        let seq = start;
         for (const { id: ChatRoomId, lastMessageAt } of dmChatRoomResponseFromDB.chatRooms) {
-          pipeline.zadd(key, dayjs(lastMessageAt).valueOf(), ChatRoomId);
+          const uniqueTimestamp = dayjs(lastMessageAt).valueOf() * 1000 + ((seq++) % 1000);
+          pipeline.zadd(key, uniqueTimestamp, ChatRoomId);
         }
-        pipeline.pexpire(key, ONE_DAY_MS * day);
+        pipeline.pexpire(key, ttl);
 
         await pipeline.exec();
       }
@@ -785,22 +793,48 @@ export class ChatRoomsService {
     const currentBatch = new Map(buffer);
     this.redisLastMessageAtBuffer.clear();
 
+    const promises = [...currentBatch.entries()]
+      .map(async ([ChatRoomId, timestamp]) => {
+        const participantIds = await this.getParticipantIds(ChatRoomId);
+
+        if (participantIds.length === 0) {
+          return { keys: [], ChatRoomId, timestamp };
+        }
+
+        const lastSeens = await this.redis.mget(
+          participantIds.map(UserId => `user:${UserId}:last_seen`)
+        );
+
+        const recentlyActiveUserZsetKeys = participantIds
+          .filter((_, idx) => lastSeens[idx])
+          .map(UserId => `user:${UserId}:dm_chatrooms`);
+
+        return {
+          keys: recentlyActiveUserZsetKeys,
+          ChatRoomId,
+          timestamp,
+        };
+      });
+
+    const flatBatch = await Promise.all(promises);
+    const batchLength = flatBatch.reduce((acc, item) => acc+item.keys.length, 0);
+    if (batchLength === 0) return; 
+
     const pipeline = this.redis.pipeline();
 
-    for (const [ChatRoomId, timestamp] of currentBatch.entries()) {
-      const participantIds = await this.getParticipantIds(ChatRoomId);
+    const ONE_DAY_MS = 1000 * 60 * 60 * 24;
+    const ttl = ONE_DAY_MS * day;
 
-      const lastSeenPromises = participantIds.map(UserId => this.redisClientService.get(`user:${UserId}:last_seen`));
-      const lastSeens = await Promise.all(lastSeenPromises);
+    const end = await this.redis.incrby(`seq:dm_chatrooms:last_message_at`, batchLength);
+    const start = end - batchLength + 1;
 
-      const recentlyActiveUserIds = participantIds.filter((_, idx) => lastSeens[idx]);
+    let seq = start;
+    for (const { keys, ChatRoomId, timestamp } of flatBatch) {
+      for (const key of keys) {
+        const uniqueTimestamp = timestamp * 1000 + ((seq++) % 1000);
 
-      for (const UserId of recentlyActiveUserIds) {
-        const key = `user:${UserId}:dm_chatrooms`;
-        const ONE_DAY_MS = 1000 * 60 * 60 * 24;
-
-        pipeline.zadd(key, timestamp, ChatRoomId);
-        pipeline.pexpire(key, ONE_DAY_MS * day);
+        pipeline.zadd(key, uniqueTimestamp, ChatRoomId);
+        pipeline.pexpire(key, ttl);
         pipeline.zremrangebyrank(key, 0, -(REDIS_CHATROOM_LIST_MAX + 1));
       }
     }
