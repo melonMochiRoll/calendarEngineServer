@@ -656,6 +656,29 @@ export class ChatRoomsService {
       await qr.manager.insert(RoomParticipants, entities);
 
       await qr.commitTransaction();
+
+      const batchLength = targetUserIds.length;
+      const now = dayjs().valueOf();
+
+      const ONE_DAY_MS = 1000 * 60 * 60 * 24;
+      const ttl = ONE_DAY_MS * 7;
+
+      const end = await this.redis.incrby(`seq:dm_chatrooms:last_message_at`, batchLength);
+      const start = end - batchLength + 1;
+
+      const pipeline = this.redis.pipeline();
+
+      let seq = start;
+      for (const targetUserId of targetUserIds) {
+        const key = `user:${targetUserId}:dm_chatrooms`;
+        const uniqueTimestamp = now * 1000 + ((seq++) % 1000);
+
+        pipeline.zadd(key, uniqueTimestamp, ChatRoomId);
+        pipeline.pexpire(key, ttl);
+        pipeline.zremrangebyrank(key, 0, -(REDIS_CHATROOM_LIST_MAX + 1));
+      }
+   
+      await pipeline.exec();
     } catch (err) {
       await qr.rollbackTransaction();
 
