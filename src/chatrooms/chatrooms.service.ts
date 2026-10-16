@@ -438,8 +438,9 @@ export class ChatRoomsService {
     dto: CreateDmChatRoomDTO,
   ) {
     const { targetUserId } = dto;
+    const targetUserIds = [UserId, targetUserId];
 
-    const [ UserId1, UserId2 ] = [UserId, targetUserId].sort();
+    const [ UserId1, UserId2 ] = targetUserIds.sort();
     const cacheKey = `roomParticipants:oneOnOne:${UserId1}:${UserId2}`;
 
     try {
@@ -482,6 +483,8 @@ export class ChatRoomsService {
     await qr.connect();
     await qr.startTransaction();
 
+    const now = dayjs();
+
     try {
       const RoomId = uuidv7();
 
@@ -492,7 +495,7 @@ export class ChatRoomsService {
 
       await qr.manager.upsert(DmChatRooms, {
         id: RoomId,
-        lastMessageAt: dayjs().toDate(),
+        lastMessageAt: now.toDate(),
         previewUserIds: [ UserId1, UserId2 ],
       }, ['id']);
 
@@ -515,6 +518,27 @@ export class ChatRoomsService {
       } catch (err) {
         console.error(`Redis 키 저장 실패 : ${cacheKey}`, err);
       }
+
+      const batchLength = targetUserIds.length;
+      const ONE_DAY_MS = 1000 * 60 * 60 * 24;
+      const ttl = ONE_DAY_MS * 7;
+
+      const end = await this.redis.incrby(`seq:dm_chatrooms:last_message_at`, batchLength);
+      const start = end - batchLength + 1;
+
+      const pipeline = this.redis.pipeline();
+
+      let seq = start;
+      for (const targetUserId of targetUserIds) {
+        const key = `user:${targetUserId}:dm_chatrooms`;
+        const uniqueTimestamp = now.valueOf() * 1000 + ((seq++) % 1000);
+
+        pipeline.zadd(key, uniqueTimestamp, RoomId);
+        pipeline.pexpire(key, ttl);
+        pipeline.zremrangebyrank(key, 0, -(REDIS_CHATROOM_LIST_MAX + 1));
+      }
+   
+      await pipeline.exec();
 
       return { ChatRoomId: RoomId };
     } catch (err) {
