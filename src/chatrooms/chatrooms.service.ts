@@ -57,34 +57,47 @@ export class ChatRoomsService {
     limit = 20,
     day = 7,
   ) {
+    const hasMoreInDbKey = `user:${UserId}:dm_chatrooms:warm_up`;
+    const hasMoreInDb = await this.redis.get(hasMoreInDbKey);
+
+    if (hasMoreInDb === null) {
+      const dmChatRoomResponseFromDB = await this.getDmChatRoomsFromDB(UserId, 100);
+
+      const pipeline = this.redis.pipeline();
+      const key = `user:${UserId}:dm_chatrooms`;
+      const ONE_DAY_MS = 1000 * 60 * 60 * 24;
+      const ttl = ONE_DAY_MS * day;
+
+      const batchLength = dmChatRoomResponseFromDB.chatRooms.length;
+
+      const end = await this.redis.incrby(`seq:dm_chatrooms:last_message_at`, batchLength);
+      const start = end - batchLength + 1;
+
+      let seq = start;
+      for (const { id: ChatRoomId, lastMessageAt } of dmChatRoomResponseFromDB.chatRooms) {
+        const uniqueTimestamp = dayjs(lastMessageAt).valueOf() * 1000 + ((seq++) % 1000);
+        pipeline.zadd(key, uniqueTimestamp, ChatRoomId);
+      }
+      pipeline.pexpire(key, ttl);
+
+      await pipeline.exec();
+
+      const hasMoreInDb = dmChatRoomResponseFromDB.hasMoreData;
+      await this.redis.set(hasMoreInDbKey, hasMoreInDb ? '1' : '0');
+
+      return {
+        chatRooms: dmChatRoomResponseFromDB.chatRooms.slice(0, limit),
+        hasMoreData: dmChatRoomResponseFromDB.chatRooms.length > limit,
+      };
+    }
+
     const key = `user:${UserId}:dm_chatrooms`;
     const dmChatRoomResponse = await this.getDmChatRoomsWithRedis(key, limit, beforelastMessageAt);
 
-    if (!dmChatRoomResponse || !dmChatRoomResponse.chatRooms.length) {
-      const dmChatRoomResponseFromDB = await this.getDmChatRoomsFromDB(UserId, limit, beforelastMessageAt);
+    if (dmChatRoomResponse.chatRooms.length < limit) {
+      if (hasMoreInDb === '0') return dmChatRoomResponse;
 
-      if (!beforelastMessageAt) {
-        const pipeline = this.redis.pipeline();
-        const key = `user:${UserId}:dm_chatrooms`;
-        const ONE_DAY_MS = 1000 * 60 * 60 * 24;
-        const ttl = ONE_DAY_MS * day;
-
-        const batchLength = dmChatRoomResponseFromDB.chatRooms.length
-
-        const end = await this.redis.incrby(`seq:dm_chatrooms:last_message_at`, batchLength);
-        const start = end - batchLength + 1;
-
-        let seq = start;
-        for (const { id: ChatRoomId, lastMessageAt } of dmChatRoomResponseFromDB.chatRooms) {
-          const uniqueTimestamp = dayjs(lastMessageAt).valueOf() * 1000 + ((seq++) % 1000);
-          pipeline.zadd(key, uniqueTimestamp, ChatRoomId);
-        }
-        pipeline.pexpire(key, ttl);
-
-        await pipeline.exec();
-      }
-
-      return dmChatRoomResponseFromDB;
+      return await this.getDmChatRoomsFromDB(UserId, limit - dmChatRoomResponse.chatRooms.length, beforelastMessageAt);
     }
     
     return dmChatRoomResponse;
