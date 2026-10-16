@@ -438,7 +438,7 @@ export class ChatRoomsService {
     dto: CreateDmChatRoomDTO,
   ) {
     const { targetUserId } = dto;
-    const targetUserIds = [UserId, targetUserId];
+    const targetUserIds = [ UserId, targetUserId ];
 
     const [ UserId1, UserId2 ] = targetUserIds.sort();
     const cacheKey = `roomParticipants:oneOnOne:${UserId1}:${UserId2}`;
@@ -853,7 +853,15 @@ export class ChatRoomsService {
     const currentBatch = new Map(buffer);
     this.redisLastMessageAtBuffer.clear();
 
-    const promises = [...currentBatch.entries()]
+    const seen = new Set();
+    const uniqueBatch = [...currentBatch.entries()]
+      .filter(([ChatRoomId]) => {
+        if (seen.has(ChatRoomId)) return false;
+        seen.add(ChatRoomId);
+        return true;
+      });
+
+    const promises = uniqueBatch
       .map(async ([ChatRoomId, timestamp]) => {
         const participantIds = await this.getParticipantIds(ChatRoomId);
 
