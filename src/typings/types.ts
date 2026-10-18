@@ -121,6 +121,5 @@ export type TChatRoomParticipantsDefault = {
     nickname: string,
     ProfileImage: string,
   }[],
-  participantCount: number,
   hasMoreData: boolean,
 };

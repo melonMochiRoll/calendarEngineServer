@@ -401,24 +401,12 @@ export class ChatRoomsService {
     if (beforeParticipantId) {
       return {
         participants,
-        participantCount: null,
         hasMoreData,
       };
     }
 
-    const participantCount = await this.roomParticipantsRepository.count({
-      where: {
-        RoomId,
-        removedAt: IsNull(),
-        User: {
-          status: USER_STATUS.ACTIVE,
-        },
-      },
-    });
-
     const response = {
       participants,
-      participantCount,
       hasMoreData,
     };
 
@@ -431,6 +419,49 @@ export class ChatRoomsService {
     }
 
     return response;
+  }
+
+  async getChatRoomParticipantCount(
+    ChatRoomId: string,
+    UserId: string,
+  ) {
+    const isParticipant = await this.chatRoomsFetcher.isParticipant(UserId, ChatRoomId);
+
+    if (!isParticipant) {
+      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
+    }
+
+    const cacheKey = `room_participants:${ChatRoomId}:count`;
+
+    try {
+      const cachedItem = await this.redisClientService.get<number>(cacheKey);
+
+      if (cachedItem) {
+        return cachedItem;
+      }
+    } catch (err) {
+      console.error(`Redis 키 조회 실패 : ${cacheKey}`, err);
+    }
+
+    const participantCount = await this.roomParticipantsRepository.count({
+      where: {
+        RoomId: ChatRoomId,
+        removedAt: IsNull(),
+        User: {
+          status: USER_STATUS.ACTIVE,
+        },
+      },
+    });
+
+    const minute = 60000;
+
+    try {
+      await this.redisClientService.set(cacheKey, participantCount, 5 * minute);
+    } catch (err) {
+      console.error(`Redis 키 저장 실패 : ${cacheKey}`, err);
+    }
+
+    return participantCount;
   }
 
   async createDmChatRoom(

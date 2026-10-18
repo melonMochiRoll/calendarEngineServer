@@ -37,6 +37,15 @@ export class ChatRoomsController {
     return this.chatRoomsService.getChatRoomParticipants(ChatRoomId, UserId, beforeParticipantId);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('chatrooms/:ChatRoomId/participants/count')
+  getChatRoomParticipantCount(
+    @Param('ChatRoomId', UUIDv7ValidationPipe) ChatRoomId: string,
+    @UserId() UserId: string,
+  ) {
+    return this.chatRoomsService.getChatRoomParticipantCount(ChatRoomId, UserId);
+  }
+
   @UseGuards(JwtAuthGuard, CSRFAuthGuard)
   @Post('sharedspaces/:SharedspaceId/chatrooms')
   createSharedspaceChatRoom(
