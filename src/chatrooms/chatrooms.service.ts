@@ -398,13 +398,6 @@ export class ChatRoomsService {
       };
     });
 
-    if (beforeParticipantId) {
-      return {
-        participants,
-        hasMoreData,
-      };
-    }
-
     const response = {
       participants,
       hasMoreData,
@@ -413,7 +406,9 @@ export class ChatRoomsService {
     const minute = 60000;
 
     try {
-      await this.redisClientService.set(cacheKey, response, 5 * minute);
+      if (!beforeParticipantId) {
+        await this.redisClientService.set(cacheKey, response, 5 * minute);
+      }
     } catch (err) {
       console.error(`Redis 키 저장 실패 : ${cacheKey}`, err);
     }
