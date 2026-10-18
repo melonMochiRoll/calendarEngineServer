@@ -861,13 +861,18 @@ export class ChatRoomsService {
         return true;
       });
 
+    const participantIdsMap: Record<string, string[]> = {};
+
+    for (const [ChatRoomId] of uniqueBatch) {
+      const participantIds = await this.getParticipantIds(ChatRoomId);
+      if (participantIds.length) {
+        participantIdsMap[ChatRoomId] = participantIds;
+      }
+    }
+
     const promises = uniqueBatch
       .map(async ([ChatRoomId, timestamp]) => {
-        const participantIds = await this.getParticipantIds(ChatRoomId);
-
-        if (participantIds.length === 0) {
-          return { keys: [], ChatRoomId, timestamp };
-        }
+        const participantIds = participantIdsMap[ChatRoomId];
 
         const lastSeens = await this.redis.mget(
           participantIds.map(UserId => `user:${UserId}:last_seen`)
