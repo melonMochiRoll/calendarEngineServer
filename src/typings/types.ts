@@ -81,10 +81,7 @@ export type TUserDefault = Pick<Users, 'id' | 'email' | 'nickname' | 'provider' 
   ProfileImage: string,
 };
 
-export type TSharedspaceChatRoomDefault = Pick<SharedspaceChatRooms, 'id' | 'name' | 'SharedspaceId'> &
-  {
-    Sharedspace: Pick<Sharedspaces, 'private'>
-  };
+export type TSharedspaceChatRoomDefault = Pick<SharedspaceChatRooms, 'id' | 'name' | 'SharedspaceId'>;
 
 export type TDmChatRoomDefault = Pick<DmChatRooms, 'id' | 'name' | 'lastMessageAt' | 'previewUserIds'>;
 

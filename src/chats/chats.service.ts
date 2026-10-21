@@ -20,6 +20,7 @@ import { ERROR_TYPE } from "src/common/constant/auth.constants";
 import { ChatRoomsFetcher } from "src/chatrooms/chatrooms.fetcher";
 import { DmChatRooms } from "src/entities/DmChatRooms";
 import { ChatRoomsService } from "src/chatrooms/chatrooms.service";
+import { SharedspaceFetcher } from "src/sharedspaces/sharedspaces.fetcher";
 
 @Injectable()
 export class ChatsService {
@@ -35,6 +36,7 @@ export class ChatsService {
     private storageR2Service: StorageR2Service,
     private chatRoomsFetcher: ChatRoomsFetcher,
     private chatRoomsService: ChatRoomsService,
+    private sharedspaceFetcher: SharedspaceFetcher,
   ) {}
 
   async getSharedspaceChatRoomChats(
@@ -45,11 +47,13 @@ export class ChatsService {
   ) {
     const room = await this.chatRoomsFetcher.getSharedspaceChatRoomById(ChatRoomId);
 
-    if (!room || !room?.SharedspaceId) {
+    if (!room || !room.SharedspaceId) {
       throw new BadRequestException(BAD_REQUEST_MESSAGE);
     }
+    
+    const sharedspace = await this.sharedspaceFetcher.getSharedspaceById(room.SharedspaceId);
 
-    if (room.Sharedspace.private) {
+    if (sharedspace.private) {
       const isParticipant = await this.rolesService.requireParticipant(UserId, room.SharedspaceId);
 
       if (!isParticipant) {
