@@ -904,19 +904,18 @@ export class ChatRoomsService {
           participantIds.map(UserId => `user:${UserId}:last_seen`)
         );
 
-        const recentlyActiveUserZsetKeys = participantIds
-          .filter((_, idx) => lastSeens[idx])
-          .map(UserId => `user:${UserId}:dm_chatrooms`);
+        const recentlyActiveUserIds = participantIds
+          .filter((_, idx) => lastSeens[idx]);
 
         return {
-          keys: recentlyActiveUserZsetKeys,
+          UserIds: recentlyActiveUserIds,
           ChatRoomId,
           timestamp,
         };
       });
 
     const flatBatch = await Promise.all(promises);
-    const batchLength = flatBatch.reduce((acc, item) => acc+item.keys.length, 0);
+    const batchLength = flatBatch.reduce((acc, item) => acc+item.UserIds.length, 0);
     if (batchLength === 0) return; 
 
     const pipeline = this.redis.pipeline();
@@ -928,13 +927,16 @@ export class ChatRoomsService {
     const start = end - batchLength + 1;
 
     let seq = start;
-    for (const { keys, ChatRoomId, timestamp } of flatBatch) {
-      for (const key of keys) {
+    for (const { UserIds, ChatRoomId, timestamp } of flatBatch) {
+      for (const UserId of UserIds) {
         const uniqueTimestamp = timestamp * 1000 + ((seq++) % 1000);
+        const chatRoomsKey = `user:${UserId}:dm_chatrooms`;
+        const hasMoreInDbKey = `user:${UserId}:dm_chatrooms:warm_up`;
 
-        pipeline.zadd(key, uniqueTimestamp, ChatRoomId);
-        pipeline.pexpire(key, ttl);
-        pipeline.zremrangebyrank(key, 0, -(REDIS_CHATROOM_LIST_MAX + 1));
+        pipeline.zadd(chatRoomsKey, uniqueTimestamp, ChatRoomId);
+        pipeline.pexpire(chatRoomsKey, ttl);
+        pipeline.pexpire(hasMoreInDbKey, ttl - 10000);
+        pipeline.zremrangebyrank(chatRoomsKey, 0, -(REDIS_CHATROOM_LIST_MAX + 1));
       }
     }
 
