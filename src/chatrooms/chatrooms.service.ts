@@ -97,7 +97,12 @@ export class ChatRoomsService {
     if (dmChatRoomResponse.chatRooms.length < limit) {
       if (hasMoreInDb === '0') return dmChatRoomResponse;
 
-      return await this.getDmChatRoomsFromDB(UserId, limit - dmChatRoomResponse.chatRooms.length, beforelastMessageAt);
+      const rest = await this.getDmChatRoomsFromDB(UserId, limit - dmChatRoomResponse.chatRooms.length, beforelastMessageAt)
+
+      return {
+        chatRooms: [ ...dmChatRoomResponse.chatRooms, ...rest.chatRooms ],
+        hasMoreData: rest.hasMoreData,
+      };
     }
     
     return dmChatRoomResponse;
