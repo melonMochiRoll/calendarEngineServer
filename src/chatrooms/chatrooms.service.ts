@@ -83,7 +83,7 @@ export class ChatRoomsService {
       await pipeline.exec();
 
       const hasMoreInDb = dmChatRoomResponseFromDB.hasMoreData;
-      await this.redis.set(hasMoreInDbKey, hasMoreInDb ? '1' : '0');
+      await this.redis.set(hasMoreInDbKey, hasMoreInDb ? '1' : '0', 'PX', ttl - 10000);
 
       return {
         chatRooms: dmChatRoomResponseFromDB.chatRooms.slice(0, limit),
@@ -101,7 +101,7 @@ export class ChatRoomsService {
     }
     
     return dmChatRoomResponse;
-  }
+  } 
 
   async getDmChatRoomsWithRedis(
     key: string,
