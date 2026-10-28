@@ -940,6 +940,9 @@ export class ChatRoomsService {
     const end = await this.redis.incrby(`seq:dm_chatrooms:last_message_at`, batchLength);
     const start = end - batchLength + 1;
 
+    let batchIndex = 0;
+    const trimIndexes: { index: number, UserId: string }[] = [];
+
     let seq = start;
     for (const { UserIds, ChatRoomId, timestamp } of flatBatch) {
       for (const UserId of UserIds) {
@@ -947,13 +950,32 @@ export class ChatRoomsService {
         const chatRoomsKey = `user:${UserId}:dm_chatrooms`;
         const hasMoreInDbKey = `user:${UserId}:dm_chatrooms:warm_up`;
 
-        pipeline.zadd(chatRoomsKey, uniqueTimestamp, ChatRoomId);
-        pipeline.pexpire(chatRoomsKey, ttl);
-        pipeline.pexpire(hasMoreInDbKey, ttl - 10000);
+        pipeline.zadd(chatRoomsKey, uniqueTimestamp, ChatRoomId); batchIndex++;
+        pipeline.pexpire(chatRoomsKey, ttl);                      batchIndex++;
+        pipeline.pexpire(hasMoreInDbKey, ttl - 10000);            batchIndex++;
         pipeline.zremrangebyrank(chatRoomsKey, 0, -(REDIS_CHATROOM_LIST_MAX + 1));
+        trimIndexes.push({ index: batchIndex++, UserId });
       }
     }
 
-    await pipeline.exec();
+    const batchResult = await pipeline.exec();
+
+    const trimmedUserIds = new Set();
+
+    for (const { index, UserId } of trimIndexes) {
+      const [ err, removed ]: [ err: Error, removed: number | unknown ] = batchResult[index];
+      if (err || typeof removed !== 'number') continue;
+      if (removed > 0) trimmedUserIds.add(UserId);
+    }
+
+    if (trimmedUserIds.size) {
+      const pipeline = this.redis.pipeline();
+
+      for (const UserId of trimmedUserIds) {
+        pipeline.set(`user:${UserId}:dm_chatrooms:warm_up`, 1, 'KEEPTTL');
+      }
+
+      await pipeline.exec();
+    }
   }
 }
