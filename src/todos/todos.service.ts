@@ -46,18 +46,14 @@ export class TodosService {
 
     const cacheKey = `todos:${space.id}:${year}-${month}`;
 
-    try {
-      const cachedItem = await this.redisClientService.get<Map<string, Todos> | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
+    const cachedItem = await this.redisClientService.get<Map<string, Todos> | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
-      if (cachedItem) {
-        if (cachedItem === CACHE_EMPTY_SYMBOL) {
-          return null;
-        }
-
-        return cachedItem;
+    if (cachedItem) {
+      if (cachedItem === CACHE_EMPTY_SYMBOL) {
+        return null;
       }
-    } catch (err) {
-      console.error(`Redis 키 조회 실패 : ${cacheKey}`, err);
+
+      return cachedItem;
     }
 
     const todos = await this.todosRepository.find({
@@ -101,16 +97,12 @@ export class TodosService {
 
     const minute = 60000;
 
-    try {
-      if (!todos) {
-        await this.redisClientService.set(cacheKey, CACHE_EMPTY_SYMBOL, 1 * minute);
-        return null;
-      }
-
-      await this.redisClientService.set(cacheKey, todosMap, 1 * minute);
-    } catch (err) {
-      console.error(`Redis 키 저장 실패 : ${cacheKey}`, err);
+    if (!todos) {
+      await this.redisClientService.set(cacheKey, CACHE_EMPTY_SYMBOL, 1 * minute);
+      return null;
     }
+
+    await this.redisClientService.set(cacheKey, todosMap, 1 * minute);
 
     return todosMap;
   }

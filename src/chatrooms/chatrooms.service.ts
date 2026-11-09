@@ -344,16 +344,12 @@ export class ChatRoomsService {
 
     const cacheKey = `room_participants:${RoomId}`;
 
-    try {
-      if (!beforeParticipantId) {
-        const cachedItem = await this.redisClientService.get<TChatRoomParticipantsDefault>(cacheKey);
+    if (!beforeParticipantId) {
+      const cachedItem = await this.redisClientService.get<TChatRoomParticipantsDefault>(cacheKey);
 
-        if (cachedItem) {
-          return cachedItem;
-        }
+      if (cachedItem) {
+        return cachedItem;
       }
-    } catch (err) {
-      console.error(`Redis 키 조회 실패 : ${cacheKey}`, err);
     }
 
     const participantRecords = await this.roomParticipantsRepository.find({
@@ -419,12 +415,8 @@ export class ChatRoomsService {
 
     const minute = 60000;
 
-    try {
-      if (!beforeParticipantId) {
-        await this.redisClientService.set(cacheKey, response, 5 * minute);
-      }
-    } catch (err) {
-      console.error(`Redis 키 저장 실패 : ${cacheKey}`, err);
+    if (!beforeParticipantId) {
+      await this.redisClientService.set(cacheKey, response, 5 * minute);
     }
 
     return response;
@@ -442,14 +434,10 @@ export class ChatRoomsService {
 
     const cacheKey = `room_participants:${ChatRoomId}:count`;
 
-    try {
-      const cachedItem = await this.redisClientService.get<number>(cacheKey);
+    const cachedItem = await this.redisClientService.get<number>(cacheKey);
 
-      if (cachedItem) {
-        return cachedItem;
-      }
-    } catch (err) {
-      console.error(`Redis 키 조회 실패 : ${cacheKey}`, err);
+    if (cachedItem) {
+      return cachedItem;
     }
 
     const participantCount = await this.roomParticipantsRepository.count({
@@ -464,11 +452,7 @@ export class ChatRoomsService {
 
     const minute = 60000;
 
-    try {
-      await this.redisClientService.set(cacheKey, participantCount, 5 * minute);
-    } catch (err) {
-      console.error(`Redis 키 저장 실패 : ${cacheKey}`, err);
-    }
+    await this.redisClientService.set(cacheKey, participantCount, 5 * minute);
 
     return participantCount;
   }
@@ -483,14 +467,10 @@ export class ChatRoomsService {
     const [ UserId1, UserId2 ] = targetUserIds.sort();
     const cacheKey = `roomParticipants:oneOnOne:${UserId1}:${UserId2}`;
 
-    try {
-      const cachedItem = await this.redisClientService.get<{ ChatRoomId: string }>(cacheKey);
+    const cachedItem = await this.redisClientService.get<{ ChatRoomId: string }>(cacheKey);
 
-      if (cachedItem) {
-        return { ChatRoomId: cachedItem.ChatRoomId };
-      }
-    } catch (err) {
-      console.error(`Redis 키 조회 실패 : ${cacheKey}`, err);
+    if (cachedItem) {
+      return { ChatRoomId: cachedItem.ChatRoomId };
     }
 
     const userIds = [ UserId, targetUserId ].map(id => stringToUUID(id));
@@ -508,15 +488,11 @@ export class ChatRoomsService {
 
     const minute = 60000;
 
-    try {
-      if (oneOnOneChatRoom) {
-        const result = { ChatRoomId: uuidToString(oneOnOneChatRoom.RoomId) };
+    if (oneOnOneChatRoom) {
+      const result = { ChatRoomId: uuidToString(oneOnOneChatRoom.RoomId) };
 
-        await this.redisClientService.set(cacheKey, result, 5 * minute);
-        return result;
-      }
-    } catch (err) {
-      console.error(`Redis 키 저장 실패 : ${cacheKey}`, err);
+      await this.redisClientService.set(cacheKey, result, 5 * minute);
+      return result;
     }
 
     const qr = this.dataSource.createQueryRunner();
@@ -553,11 +529,7 @@ export class ChatRoomsService {
 
       await qr.commitTransaction();
 
-      try {
-        await this.redisClientService.set(cacheKey, { ChatRoomId: RoomId }, 5 * minute);
-      } catch (err) {
-        console.error(`Redis 키 저장 실패 : ${cacheKey}`, err);
-      }
+      await this.redisClientService.set(cacheKey, { ChatRoomId: RoomId }, 5 * minute);
 
       const batchLength = targetUserIds.length;
       const ONE_DAY_MS = 1000 * 60 * 60 * 24;
@@ -816,14 +788,10 @@ export class ChatRoomsService {
   async getParticipantIds(ChatRoomId: string) {
     const cacheKey = `room_participants:${ChatRoomId}:ids`;
 
-    try {
-      const cachedItem = await this.redisClientService.get<string[]>(cacheKey);
+    const cachedItem = await this.redisClientService.get<string[]>(cacheKey);
 
-      if (cachedItem) {
-        return cachedItem;
-      }
-    } catch (err) {
-      console.error(`Redis 키 조회 실패 : ${cacheKey}`, err);
+    if (cachedItem) {
+      return cachedItem;
     }
 
     const roomParticipantRecords = await this.roomParticipantsRepository.find({
@@ -841,11 +809,7 @@ export class ChatRoomsService {
 
     const minute = 60000;
 
-    try {
-      await this.redisClientService.set(cacheKey, ids, 5 * minute);
-    } catch (err) {
-      console.error(`Redis 키 저장 실패 : ${cacheKey}`, err);
-    }
+    await this.redisClientService.set(cacheKey, ids, 5 * minute);
 
     return ids;
   }
@@ -853,14 +817,10 @@ export class ChatRoomsService {
   async getParticipantCount(ChatRoomId: string) {
     const cacheKey = `room_participants:${ChatRoomId}:count`;
 
-    try {
-      const cachedItem = await this.redisClientService.get<number>(cacheKey);
+    const cachedItem = await this.redisClientService.get<number>(cacheKey);
 
-      if (cachedItem) {
-        return cachedItem;
-      }
-    } catch (err) {
-      console.error(`Redis 키 조회 실패 : ${cacheKey}`, err);
+    if (cachedItem) {
+      return cachedItem;
     }
 
     const participantCount = await this.roomParticipantsRepository.count({
@@ -871,11 +831,7 @@ export class ChatRoomsService {
 
     const minute = 60000;
 
-    try {
-      await this.redisClientService.set(cacheKey, participantCount, 5 * minute);
-    } catch (err) {
-      console.error(`Redis 키 저장 실패 : ${cacheKey}`, err);
-    }
+    await this.redisClientService.set(cacheKey, participantCount, 5 * minute);
 
     return participantCount;
   }

@@ -17,14 +17,10 @@ export class UsersFetcher {
   async getUserById(id: string): Promise<TUserDefault> {
     const cacheKey = `user:${id}`;
 
-    try {
-      const cachedItem = await this.redisClientService.get<TUserDefault | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
+    const cachedItem = await this.redisClientService.get<TUserDefault | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
-      if (cachedItem) {
-        return cachedItem === CACHE_EMPTY_SYMBOL ? null : cachedItem;
-      }
-    } catch (err) {
-      console.error(`Redis 키 조회 실패 : ${cacheKey}`, err);
+    if (cachedItem) {
+      return cachedItem === CACHE_EMPTY_SYMBOL ? null : cachedItem;
     }
 
     const result = await this.usersRepository.findOne({
@@ -57,16 +53,12 @@ export class UsersFetcher {
     const second = 1000;
     const minute = 60000;
 
-    try {
-      if (!result) {
-        await this.redisClientService.set(cacheKey, CACHE_EMPTY_SYMBOL, 3 * second);
-        return null;
-      }
-
-      await this.redisClientService.set(cacheKey, user, 10 * minute);
-    } catch (err) {
-      console.error(`Redis 키 저장 실패 : ${cacheKey}`, err);
+    if (!result) {
+      await this.redisClientService.set(cacheKey, CACHE_EMPTY_SYMBOL, 3 * second);
+      return null;
     }
+
+    await this.redisClientService.set(cacheKey, user, 10 * minute);
 
     return user;
   }
@@ -74,14 +66,10 @@ export class UsersFetcher {
   async getUserByEmail(email: string): Promise<TUserDefault> {
     const cacheKey = `user:${email}`;
 
-    try {
-      const targetUserId = await this.redisClientService.get<string | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
+    const targetUserId = await this.redisClientService.get<string | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
-      if (targetUserId) {
-        return targetUserId === CACHE_EMPTY_SYMBOL ? null : await this.getUserById(targetUserId);
-      }
-    } catch (err) {
-      console.error(`Redis 키 조회 실패 : ${cacheKey}`, err);
+    if (targetUserId) {
+      return targetUserId === CACHE_EMPTY_SYMBOL ? null : await this.getUserById(targetUserId);
     }
 
     const result = await this.usersRepository.findOne({
@@ -114,16 +102,12 @@ export class UsersFetcher {
     const second = 1000;
     const minute = 60000;
 
-    try {
-      if (!result) {
-        await this.redisClientService.set(cacheKey, CACHE_EMPTY_SYMBOL, 3 * second);
-        return null;
-      }
-
-      await this.redisClientService.set(cacheKey, user.id, 10 * minute);
-    } catch (err) {
-      console.error(`Redis 키 저장 실패 : ${cacheKey}`, err);
+    if (!result) {
+      await this.redisClientService.set(cacheKey, CACHE_EMPTY_SYMBOL, 3 * second);
+      return null;
     }
+
+    await this.redisClientService.set(cacheKey, user.id, 10 * minute);
 
     return user;
   }
@@ -131,14 +115,10 @@ export class UsersFetcher {
   async getUserByNickname(nickname: string): Promise<TUserDefault> {
     const cacheKey = `user:${nickname}`;
 
-    try {
-      const targetUserId = await this.redisClientService.get<string | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
+    const targetUserId = await this.redisClientService.get<string | typeof CACHE_EMPTY_SYMBOL>(cacheKey);
 
-      if (targetUserId) {
-        return targetUserId === CACHE_EMPTY_SYMBOL ? null : await this.getUserById(targetUserId);
-      }
-    } catch (err) {
-      console.error(`Redis 키 조회 실패 : ${cacheKey}`, err);
+    if (targetUserId) {
+      return targetUserId === CACHE_EMPTY_SYMBOL ? null : await this.getUserById(targetUserId);
     }
 
     const result = await this.usersRepository.findOne({
@@ -171,16 +151,12 @@ export class UsersFetcher {
     const second = 1000;
     const minute = 60000;
 
-    try {
-      if (!result) {
-        await this.redisClientService.set(cacheKey, CACHE_EMPTY_SYMBOL, 3 * second);
-        return null;
-      }
-
-      await this.redisClientService.set(cacheKey, user.id, 10 * minute);
-    } catch (err) {
-      console.error(`Redis 키 저장 실패 : ${cacheKey}`, err);
+    if (!result) {
+      await this.redisClientService.set(cacheKey, CACHE_EMPTY_SYMBOL, 3 * second);
+      return null;
     }
+
+    await this.redisClientService.set(cacheKey, user.id, 10 * minute);
 
     return user;
   }

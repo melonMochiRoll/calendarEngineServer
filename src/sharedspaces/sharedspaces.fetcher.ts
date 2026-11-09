@@ -22,32 +22,28 @@ export class SharedspaceFetcher {
   ) {
     const cacheKey = `sharedspace:${id}`;
 
-    try {
-      const cachedItem = await this.redisClientService.get<CacheItem<TSharedspaceDefault>>(cacheKey);
+    const cachedItem = await this.redisClientService.get<CacheItem<TSharedspaceDefault>>(cacheKey);
 
-      if (cachedItem) {
-        const random = Math.log(Math.random());
-        const threshold = dayjs().valueOf() - (cachedItem.duration * beta * random);
-        const isRefresher = threshold >= cachedItem.expireTime;
+    if (cachedItem) {
+      const random = Math.log(Math.random());
+      const threshold = dayjs().valueOf() - (cachedItem.duration * beta * random);
+      const isRefresher = threshold >= cachedItem.expireTime;
 
-        const lockKey = `lock:${cacheKey}`;
-        const isLocked = isRefresher && await this.redisClientService.setIfNotExist(lockKey, nanoid())
-          .catch(err => console.error(`Redis 락 획득 실패 : ${lockKey}`, err));
+      const lockKey = `lock:${cacheKey}`;
+      const isLocked = isRefresher && await this.redisClientService.setIfNotExist(lockKey, nanoid())
+        .catch(err => console.error(`Redis 락 획득 실패 : ${lockKey}`, err));
 
-        if (isLocked === 'OK') {
-          this.fetchSharedspaceAndWrite(cacheKey, id)
-            .catch((err) => {
-              console.log(err);
-            })
-            .finally(async () => {
-              await this.redisClientService.del(lockKey);
-            });
-        }
-
-        return cachedItem.value;
+      if (isLocked === 'OK') {
+        this.fetchSharedspaceAndWrite(cacheKey, id)
+          .catch((err) => {
+            console.log(err);
+          })
+          .finally(async () => {
+            await this.redisClientService.del(lockKey);
+          });
       }
-    } catch (err) {
-      console.error(`Redis 키 조회 실패 : ${cacheKey}`, err);
+
+      return cachedItem.value;
     }
 
     const space = await this.fetchSharedspaceAndWrite(cacheKey, id);
@@ -95,15 +91,11 @@ export class SharedspaceFetcher {
     const minute = 60000;
     const ttl = 5 * minute;
 
-    try {
-      await this.redisClientService.set(cacheKey, {
-        value: space,
-        duration: delta,
-        expireTime: dayjs().valueOf() + ttl,
-      }, ttl);
-    } catch (err) {
-      console.error(`Redis 키 저장 실패 : ${cacheKey}`, err);
-    }
+    await this.redisClientService.set(cacheKey, {
+      value: space,
+      duration: delta,
+      expireTime: dayjs().valueOf() + ttl,
+    }, ttl);
 
     return space;
   }

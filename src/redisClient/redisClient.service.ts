@@ -11,22 +11,30 @@ export class RedisClientService {
   ) {}
 
   async get<T>(key: string): Promise<T | null> {
-    const result = await this.redis.get(key);
+    try {
+      const result = await this.redis.get(key);
 
-    if (!result) {
-      return null;
+      if (!result) {
+        return null;
+      }
+      
+      return JSON.parse(result) as T;
+    } catch (err) {
+      console.error(`Redis 키 조회 실패 : ${key}`, err);
     }
-    
-    return JSON.parse(result) as T;
   }
 
   async set<T extends TCacheTarget>(key: string, value: T, ttl = 5000) {
-    if (ttl === 0) {
-      await this.redis.set(key, JSON.stringify(value));
-      return;
-    }
+    try {
+      if (ttl === 0) {
+        await this.redis.set(key, JSON.stringify(value));
+        return;
+      }
 
-    await this.redis.set(key, JSON.stringify(value), 'PX', ttl);
+      await this.redis.set(key, JSON.stringify(value), 'PX', ttl);
+    } catch (err) {
+      console.error(`Redis 키 저장 실패 : ${key}`, err);
+    }
   }
 
   async setIfNotExist(key: string, value: string, ttl = 3000) {
