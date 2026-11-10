@@ -681,7 +681,6 @@ export class ChatsService {
       
       const key = this.storageR2Service.generateStorageKey(ChatRoomId, fileName);
       const presignedUrl = await this.storageR2Service.generatePresignedPutUrl(key, contentType);
-      await this.imagesRepository.insert({ id: ImageId, status: IMAGE_STATUS.PENDING, type: IMAGE_TYPE.CHAT });
 
       return {
         key,
@@ -691,6 +690,10 @@ export class ChatsService {
     })
 
     const keyAndUrls = await Promise.all(batch);
+
+    for (const { id: ImageId } of metaDatas) {
+      await this.imagesRepository.insert({ id: ImageId, status: IMAGE_STATUS.PENDING, type: IMAGE_TYPE.CHAT });
+    }
 
     return keyAndUrls;
   }
