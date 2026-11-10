@@ -555,10 +555,9 @@ export class ChatsService {
 
       const now = dayjs().toDate();
 
-      const softDeletePromises = targetChat.ChatImages.map(chatImage =>
-        qr.manager.update(Images, { id: chatImage.id }, { status: IMAGE_STATUS.DELETED, removedAt: now })
-      );
-      await Promise.all(softDeletePromises);
+      for (const chatImage of targetChat.ChatImages) {
+        await qr.manager.update(Images, { id: chatImage.id }, { status: IMAGE_STATUS.DELETED, removedAt: now })
+      }
 
       await qr.manager.update(Chats, { id: targetChat.id }, { removedAt: now });
 
