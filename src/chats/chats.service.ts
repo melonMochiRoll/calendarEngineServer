@@ -299,12 +299,10 @@ export class ChatsService {
       });
 
       if (imageIds.length) {
-        const updatePromises = imageIds.map(async (imageId, i) => {
+        for (const [i, imageId] of imageIds.entries()) {
           await qr.manager.update(Images, { id: imageId }, { status: IMAGE_STATUS.ACTIVE });
           await qr.manager.insert(ChatImages, { id: imageId, path: imageKeys[i], ChatId, });
-        });
-
-        await Promise.all(updatePromises);
+        }
       }
 
       await qr.commitTransaction();
@@ -396,12 +394,10 @@ export class ChatsService {
       });
 
       if (imageIds.length) {
-        const updatePromises = imageIds.map(async (imageId, i) => {
+        for (const [i, imageId] of imageIds.entries()) {
           await qr.manager.update(Images, { id: imageId }, { status: IMAGE_STATUS.ACTIVE });
           await qr.manager.insert(ChatImages, { id: imageId, path: imageKeys[i], ChatId, });
-        });
-
-        await Promise.all(updatePromises);
+        }
       }
 
       const now = dayjs();
