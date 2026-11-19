@@ -41,6 +41,7 @@ export class JoinRequestsService {
         message: true,
         Requestor: {
           email: true,
+          nickname: true,
           ProfileImage: {
             id: true,
             path: true,
