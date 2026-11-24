@@ -127,7 +127,8 @@ export class SharedspacesController {
     @Param('SharedspaceId', UUIDv7ValidationPipe) SharedspaceId: string,
     @Query('query') query: string,
     @Query('before', UUIDv7OrEmptyPipe) beforeUserId: string,
+    @UserId() UserId: string,
   ) {
-    return this.sharedspacesService.searchUsersWithParticipantStatus(SharedspaceId, query, beforeUserId);
+    return this.sharedspacesService.searchUsersWithParticipantStatus(SharedspaceId, UserId, query, beforeUserId);
   }
 }

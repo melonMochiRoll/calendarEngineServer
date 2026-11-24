@@ -583,10 +583,13 @@ export class SharedspacesService {
 
   async searchUsersWithParticipantStatus(
     SharedspaceId: string,
+    UserId: string,
     query: string,
     beforeUserId: string,
     limit = 10,
   ) {
+    const idBuffer = stringToUUID(UserId);
+
     const qb1 = this.usersRepository
       .createQueryBuilder('users')
       .select([
@@ -597,7 +600,8 @@ export class SharedspacesService {
       .leftJoin('users.ProfileImage', 'ProfileImage')
       .addSelect(['ProfileImage.path AS ProfileImage'])
       .where('users.email LIKE :email', { email: `${query}%` })
-      .andWhere('users.status = :status1', { status1: USER_STATUS.ACTIVE });
+      .andWhere('users.status = :status1', { status1: USER_STATUS.ACTIVE })
+      .andWhere('users.id != :UserId', { UserId: idBuffer });
 
     const qb2 = this.usersRepository
       .createQueryBuilder('users')
@@ -609,7 +613,8 @@ export class SharedspacesService {
       .leftJoin('users.ProfileImage', 'ProfileImage')
       .addSelect(['ProfileImage.path AS ProfileImage'])
       .where('users.nickname LIKE :nickname', { nickname: `${query}%` })
-      .andWhere('users.status = :status2', { status2: USER_STATUS.ACTIVE });
+      .andWhere('users.status = :status2', { status2: USER_STATUS.ACTIVE })
+      .andWhere('users.id != :UserId', { UserId: idBuffer });
 
     if (beforeUserId) {
       qb1.andWhere('users.id < :beforeUserId', { beforeUserId });
