@@ -276,6 +276,8 @@ export class FriendshipsService {
     UserId: string,
     limit = 10,
   ) {
+    const idBuffer = stringToUUID(UserId);
+
     const qb1 = this.usersRepository
       .createQueryBuilder('users')
       .select([
@@ -285,13 +287,14 @@ export class FriendshipsService {
       ])
       .leftJoin('users.ProfileImage', 'ProfileImage')
       .addSelect(['ProfileImage.path AS ProfileImage'])
-      .leftJoin('users.SentFriendships', 'Friendship', 'Friendship.RequesteeId = :RequesteeId', { RequesteeId: stringToUUID(UserId) })
+      .leftJoin('users.SentFriendships', 'Friendship', 'Friendship.RequesteeId = :RequesteeId', { RequesteeId: idBuffer })
       .addSelect([
         'Friendship.RequesteeId AS RequesteeId',
         'Friendship.status AS Friendship_status',
       ])
       .where('users.email LIKE :email', { email: `${query}%` })
-      .andWhere('users.status = :status1', { status1: USER_STATUS.ACTIVE });
+      .andWhere('users.status = :status1', { status1: USER_STATUS.ACTIVE })
+      .andWhere('users.id != :UserId', { UserId: idBuffer });
 
     const qb2 = this.usersRepository
       .createQueryBuilder('users')
@@ -302,13 +305,14 @@ export class FriendshipsService {
       ])
       .leftJoin('users.ProfileImage', 'ProfileImage')
       .addSelect(['ProfileImage.path AS ProfileImage'])
-      .leftJoin('users.SentFriendships', 'Friendship', 'Friendship.RequesteeId = :RequesteeId', { RequesteeId: stringToUUID(UserId) })
+      .leftJoin('users.SentFriendships', 'Friendship', 'Friendship.RequesteeId = :RequesteeId', { RequesteeId: idBuffer })
       .addSelect([
         'Friendship.RequesteeId AS RequesteeId',
         'Friendship.status AS Friendship_status',
       ])
       .where('users.nickname LIKE :nickname', { nickname: `${query}%` })
-      .andWhere('users.status = :status2', { status2: USER_STATUS.ACTIVE });
+      .andWhere('users.status = :status2', { status2: USER_STATUS.ACTIVE })
+      .andWhere('users.id != :UserId', { UserId: idBuffer });
 
     if (beforeUserId) {
       qb1.andWhere('users.id < :beforeUserId', { beforeUserId });
