@@ -408,53 +408,41 @@ export class ChatRoomsService {
       };
     });
 
-    const response = {
+    if (!beforeParticipantId) {
+      const participantCount = await this.roomParticipantsRepository.count({
+        where: {
+          RoomId,
+          removedAt: IsNull(),
+          User: {
+            status: USER_STATUS.ACTIVE,
+          },
+        },
+      });
+
+      const minute = 60000;
+
+      await this.redisClientService.set(
+        cacheKey,
+        {
+          participants,
+          hasMoreData,
+          participantCount,
+        },
+        5 * minute,
+      );
+
+      return {
+        participants,
+        hasMoreData,
+        participantCount,
+      };
+    }
+
+    return {
       participants,
       hasMoreData,
+      participantCount: null,
     };
-
-    const minute = 60000;
-
-    if (!beforeParticipantId) {
-      await this.redisClientService.set(cacheKey, response, 5 * minute);
-    }
-
-    return response;
-  }
-
-  async getChatRoomParticipantCount(
-    ChatRoomId: string,
-    UserId: string,
-  ) {
-    const isParticipant = await this.chatRoomsFetcher.isParticipant(UserId, ChatRoomId);
-
-    if (!isParticipant) {
-      throw new ForbiddenException(ACCESS_DENIED_MESSAGE);
-    }
-
-    const cacheKey = `room_participants:${ChatRoomId}:count`;
-
-    const cachedItem = await this.redisClientService.get<number>(cacheKey);
-
-    if (cachedItem) {
-      return cachedItem;
-    }
-
-    const participantCount = await this.roomParticipantsRepository.count({
-      where: {
-        RoomId: ChatRoomId,
-        removedAt: IsNull(),
-        User: {
-          status: USER_STATUS.ACTIVE,
-        },
-      },
-    });
-
-    const minute = 60000;
-
-    await this.redisClientService.set(cacheKey, participantCount, 5 * minute);
-
-    return participantCount;
   }
 
   async createDmChatRoom(
