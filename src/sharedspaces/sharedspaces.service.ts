@@ -473,15 +473,32 @@ export class SharedspacesService {
       };
     });
 
-    const minute = 60000;
-
     if (!beforeUserId) {
-      await this.redisClientService.set(cacheKey, { members, hasMoreData }, 10 * minute);
+      const memberCount = await this.spaceMembersRepository.count({
+        where: {
+          SharedspaceId: space.id,
+          removedAt: IsNull(),
+          User: {
+            status: USER_STATUS.ACTIVE,
+          },
+        },
+      });
+
+      const minute = 60000;
+
+      await this.redisClientService.set(cacheKey, { members, hasMoreData, memberCount }, 10 * minute);
+
+      return {
+        members,
+        hasMoreData,
+        memberCount,
+      };
     }
 
     return {
       members,
       hasMoreData,
+      memberCount: null,
     };
   }
 
